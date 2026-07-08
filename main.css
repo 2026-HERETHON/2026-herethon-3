@@ -40,7 +40,7 @@ nav {
   transition: font-weight 0.3s ease;
 }
 
-.navbar-menu .beBold {
+.navbar-menu.beBold {
   font-weight: 600;
 }
 
