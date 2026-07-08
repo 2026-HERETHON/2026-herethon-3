@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>안심맵</title></head>
+<body>
+  <nav>
+    {% if request.user.is_authenticated %}
+      <span>{{ request.user.nickname }}님 환영합니다</span>
+      <form method="post" action="{% url 'accounts:logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">로그아웃</button>
+      </form>
+    {% else %}
+      <a href="{% url 'accounts:signup' %}">회원가입</a>
+      <a href="{% url 'accounts:login' %}">로그인</a>
+    {% endif %}
+  </nav>
+
+  <h1>안심맵 홈 (임시)</h1>
+</body>
+</html>
