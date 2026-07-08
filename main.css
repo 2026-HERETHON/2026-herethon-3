@@ -1,0 +1,86 @@
+nav {
+  color: #000;
+  text-align: center;
+
+  /* Body/M */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+}
+
+#navbar-container {
+  height: 60px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  border-bottom: 2px solid #d9d2d4;
+}
+
+.navbar-Select {
+    position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 20px; /*일단 임의로 넣었어요*/
+}
+
+.navbar-Select .navbar-menu {
+  width: 231px;
+  height: 60px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  cursor: pointer;
+  transition: font-weight 0.3s ease;
+}
+
+.navbar-menu .beBold {
+  font-weight: 600;
+}
+
+.navbar-Select .navbar-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: #21a8ff;
+
+  transition:
+    transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    width 0.3s ease;
+}
+
+.navbar-Select .navbar-commercial {
+  width: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+nav .navbar-loginImg {
+  width: 14px;
+  height: 16px;
+}
+
+nav .navbar-login {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+  padding-right: 60px;
+}
+
+nav .navbar-ahref {
+  text-decoration: none;
+  color: inherit;
+}
+
+main {
+  width: 1579px;
+}
