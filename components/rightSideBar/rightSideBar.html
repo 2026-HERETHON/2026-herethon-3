@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="rightSideBar.css" />
+  </head>
+  <body>
+    <div class="rightSB-body">
+      <div class="rightSB-region">
+        상계동 일대
+        <img
+          class="rightSB-exitImg"
+          src="./rightSB-images/close.svg"
+          alt="닫기"
+        />
+      </div>
+      <div class="region-underline"></div>
+
+      <div class="rightSB-content">
+        <div class="rightSB-safety">
+          <div class="rightSB-safetyScoreContainer">
+            <div class="rightSB-safetyScoreTitle">안심 점수</div>
+            <div class="rightSB-safteyScore">
+              <div class="rightSB-score">82</div>
+              <div class="rightSB-fullScore">/ 100</div>
+              <div class="rightSB-safeRegion">안심 구역</div>
+            </div>
+            <div class="rightSB-regionDescription">
+              이 지역은 전반적으로 안전한 편에 속해요. <br />(2020년 이후 데이터
+              기준)
+            </div>
+            <button>
+              점수 기준 보기
+              <img src="./rightSB-images/details.svg" alt="더보기" />
+            </button>
+          </div>
+          <div class="rightSB-safetyGraph"></div>
+        </div>
+        <div class="rightSB-satisfactionContainer">
+          <div class="rightSB-satisfactionTitle rightSB-boldFont">
+            영역별 만족도
+          </div>
+          <div class="rightSB-satisfcationLine"></div>
+
+          <div class="rightSB-satisfactionList">
+            <div class="rightSB-night rightSB-satisfcationItem">
+              <div class="rightSB-satisfactionItemTitle">
+                <img src="./rightSB-images/night.svg" />
+                <div class="rightSB-boldFont">밤길 체감 안전도</div>
+              </div>
+
+              <div class="rightSB-starRatingContainer">
+                <div class="rightSB-starRatingDisplay"></div>
+                <div class="rightSB-starRatingScore">
+                  <span
+                    class="rightSB-ratingScore"
+                    id="rightSB-night-score-text"
+                  ></span>
+                  <span class="rightSB-RatingFullScore">/ 5.0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rightSB-convenience rightSB-satisfcationItem">
+              <div class="rightSB-satisfactionItemTitle">
+                <img src="./rightSB-images/convenience.svg" />
+                <div class="rightSB-boldFont">편의시설 만족도</div>
+              </div>
+
+              <div class="rightSB-starRatingContainer">
+                <div class="rightSB-starRatingDisplay"></div>
+                <div class="rightSB-starRatingScore">
+                  <span
+                    class="rightSB-ratingScore"
+                    id="rightSB-convenience-score-text"
+                  ></span>
+                  <span class="rightSB-RatingFullScore">/ 5.0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rightSB-atmosphere rightSB-satisfcationItem">
+              <div class="rightSB-satisfactionItemTitle">
+                <img src="./rightSB-images/atmosphere.svg" />
+                <div class="rightSB-boldFont">동네 분위기</div>
+              </div>
+
+              <div class="rightSB-starRatingContainer">
+                <div class="rightSB-starRatingDisplay"></div>
+                <div class="rightSB-starRatingScore">
+                  <span
+                    class="rightSB-ratingScore"
+                    id="rightSB-atmosphere-score-text"
+                  ></span>
+                  <span class="rightSB-RatingFullScore">/ 5.0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rightSB-reviewContainer">
+          <div class="rightSB-reviewNav">
+            <div
+              class="rightSB-reviewSelected rightSB-navbar-menu rightSB-beBold"
+            >
+              실거주 후기
+              <span>(12)</span>
+            </div>
+            <div class="rightSB-QnASelected rightSB-navbar-menu">
+              Q&A
+              <span>(7)</span>
+            </div>
+            <div class="rightSB-navbar-indicator"></div>
+          </div>
+          <div class="rightSB-reviewNavUnderline"></div>
+
+          <div class="rightSB-tabContentWrapper">
+            <div
+              id="tabContentReview"
+              class="rightSB-tabContent rightSB-activeContent"
+            >
+              <div class="rightSB-reviewTitle">
+                <img src="./rightSB-images/backBtn.svg" />
+                후기 작성하기
+              </div>
+
+              <div class="rightSB-reviewContainerBox">
+                <div class="rightSB-reviewCheckListTitle">영역별 만족도</div>
+                <div class="rightSB-reviewCheckListTitleDetail">
+                  각 항목별 만족도를 선택해주세요
+                </div>
+
+                <div class="rightSB-reviewCheckLists">
+                  <div class="rightSB-reviewChecks">
+                    <div class="rightSB-nightCheck">
+                      <img src="./rightSB-images/night.svg" />
+                      <div>
+                        <div class="rightSB-mediumFont">밤길 체감 안전도</div>
+                        <div class="rightSB-lightFont">
+                          밤에 혼자 돌아다녀도 안전한 느낌이에요.
+                        </div>
+                      </div>
+                    </div>
+                    <div>별점 표기할 곳</div>
+                  </div>
+
+                  <div class="rightSB-reviewChecks">
+                    <div class="rightSB-convenienceCheck">
+                      <img src="./rightSB-images/convenience.svg" />
+                      <div>
+                        <div class="rightSB-mediumFont">편의시설 만족도</div>
+                        <div class="rightSB-lightFont">
+                          병원, 주차, 편의점 등이 잘 갖춰져 있어요.
+                        </div>
+                      </div>
+                    </div>
+                    <div>별점 표기할 곳</div>
+                  </div>
+
+                  <div class="rightSB-reviewChecks">
+                    <div class="rightSB-atmosCheck">
+                      <img src="./rightSB-images/atmosphere.svg" />
+                      <div>
+                        <div class="rightSB-mediumFont">동네 분위기</div>
+                        <div class="rightSB-lightFont">
+                          동네 분위기가 쾌적하고 좋았어요.
+                        </div>
+                      </div>
+                    </div>
+                    <div>별점 표기할 곳</div>
+                  </div>
+                </div>
+
+                <div class="rightSB-reviewCheckListTitle">자세한 후기</div>
+                <div class="rightSB-reviewCheckListTitleDetail">
+                  실거주 경험을 바탕으로 솔직한 후기를 남겨주세요.
+                </div>
+              </div>
+            </div>
+            <div id="tabContentQnA" class="rightSB-tabContent">
+              Q&A 영역 내용이 들어갈 곳입니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rightSB-reviewBtn">
+        <button class="rightSB-reviewSubmitBtn">등록하기</button>
+        <button class="rightSB-reviewCancleBtn">취소</button>
+      </div>
+    </div>
+
+    <script src="./rightSideBar.js"></script>
+  </body>
+</html>
