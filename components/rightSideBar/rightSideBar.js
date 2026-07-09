@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const qnaListBtnGroup = allBtnGroups[1]; // Q&A 목록용 (질문 남기기 / 찜하기)
   const formSubmitBtnGroup = allBtnGroups[2]; // 공통 폼 등록용 (등록하기 / 취소)
 
-  // --- [B] 통합 버튼 상태 제어 함수 (핵심 기능) ---
+ // --- [B] 통합 버튼 상태 제어 함수 (수정본) ---
   function updateBottomButtons() {
     // 1. 모든 버튼 일단 숨김
     reviewListBtnGroup?.classList.add("rightSB-hide");
@@ -94,16 +94,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeTab.id === "tabContentReview") {
       // 실거주 후기 탭일 때
       if (reviewFormSub && !reviewFormSub.classList.contains("rightSB-hide")) {
-        formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 2페이지 폼 작성 중
+        formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 폼 작성 중일 때만 등록/취소 버튼
       } else {
-        reviewListBtnGroup?.classList.remove("rightSB-hide"); // 1페이지 목록 상태
+        reviewListBtnGroup?.classList.remove("rightSB-hide"); // 목록 상태
       }
     } else if (activeTab.id === "tabContentQnA") {
       // Q&A 탭일 때
       if (qnaFormSub && !qnaFormSub.classList.contains("rightSB-hide")) {
-        formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 4페이지 폼 작성 중
-      } else {
-        qnaListBtnGroup?.classList.remove("rightSB-hide"); // 3페이지 목록 상태
+        formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 질문 작성 폼일 때만 등록/취소 버튼
+      } 
+      // 💡 [여기 수정] 목록 상태이거나 '상세 보기 페이지' 상태일 때 둘 다 질문 남기기/찜하기 버튼 유지!
+      else {
+        qnaListBtnGroup?.classList.remove("rightSB-hide"); 
       }
     }
   }
@@ -642,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: 204, question: "주변에 편의점이나 마트는 많나요?", answerCount: 2 },
     {
       id: 205,
-      question: "이 동네의 가장 큰 장단점은 무엇인가요?",
+      question: "이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?",
       answerCount: 3,
     },
     { id: 206, question: "밤에 혼자 걸어다녀도 괜찮을까요?", answerCount: 2 },
@@ -782,4 +784,152 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 최초 실행!
   renderSafetyChart(mockGraphDataFromServer);
+
+  // --- [L] Q&A 질문 상세 보기 및 화면 전환 모듈 ---
+
+  // 1. 임시 백엔드 데이터 (상세 질문에 딸린 답변 목록 샘플)
+  const mockAnswersFromServer = {
+    201: [
+      {
+        nickname: "별빛여행자",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content: "네, 큰 길 위주로 다니시면 괜찮아요. 가로등도 많아요!",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+    ],
+  };
+
+  const qnaDetailSub = document.querySelector(".rightSB-qnaDetailSubPage");
+
+  // 2. 기존 renderQnas 함수 보완 (질문 카드에 클릭 이벤트 리스너 추가하기)
+  function renderQnas(qnas) {
+    const container = document.getElementById("rightSB-qnaCardContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (qnas.length === 0) {
+      container.innerHTML = `<div style="text-align:center; color:#7b7578; padding:24px 0;">등록된 질문이 없습니다.</div>`;
+      return;
+    }
+
+    qnas.forEach((qna) => {
+      // 가상 데이터 매칭용 mock 추가 정보 처리
+      const user = qna.user || "별빛여행자";
+      const date = qna.date || "3일 전";
+      const views = qna.views || 213;
+
+      const qnaHTML = `
+        <div class="rightSB-qnaCard" data-id="${qna.id}" data-user="${user}" data-date="${date}" data-views="${views}">
+          <div class="rightSB-qnaLeft">
+            <div class="rightSB-qnaAvatar">Q</div>
+            <span class="rightSB-qnaQuestion">${qna.question}</span>
+          </div>
+          <div class="rightSB-qnaRight">
+            <span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span>
+            <img src="./rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML("beforeend", qnaHTML);
+    });
+
+    // 카드 클릭 시 상세 페이지로 이동 이벤트 바인딩
+    container.querySelectorAll(".rightSB-qnaCard").forEach((card) => {
+      card.addEventListener("click", () => {
+        const qnaId = card.getAttribute("data-id");
+        const questionText = card.querySelector(
+          ".rightSB-qnaQuestion",
+        ).textContent;
+        const answerCountText = card.querySelector(
+          ".rightSB-qnaAnswerText",
+        ).textContent;
+        const user = card.getAttribute("data-user");
+        const date = card.getAttribute("data-date");
+        const views = card.getAttribute("data-views");
+
+        // 상세 정보 주입
+        document.getElementById("qnaDetailTitle").textContent = questionText;
+        document.getElementById("qnaDetailAnsCount").textContent =
+          answerCountText;
+        document.getElementById("qnaDetailUser").textContent = user;
+        document.getElementById("qnaDetailDate").textContent = date;
+        document.getElementById("qnaDetailViews").textContent = views;
+
+        // 답변 목록 그리기
+        renderAnswers(qnaId);
+
+        // 화면 전환 및 하단 버튼 숨김 제어 (상세창 노출 시 메인 하단 버튼들은 숨김)
+        qnaListSub?.classList.add("rightSB-hide");
+        qnaDetailSub?.classList.remove("rightSB-hide");
+
+        updateBottomButtons();
+      });
+    });
+  }
+
+  // 3. 답변을 동적으로 렌더링하는 함수
+  function renderAnswers(qnaId) {
+    const ansContainer = document.getElementById("qnaAnswerContainer");
+    if (!ansContainer) return;
+
+    ansContainer.innerHTML = "";
+    const answers = mockAnswersFromServer[qnaId] || [];
+
+    answers.forEach((ans) => {
+      const ansHTML = `
+        <div class="rightSB-answerCard">
+          <div class="rightSB-ansUserLine">
+            <div class="rightSB-ansUserInfo">
+              <div class="rightSB-ansAvatar"></div>
+              <div>
+                <span class="rightSB-ansNickname">${ans.nickname}</span>
+                <span class="rightSB-ansPeriod">${ans.residence}</span>
+              </div>
+            </div>
+            <span class="rightSB-ansDate">${ans.date}</span>
+          </div>
+          <div class="rightSB-ansText">${ans.content}</div>
+        </div>
+      `;
+      ansContainer.insertAdjacentHTML("beforeend", ansHTML);
+    });
+  }
+
+  // 4. 상세 보기 페이지에서 다시 리스트 목록으로 [뒤로가기] 처리
+  qnaDetailSub
+    ?.querySelector(".rightSB-detailBackBtn")
+    ?.addEventListener("click", () => {
+      qnaDetailSub?.classList.add("rightSB-hide");
+      qnaListSub?.classList.remove("rightSB-hide");
+      updateBottomButtons(); // 하단 버튼 레이아웃 원복
+    });
 }); // 👈 DOMContentLoaded 이벤트가 완전히 끝나는 중괄호입니다. 파일의 맨 마지막 줄이 됩니다.

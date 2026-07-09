@@ -246,6 +246,55 @@
                 <div id="rightSB-qnaCardContainer"></div>
               </div>
 
+              <!--QnA 상세 보기 페이지-->
+              <div class="rightSB-qnaDetailSubPage rightSB-hide">
+                <div class="rightSB-qnaDetailHeader">
+                  <img
+                    src="./rightSB-images/backBtn.svg"
+                    class="rightSB-detailBackBtn"
+                    alt="뒤로가기"
+                  />
+                  <div class="rightSB-detailQuestionLine">
+                    <div class="rightSB-qnaInfo">
+                    <div class="rightSB-qnaAvatar">Q</div>
+                    <div class="rightSB-qnaInfotext">
+                      <div
+                        class="rightSB-detailQuestionTitle"
+                        id="qnaDetailTitle"
+                      ></div>
+                      <div class="rightSB-detailQuestionMeta">
+                        <span id="qnaDetailUser">작성자</span> ·
+                        <span id="qnaDetailDate">날짜</span> · 조회
+                        <span id="qnaDetailViews">0</span>
+                      </div>
+                    </div>
+                    </div>
+                    <span
+                      class="rightSB-detailAnswerCount"
+                      id="qnaDetailAnsCount"
+                      >답변 0</span
+                    >
+                  </div>
+                </div>
+
+                <div class="rightSB-qnaDivider"></div>
+
+                <div
+                  class="rightSB-answerListWrapper"
+                  id="qnaAnswerContainer"
+                ></div>
+
+                <div class="rightSB-answerInputWrapper">
+                  <input
+                    type="text"
+                    class="rightSB-answerInput"
+                    placeholder="답변을 입력해주세요."
+                  />
+                  <button class="rightSB-answerSubmitBtn">
+                    <img src="./rightSB-images/arrowUp.svg" alt="전송" />
+                  </button>
+                </div>
+              </div>
               <!--QnA Form-->
               <div class="rightSB-qnaFormSubPage rightSB-hide">
                 <div class="rightSB-reviewTitle">
@@ -333,6 +382,7 @@
     </div>
 
     <script src="./rightSideBar.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!--그래프 구현 Chart.js 라이브러리-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--그래프 구현 Chart.js 라이브러리-->
   </body>
 </html>

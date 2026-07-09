@@ -317,6 +317,8 @@
   background: var(--GrayScale-White, #fff);
   box-sizing: border-box;
   margin-top: 27px;
+
+  overflow: hidden;
 }
 
 .rightSB-reviewContainer.rightSB-showBorder {
@@ -1190,6 +1192,8 @@
 .rightSB-qnaQuestion {
   color: #000;
 
+  width: 277px;
+
   /* Body/S-Medium */
   font-family: Pretendard;
   font-size: 14px;
@@ -1229,3 +1233,228 @@
   stroke-width: 1.5px;
   stroke: var(--GrayScale-600, #7b7578);
 }
+
+/* --- Q&A 상세 보기 페이지 디자인 --- */
+.rightSB-qnaDetailSubPage {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.rightSB-qnaDetailHeader {
+  padding: 13px 16px 15px 14px;
+  position: relative;
+}
+
+/* 뒤로가기 버튼 위치 조율 */
+.rightSB-detailBackBtn {
+  cursor: pointer;
+  width: 7px;
+  height: 12px;
+  margin-bottom: 14px;
+}
+
+.rightSB-qnaInfo {
+  display: flex;
+  flex-direction: row;
+  gap: 11px;
+}
+
+.rightSB-qnaInfotext {
+  display: flex;
+  flex-direction: column;
+}
+
+.rightSB-detailQuestionLine {
+  display: flex;
+  width: 382px;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.rightSB-detailQuestionTitle {
+  color: #000;
+  width: 300px;
+  /* Body/M-Bold */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+}
+
+.rightSB-detailQuestionMeta {
+  color: var(--GrayScale-600, #7b7578);
+  font-family: Pretendard;
+  font-size: 12px;
+  font-weight: 400;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.rightSB-detailAnswerCount {
+  color: var(--Color-Blue900, #1077ff);
+
+  /* Others/Caption-Bold */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+.rightSB-qnaDivider {
+  width: 100%;
+  height: 1px;
+  background: #d9d2d4;
+}
+
+/* 답변들이 쌓이는 스크롤 스페이스 */
+.rightSB-answerListWrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 60px; /* 하단 입력 폼 공간 마련 */
+}
+
+/* 개별 답변 상자 카드 */
+.rightSB-answerCard {
+  padding: 16px;
+  position: relative;
+}
+
+.rightSB-answerCard::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 92.5%;
+  height: 1px;
+  background-color: #f0edee;
+}
+
+/*맨 마지막 답글 카드는 밑줄이 안 나오게 처리 */
+.rightSB-answerCard:last-child::after {
+  display: none;
+}
+
+.rightSB-ansUserLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.rightSB-ansUserInfo {
+  display: flex;
+  align-items: center;
+}
+
+.rightSB-ansAvatar {
+  width: 30px;
+  height: 30px;
+  margin-right: 8px;
+
+  background:
+    url("./rightSB-images/profile.svg") no-repeat center / contain,
+    /* 이미지 (안 깎임) */ var(--GrayScale-100, #f0edee); /* 회색 배경 */
+
+  background-size: 14px 15px;
+  border-radius: 100%;
+}
+
+.rightSB-ansNickname {
+  color: #000;
+
+  margin-right: 12px;
+  /* Body/M-Bold */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+}
+
+.rightSB-ansPeriod {
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Body/M */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+}
+
+.rightSB-ansDate {
+  color: var(--GrayScale-400, #a89ea1);
+
+  /* Others/Caption-Small */
+  font-family: Inter;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 15px */
+}
+
+.rightSB-ansText {
+  color: #000;
+
+  /* Body/S */
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 21px */
+  letter-spacing: -0.28px;
+}
+
+/* 하단 답변 고정 입력 박스 바 */
+.rightSB-answerInputWrapper {
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  width: 100%;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  background: #fff;
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+  z-index: 10;
+}
+
+.rightSB-answerInput {
+  flex: 1;
+  height: 38px;
+  border: 1px solid var(--GrayScale-400, #a89ea1);
+  border-radius: 10px;
+  padding: 0 45px 0 12px;
+  box-sizing: border-box;
+  font-family: Pretendard;
+  font-size: 13px;
+  outline: none;
+}
+
+.rightSB-answerSubmitBtn {
+  position: absolute;
+  background-color: transparent;
+  right: 24px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
