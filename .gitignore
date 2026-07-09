@@ -339,3 +339,8 @@ $RECYCLE.BIN/
 
 # data
 data/*.csv
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
