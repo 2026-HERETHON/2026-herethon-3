@@ -8,7 +8,6 @@ from PIL import Image
 from io import BytesIO
 from shapely.geometry import Point
 from shapely.prepared import prep
-from shapely.ops import unary_union
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,17 +26,17 @@ DONG_GROUPS = {
     "신림동": {
         "gu_code": "11210",
         "names": ['서원동', '신원동', '서림동', '신사동', '신림동', '난향동',
-                  '조원동', '대학동', '난곡동', '삼성동', '미성동'],
+                '조원동', '대학동', '난곡동', '삼성동', '미성동'],
         "name_contains": None,
     },
 }
 
 INDICATORS = [
-    {"key": "cctv",   "type": "count", "df": "cctv",  "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None,      "weight": 20, "invert": False},
+    {"key": "cctv",   "type": "count", "df": "cctv",  "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None,      "weight": 15, "invert": False},
     {"key": "light",  "type": "count", "df": "light", "lat_col": "위도",       "lon_col": "경도",       "count_col": "설치개수", "weight": 15, "invert": False},
-    {"key": "bell",   "type": "count", "df": "bell",  "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None,      "weight": 5,  "invert": False},
-    {"key": "police", "type": "count", "df": "police","lat_col": "위도",       "lon_col": "경도",       "count_col": None,      "weight": 5,  "invert": False},
-    {"key": "night_safety", "type": "wms", "url": "http://safemap.go.kr/openapi2/IF_0080_WMS", "legend_id": "IF_0080", "weight": 30, "invert": True},
+    {"key": "bell",   "type": "count", "df": "bell",  "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None,      "weight": 10, "invert": False},
+    {"key": "police", "type": "count", "df": "police","lat_col": "위도",       "lon_col": "경도",       "count_col": None,      "weight": 10, "invert": False},
+    {"key": "night_safety", "type": "wms", "url": "http://safemap.go.kr/openapi2/IF_0080_WMS", "legend_id": "IF_0080", "weight": 25, "invert": True},
     {"key": "crime_zone",   "type": "wms", "url": "http://safemap.go.kr/openapi2/IF_0087_WMS", "legend_id": "IF_0087", "weight": 25, "invert": True},
 ]
 
@@ -49,7 +48,7 @@ STATIC_LEGEND = {
     (211, 26, 35): 9, (189, 0, 38): 10,
 }
 
-WMS_TIMEOUT = 15
+WMS_TIMEOUT = 15  # 서버 장애 시 오래 안 기다리도록 짧게 설정
 
 
 # ══════════════════════════════════════════════════════════════
@@ -146,7 +145,7 @@ def load_wms_fallback() -> dict:
 # ══════════════════════════════════════════════════════════════
 
 def count_by_subdong(df: pd.DataFrame, lat_col: str, lon_col: str,
-                      subdongs_gdf: gpd.GeoDataFrame, count_col: str = None) -> pd.Series:
+                    subdongs_gdf: gpd.GeoDataFrame, count_col: str = None) -> pd.Series:
     valid = df.dropna(subset=[lat_col, lon_col])
     gdf_points = gpd.GeoDataFrame(
         valid, geometry=gpd.points_from_xy(valid[lon_col], valid[lat_col]), crs="EPSG:4326"
@@ -211,12 +210,12 @@ def get_wms_grade_for_polygon(layer_url: str, polygon, api_key: str, legend: dic
 
 
 def get_wms_with_fallback(layer_url: str, polygon, api_key: str, legend: dict,
-                           fallback_value: float, subdong_name: str, indicator_key: str, size: int = 256) -> float:
-    """WMS 계산 시도, 실패하면 폴백값 사용"""
+                        fallback_value: float, subdong_name: str, indicator_key: str, size: int = 256) -> float:
+    """세부 행정동 WMS 계산 시도, 실패하면 법정동 폴백값 사용"""
     try:
         return get_wms_grade_for_polygon(layer_url, polygon, api_key, legend, size)
     except Exception as e:
-        print(f"    [{subdong_name}] {indicator_key} - 실패({e}), 폴백값으로 대체")
+        print(f"    [{subdong_name}] {indicator_key} - 실패({e}), 법정동 평균값으로 대체")
         return fallback_value
 
 
@@ -245,41 +244,7 @@ def compute_score(raw: dict, max_vals: dict) -> float:
 
 
 # ══════════════════════════════════════════════════════════════
-# 5. 법정동 전체 단위 통합 점수
-# ══════════════════════════════════════════════════════════════
-
-def compute_dong_level_scores(results: dict, boundary_gdf: gpd.GeoDataFrame,
-                                legends: dict, wms_fallback: dict) -> dict:
-    """세부 행정동을 합쳐서 법정동(상계동/신림동) 전체 단위 raw 값 계산"""
-    dong_raws = {}
-
-    for group_key in DONG_GROUPS:
-        subdongs = get_subdongs(boundary_gdf, group_key)
-
-        # CSV 4개 - 세부 행정동 raw 값들을 그대로 합산
-        raw = {}
-        for ind in INDICATORS:
-            if ind["type"] == "count":
-                raw[ind["key"]] = sum(sd["raw"][ind["key"]] for sd in results[group_key]["subdongs"])
-
-        # WMS 2개 - 세부 행정동들을 하나로 합친 폴리곤으로 재요청
-        union_polygon = unary_union(subdongs.geometry)
-        for ind in INDICATORS:
-            if ind["type"] == "wms":
-                raw[ind["key"]] = get_wms_with_fallback(
-                    ind["url"], union_polygon, SAFEMAP_API_KEY, legends[ind["legend_id"]],
-                    fallback_value=wms_fallback[group_key][ind["key"]],
-                    subdong_name=f"{group_key}(전체)", indicator_key=ind["key"],
-                )
-
-        dong_raws[group_key] = raw
-        print(f"[{group_key} 전체] {raw}")
-
-    return dong_raws
-
-
-# ══════════════════════════════════════════════════════════════
-# 6. 실행
+# 5. 실행
 # ══════════════════════════════════════════════════════════════
 
 def main():
@@ -317,7 +282,6 @@ def main():
 
         results[group_key] = {"group_key": group_key, "subdongs": subdong_raws}
 
-    # 세부 행정동끼리 비교하는 정규화 기준
     all_raws = [sd["raw"] for g in results.values() for sd in g["subdongs"]]
     max_vals = {
         ind["key"]: max(r[ind["key"]] for r in all_raws) or 1
@@ -329,32 +293,10 @@ def main():
             sd["safety_score"] = compute_score(sd["raw"], max_vals)
 
     print("\n" + "=" * 40)
-    print("세부 행정동 결과")
-    print("=" * 40)
     for group_key, group in results.items():
         print(f"\n=== {group_key} ===")
         for sd in group["subdongs"]:
             print(f"  {sd['name']}: {sd['safety_score']}점")
-
-    # 법정동 전체 통합 점수
-    print("\n" + "=" * 40)
-    print("법정동 전체 통합 결과")
-    print("=" * 40)
-    dong_raws = compute_dong_level_scores(results, boundary_gdf, legends, wms_fallback)
-
-    # 법정동 전체끼리 비교하는 정규화 기준 (세부 행정동 max_vals와 별도)
-    dong_max_vals = {
-        ind["key"]: max(dong_raws[g][ind["key"]] for g in DONG_GROUPS) or 1
-        for ind in INDICATORS if ind["type"] == "count"
-    }
-
-    dong_level_results = {}
-    for group_key in DONG_GROUPS:
-        score = compute_score(dong_raws[group_key], dong_max_vals)
-        dong_level_results[group_key] = {"raw": dong_raws[group_key], "safety_score": score}
-        print(f"\n[{group_key} 전체] 안심 점수: {score}점")
-
-    results["dong_level_totals"] = dong_level_results
 
     output_path = os.path.join(DATA_DIR, "safety_scores_subdong.json")
     with open(output_path, "w", encoding="utf-8") as f:
