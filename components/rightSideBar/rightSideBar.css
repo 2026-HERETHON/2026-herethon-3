@@ -12,21 +12,6 @@
 .rightSB-content {
   margin-left: 34px;
   height: 813px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.rightSB-content::-webkit-scrollbar {
-  width: 1px; /* 스크롤바 너비 */
-}
-
-.rightSB-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.rightSB-content::-webkit-scrollbar-thumb {
-  background: #fff;
-  border-radius: 4px;
 }
 
 .rightSB-region {
@@ -324,12 +309,18 @@
 
 .rightSB-reviewContainer {
   width: 412px;
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   border: 1px solid var(--GrayScale-200, #d9d2d4);
-  background: var(--GrayScale-White, #fff);
+  border-bottom: none;
 
+  background: var(--GrayScale-White, #fff);
   box-sizing: border-box;
   margin-top: 27px;
+}
+
+.rightSB-reviewContainer.rightSB-showBorder {
+  border-bottom: 1px solid var(--GrayScale-200, #d9d2d4);
+  border-radius: 10px;
 }
 
 .rightSB-reviewNav {
@@ -393,7 +384,32 @@
   display: block;
 }
 
+.rightSB-hide {
+  display: none !important;
+}
+
+.rightSB-backBtnSmall {
+  cursor: pointer;
+}
+
 .rightSB-tabContentWrapper {
+  height: 358px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.rightSB-tabContentWrapper::-webkit-scrollbar {
+  width: 1px; /* 스크롤바 너비 */
+}
+
+.rightSB-tabContentWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rightSB-tabContentWrapper::-webkit-scrollbar-thumb {
+  background: #fff;
+  border-radius: 4px;
 }
 
 .rightSB-reviewContainerBox {
@@ -589,7 +605,6 @@
 
 .rightSB-reviewContentContainer textarea::-webkit-scrollbar {
   width: 4px; /* 스크롤바 너비 */
-  
 }
 
 .rightSB-reviewContentContainer textarea::-webkit-scrollbar-track {
@@ -597,7 +612,7 @@
 }
 
 .rightSB-reviewContentContainer textarea::-webkit-scrollbar-thumb {
-  background: #A89EA1;
+  background: #a89ea1;
   border-radius: 4px;
 
   border-top: 8px solid transparent;
@@ -607,14 +622,15 @@
 }
 
 .rightSB-reviewContentContainer textarea::-webkit-scrollbar-button {
-    display: none;
+  display: none;
 }
 
-.rightSB-reviewContentContainer textarea::-webkit-scrollbar-button:vertical:start:decrement,
-.rightSB-reviewContentContainer textarea::-webkit-scrollbar-button:vertical:end:decrement
- {
-    display: block;
-    height:5px;
+.rightSB-reviewContentContainer
+  textarea::-webkit-scrollbar-button:vertical:start:decrement,
+.rightSB-reviewContentContainer
+  textarea::-webkit-scrollbar-button:vertical:end:decrement {
+  display: block;
+  height: 5px;
 }
 
 .rightSB-currentChars {
@@ -714,12 +730,12 @@
   margin-right: 16px;
 }
 
+/*버튼들*/
 .rightSB-reviewBtn {
   display: flex;
   flex-direction: column;
   gap: 15px;
 
-  margin-left: 34px;
   margin-top: 15px;
 }
 
@@ -761,6 +777,21 @@
   letter-spacing: -0.32px;
 
   cursor: pointer;
+}
+
+.rightSB-askingQImg {
+  stroke-width: 1.6px;
+  stroke: #000;
+  width: 16px;
+  height: 14px;
+  margin-right: 14px;
+}
+.rightSB-heartImg {
+  stroke-width: 1.6px;
+  stroke: #000;
+  width: 16px;
+  height: 14px;
+  margin-right: 14px;
 }
 
 /*사용자 별점 표기 기능*/

@@ -8,6 +8,7 @@
   </head>
   <body>
     <div class="rightSB-body">
+      <!--지역 명-->
       <div class="rightSB-region">
         상계동 일대
         <img
@@ -19,6 +20,7 @@
       <div class="region-underline"></div>
 
       <div class="rightSB-content">
+        <!--안심 점수 및 그래프-->
         <div class="rightSB-safety">
           <div class="rightSB-safetyScoreContainer">
             <div class="rightSB-safetyScoreTitle">안심 점수</div>
@@ -38,6 +40,8 @@
           </div>
           <div class="rightSB-safetyGraph"></div>
         </div>
+
+        <!--영역별 만족도-->
         <div class="rightSB-satisfactionContainer">
           <div class="rightSB-satisfactionTitle rightSB-boldFont">
             영역별 만족도
@@ -101,7 +105,9 @@
           </div>
         </div>
 
+        <!--실거주 후기 / QnA 파트 (이하 리뷰창)-->
         <div class="rightSB-reviewContainer">
+          <!--리뷰창 네비게이션 바-->
           <div class="rightSB-reviewNav">
             <div
               class="rightSB-reviewSelected rightSB-navbar-menu rightSB-beBold"
@@ -117,143 +123,203 @@
           </div>
           <div class="rightSB-reviewNavUnderline"></div>
 
+          <!--실거주 후기 / QnA 파트 분리-->
           <div class="rightSB-tabContentWrapper">
+            <!--실거주 후기 파트-->
             <div
               id="tabContentReview"
               class="rightSB-tabContent rightSB-activeContent"
             >
-              <div class="rightSB-reviewTitle">
-                <img src="./rightSB-images/backBtn.svg" />
-                후기 작성하기
+              <!--실거주 후기 List-->
+              <div class="rightSB-reviewListSubPage">
+                <div>후기 내용들...</div>
               </div>
 
-              <div class="rightSB-reviewContainerBox">
-                <div class="rightSB-reviewCheckListTitle">영역별 만족도</div>
-                <div class="rightSB-reviewCheckListTitleDetail">
-                  각 항목별 만족도를 선택해주세요
+              <!--실거주 후기 Form-->
+              <div class="rightSB-reviewFormSubPage rightSB-hide">
+                <div class="rightSB-reviewTitle">
+                  <img
+                    src="./rightSB-images/backBtn.svg"
+                    class="rightSB-backBtnSmall"
+                  />
+                  후기 작성하기
                 </div>
 
-                <div class="rightSB-reviewCheckLists">
-                  <div class="rightSB-reviewChecks">
-                    <div class="rightSB-nightCheck">
-                      <img src="./rightSB-images/night.svg" />
-                      <div>
-                        <div class="rightSB-mediumFont">밤길 체감 안전도</div>
-                        <div class="rightSB-lightFont">
-                          밤에 혼자 돌아다녀도 안전한 느낌이에요.
-                        </div>
-                      </div>
-                    </div>
-                    <div class="rightSB-rating" data-type="night"></div>
+                <div class="rightSB-reviewContainerBox">
+                  <div class="rightSB-reviewCheckListTitle">영역별 만족도</div>
+                  <div class="rightSB-reviewCheckListTitleDetail">
+                    각 항목별 만족도를 선택해주세요
                   </div>
 
-                  <div class="rightSB-reviewChecks">
-                    <div class="rightSB-convenienceCheck">
-                      <img src="./rightSB-images/convenience.svg" />
-                      <div>
-                        <div class="rightSB-mediumFont">편의시설 만족도</div>
-                        <div class="rightSB-lightFont">
-                          병원, 주차, 편의점 등이 잘 갖춰져 있어요.
+                  <div class="rightSB-reviewCheckLists">
+                    <div class="rightSB-reviewChecks">
+                      <div class="rightSB-nightCheck">
+                        <img src="./rightSB-images/night.svg" />
+                        <div>
+                          <div class="rightSB-mediumFont">밤길 체감 안전도</div>
+                          <div class="rightSB-lightFont">
+                            밤에 혼자 돌아다녀도 안전한 느낌이에요.
+                          </div>
                         </div>
                       </div>
+                      <div class="rightSB-rating" data-type="night"></div>
                     </div>
-                    <div class="rightSB-rating" data-type="convenience"></div>
-                  </div>
 
-                  <div class="rightSB-reviewChecks">
-                    <div class="rightSB-atmosCheck">
-                      <img src="./rightSB-images/atmosphere.svg" />
-                      <div>
-                        <div class="rightSB-mediumFont">동네 분위기</div>
-                        <div class="rightSB-lightFont">
-                          동네 분위기가 쾌적하고 좋았어요.
+                    <div class="rightSB-reviewChecks">
+                      <div class="rightSB-convenienceCheck">
+                        <img src="./rightSB-images/convenience.svg" />
+                        <div>
+                          <div class="rightSB-mediumFont">편의시설 만족도</div>
+                          <div class="rightSB-lightFont">
+                            병원, 주차, 편의점 등이 잘 갖춰져 있어요.
+                          </div>
                         </div>
                       </div>
+                      <div class="rightSB-rating" data-type="convenience"></div>
                     </div>
-                    <div class="rightSB-rating" data-type="atmosphere"></div>
+
+                    <div class="rightSB-reviewChecks">
+                      <div class="rightSB-atmosCheck">
+                        <img src="./rightSB-images/atmosphere.svg" />
+                        <div>
+                          <div class="rightSB-mediumFont">동네 분위기</div>
+                          <div class="rightSB-lightFont">
+                            동네 분위기가 쾌적하고 좋았어요.
+                          </div>
+                        </div>
+                      </div>
+                      <div class="rightSB-rating" data-type="atmosphere"></div>
+                    </div>
                   </div>
-                </div>
 
-                <div class="rightSB-reviewCheckListTitle">자세한 후기</div>
-                <div class="rightSB-reviewCheckListTitleDetail">
-                  실거주 경험을 바탕으로 솔직한 후기를 남겨주세요.
-                </div>
-                <div class="rightSB-reviewContentContainer">
-                  <textarea
-                    class="rightSB-reviewContent"
-                    placeholder="예) 밤길은 어떤지, 주변 편의시설은 어떤지, 실제로 거주해보니 느낀 점 등을 자유롭게 적어주세요."
-                  ></textarea>
-                  <div class="rightSB-currentChars"><span>0</span>/500</div>
-                </div>
+                  <div class="rightSB-reviewCheckListTitle">자세한 후기</div>
+                  <div class="rightSB-reviewCheckListTitleDetail">
+                    실거주 경험을 바탕으로 솔직한 후기를 남겨주세요.
+                  </div>
+                  <div class="rightSB-reviewContentContainer">
+                    <textarea
+                      class="rightSB-reviewContent"
+                      placeholder="예) 밤길은 어떤지, 주변 편의시설은 어떤지, 실제로 거주해보니 느낀 점 등을 자유롭게 적어주세요."
+                    ></textarea>
+                    <div class="rightSB-currentChars"><span>0</span>/500</div>
+                  </div>
 
-                <div class="rightSB-personalInfo">
-                  <div class="rightSB-personalInfoAgree">
-                    <input
-                      type="checkbox"
-                      id="check-agree"
-                      class="rightSB-customCheckInput"
-                    />
-                    <label for="check-agree" class="rightSB-customCheckLabel">
-                      <img
-                        src="./rightSB-images/uncheck.svg"
-                        class="rightSB-checkImg"
-                        alt="체크안됨"
+                  <div class="rightSB-personalInfo">
+                    <div class="rightSB-personalInfoAgree">
+                      <input
+                        type="checkbox"
+                        id="check-agree"
+                        class="rightSB-customCheckInput"
                       />
-                    </label>
-                    <span>개인정보 수집 및 이용에 동의합니다.</span>
-                  </div>
-                  <div class="rightSB-personalInfoDetails">
-                    <span>자세히 보기</span>
-                    <img src="./rightSB-images/personalInfoDetails.svg" />
+                      <label for="check-agree" class="rightSB-customCheckLabel">
+                        <img
+                          src="./rightSB-images/uncheck.svg"
+                          class="rightSB-checkImg"
+                          alt="체크안됨"
+                        />
+                      </label>
+                      <span>개인정보 수집 및 이용에 동의합니다.</span>
+                    </div>
+                    <div class="rightSB-personalInfoDetails">
+                      <span>자세히 보기</span>
+                      <img src="./rightSB-images/personalInfoDetails.svg" />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!--QnA 파트-->
             <div id="tabContentQnA" class="rightSB-tabContent">
-              <div class="rightSB-reviewTitle">
-                <img src="./rightSB-images/backBtn.svg" />
-                질문 남기기
+              <!--QnA List-->
+              <div class="rightSB-qnaListSubPage">
+                <div>QnA 리스트 내용</div>
               </div>
-              <div class="rightSB-reviewContainerBox">
-                <div class="rightSB-reviewContentContainer">
-                  <textarea
-                    class="rightSB-reviewContent"
-                    placeholder="궁금한 내용을 입력해주세요."
-                  ></textarea>
-                  <div class="rightSB-currentChars"><span>0</span>/500</div>
-                </div>
+              <!--QnA Form-->
 
-                <div class="rightSB-personalInfo2">
-                  <div class="rightSB-personalInfoAgree">
-                    <input
-                      type="checkbox"
-                      id="check-agree2"
-                      class="rightSB-customCheckInput"
-                    />
-                    <label for="check-agree2" class="rightSB-customCheckLabel">
-                      <img
-                        src="./rightSB-images/uncheck.svg"
-                        class="rightSB-checkImg"
-                        alt="체크안됨"
-                      />
-                    </label>
-                    <span>개인정보 수집 및 이용에 동의합니다.</span>
+              <div class="rightSB-qnaFormSubPage rightSB-hide">
+                <div class="rightSB-reviewTitle">
+                  <img
+                    src="./rightSB-images/backBtn.svg"
+                    class="rightSB-backBtnSmall"
+                  />
+                  질문 남기기
+                </div>
+                <div class="rightSB-reviewContainerBox">
+                  <div class="rightSB-reviewContentContainer">
+                    <textarea
+                      class="rightSB-reviewContent"
+                      placeholder="궁금한 내용을 입력해주세요."
+                    ></textarea>
+                    <div class="rightSB-currentChars"><span>0</span>/500</div>
                   </div>
-                  <div class="rightSB-personalInfoDetails">
-                    <span>자세히 보기</span>
-                    <img src="./rightSB-images/personalInfoDetails.svg" />
+
+                  <div class="rightSB-personalInfo2">
+                    <div class="rightSB-personalInfoAgree">
+                      <input
+                        type="checkbox"
+                        id="check-agree2"
+                        class="rightSB-customCheckInput"
+                      />
+                      <label
+                        for="check-agree2"
+                        class="rightSB-customCheckLabel"
+                      >
+                        <img
+                          src="./rightSB-images/uncheck.svg"
+                          class="rightSB-checkImg"
+                          alt="체크안됨"
+                        />
+                      </label>
+                      <span>개인정보 수집 및 이용에 동의합니다.</span>
+                    </div>
+                    <div class="rightSB-personalInfoDetails">
+                      <span>자세히 보기</span>
+                      <img src="./rightSB-images/personalInfoDetails.svg" />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="rightSB-reviewBtn">
-        <button class="rightSB-reviewSubmitBtn">등록하기</button>
-        <button class="rightSB-reviewCancleBtn">취소</button>
+        <!--버튼들-->
+        <!--실거주 후기 버튼-->
+        <div class="rightSB-reviewBtn">
+          <button class="rightSB-reviewSubmitBtn go-to-review-form">
+            <img
+              src="./rightSB-images/askingQ.svg"
+              class="rightSB-askingQImg"
+            />
+            후기 작성하기
+          </button>
+          <button class="rightSB-reviewCancleBtn wish-btn">
+            <img src="./rightSB-images/heart.svg" class="rightSB-heartImg" />
+            이 동네 찜하기
+          </button>
+        </div>
+
+        <!-- QnA 탭 버튼-->
+        <div class="rightSB-reviewBtn">
+          <button class="rightSB-reviewSubmitBtn go-to-review-form">
+            <img
+              src="./rightSB-images/askingQ.svg"
+              class="rightSB-askingQImg"
+            />
+            질문 남기기
+          </button>
+          <button class="rightSB-reviewCancleBtn wish-btn">
+            <img src="./rightSB-images/heart.svg" class="rightSB-heartImg" />
+            이 동네 찜하기
+          </button>
+        </div>
+
+        <!--실거주 후기/QnA Form 버튼-->
+        <div class="rightSB-reviewBtn">
+          <button class="rightSB-reviewSubmitBtn">등록하기</button>
+          <button class="rightSB-reviewCancleBtn">취소</button>
+        </div>
       </div>
     </div>
 
