@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>후기 작성</title></head>
+<body>
+  <h2>{{ grid.dong }} 후기 작성</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">등록하기</button>
+  </form>
+</body>
+</html>

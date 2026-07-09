@@ -6,3 +6,9 @@ class Grid(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     safety_score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.dong
+
+    class Meta:
+        ordering = ['dong']

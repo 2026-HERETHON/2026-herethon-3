@@ -13,6 +13,15 @@ class Review(models.Model):
     rating_mood = models.IntegerField()       # 동네 분위기
     like_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user.nickname} - {self.grid.dong}'
+
+    @property
+    def average_rating(self):
+        return round((self.rating_night + self.rating_amenity + self.rating_mood) / 3, 1)
 
 class ReviewLike(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -20,3 +29,6 @@ class ReviewLike(models.Model):
 
     class Meta:
         unique_together = ('user', 'review')  # 중복 좋아요 방지 (예외처리 REV-003)
+        
+    def __str__(self):
+        return f'{self.user.nickname} likes {self.review.id}'
