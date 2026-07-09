@@ -1,0 +1,233 @@
+* {
+  font-family: "Pretendard", -apple-system, sans-serif;
+   box-sizing: border-box;
+}
+
+.left-panel-wrapper {
+  width: 341px;
+  background: var(--GrayScale-White, #FFF);
+  box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.10);
+  box-sizing: border-box;
+}
+
+.filter-box {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  height: auto;
+  padding: 22px 15px 22px 16px;
+  align-items: flex-start;
+  gap: 20px; /* 필터 항목들끼리의 간격 (기존 유지) */
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  background: var(--GrayScale-White, #FFF);
+  margin: 25px 15px 0 60px;
+}
+
+.filter-header {
+   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px; /* 제목-필터항목 간격 */
+}
+
+.filter-header h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.reset-btn {
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+}
+
+.filter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.filter-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-item-left img {
+  width: 20px;
+  height: 20px;
+}
+
+.filter-item-left span {
+  font-size: 15px;
+}
+
+/* 체크박스 커스텀 스타일 */
+
+
+.custom-checkbox {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* 실제 체크박스는 숨김 */
+.custom-checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* 체크 안 됐을 때: 빈 회색 네모 */
+.checkbox-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid #D9D2D4;
+  background: #F5F5F5;
+}
+
+/* 체크 아이콘(svg)은 기본적으로 숨김 */
+.checkbox-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  display: none;
+  padding: 4px;              /* 체크 아이콘이 박스 안에 여백 갖게 */
+  border-radius: 3px;
+  background: #1077FF;       /* 파란 배경, 정확한 값은 Figma에서 확인 */
+  box-sizing: border-box;
+}
+
+/* 체크됐을 때: 회색박스 숨기고 파란박스+svg 보임 */
+.custom-checkbox input:checked ~ .checkbox-box {
+  display: none;
+}
+
+.custom-checkbox input:checked ~ .checkbox-icon {
+  display: block;
+}
+
+.legend-gradient {
+  display: flex;
+  width: 100%;
+  height: 18px;
+  border-radius: 3px;
+  overflow: hidden;        /* 이걸로 양 끝 칸 모서리가 부모 라운드에 맞춰 잘림 */
+}
+
+.legend-cell {
+  flex: 1;                 /* 7칸 균등 분할 */
+  height: 100%;
+}
+
+.legend-box {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  padding: 17px 15px 17px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  background: var(--GrayScale-White, #FFF);
+  margin: 20px 15px 0 60px;
+}
+
+.legend-box h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 20px 0;   /* 제목 아래 20px */
+}
+
+.legend-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;         /* 그라데이션 바랑 같은 너비로 라벨 양끝 맞춤 */
+  margin-top: 6px;      /* 바 ↔ 라벨 간격, Figma 값 있으면 교체 */
+  font-size: 13px;
+  color: #999;
+}
+
+.guide-box {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  padding: 17px 15px 18px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  background: var(--GrayScale-White, #FFF);
+  margin: 20px 15px 0 60px;    /* 범례 박스와의 간격, Figma 값 있으면 교체 */
+}
+
+.guide-box p {
+  margin: 0;
+  width: 180px;          /* 235 - 89 = 146px, 오른쪽 89px 비움 */
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 7px;          /* 제목 ↔ 안내문구 간격 7px */
+}
+
+.guide-header h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.close-icon {
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
+}
+
+.guide-box p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+
+.notice-box {
+  display: flex;
+  flex-direction: column;
+  width: 217px;
+  height: 115px;
+  padding: 15px 21px 18px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  background: var(--GrayScale-White, #FFF);
+  margin: 301px 0 0 60px;
+  box-sizing: border-box;        /* 패딩 포함해서 217px 유지 */
+}
+
+.notice-box h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 8px 0;             /* 제목 ↔ 문구 간격, 조정 가능 */
+}
+
+.notice-box p {
+  margin: 0;
+  font-size: 12px;              /* 확인 필요 */
+  color: #666;
+  line-height: 1.5;
+}
