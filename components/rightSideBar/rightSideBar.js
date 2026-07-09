@@ -1,11 +1,11 @@
-/// 별점 JS
+/// 별점 표현 구현
 
 function handleStarRating() {
   const scoreData = {
-    night: 4.2,
+    night: 3.5,
     convenience: 4.0,
     atmosphere: 4.1,
-  }; //가상 데이터
+  }; //가상 데이터입니다
 
   Object.keys(scoreData).forEach((key) => {
     const score = scoreData[key];
@@ -76,7 +76,6 @@ function handleStarRating() {
 
 document.addEventListener("DOMContentLoaded", handleStarRating);
 
-//// 후기 작성 nav 바 이동
 
 /// 후기 작성 nav 바 이동
 
@@ -103,12 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
       updateIndicator(currentMenu);
 
       // 3. 클릭한 탭에 따라 콘텐츠 스위칭하기
-      // 모든 콘텐츠 영역을 한 번 숨긴 후
       tabContents.forEach((content) =>
         content.classList.remove("rightSB-activeContent"),
       );
 
-      // ★ [수정] HTML에 적어두신 ID명(tabContentReview, tabContentQnA)과 정확하게 일치시켰습니다!
       if (currentMenu.classList.contains("rightSB-reviewSelected")) {
         const reviewTab = document.getElementById("tabContentReview");
         if (reviewTab) reviewTab.classList.add("rightSB-activeContent");
@@ -127,3 +124,210 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => updateIndicator(activeMenu), 50);
   }
 });
+
+//리뷰 textarea 글자수 제한
+document.addEventListener("DOMContentLoaded", () => {
+  const reviewContainers = document.querySelectorAll(".rightSB-reviewContentContainer");
+
+  reviewContainers.forEach((container) => {
+    const textarea = container.querySelector(".rightSB-reviewContent");
+    const charSpan = container.querySelector(".rightSB-currentChars > span");
+
+    if (textarea && charSpan) {
+      textarea.addEventListener("input", (e) => {
+        const currentLength = e.target.value.length;
+
+        if (currentLength > 500) {
+          e.target.value = e.target.value.substring(0, 500);
+          return;
+        }
+
+        charSpan.textContent = currentLength;
+      });
+    }
+  });
+});
+
+////// 별점 구현
+const RATING_COUNT = 5;
+const ratingContainers = document.querySelectorAll('.rightSB-rating');
+
+// 1. 별 요소 생성 함수
+const createStarElement = () => {
+  const rightSBstar = document.createElement('div');
+  rightSBstar.className = 'rightSBstar';
+
+  const rightSBstarEmpty = document.createElement('div');
+  rightSBstarEmpty.className = 'rightSBstar-empty';
+  rightSBstar.appendChild(rightSBstarEmpty);
+
+  const rightSBstarFill = document.createElement('div');
+  rightSBstarFill.className = 'rightSBstar-fill';
+  rightSBstar.appendChild(rightSBstarFill);
+
+  return rightSBstar;
+};
+
+// 2. 깎아낼 inset 퍼센트 계산 함수
+const getClipPathPercent = (starIndex, value) => {
+  if (starIndex <= value) return 0; // 다 채움
+  if (starIndex - value === 0.5) return 50; // 반만 채움
+  return 100; // 안 채움
+};
+
+// 3. 개별 별점 박스마다 이벤트와 별 생성 바인딩
+ratingContainers.forEach((ratingBox) => {
+  let currentRating = 0;   // 이 박스의 고정 별점
+  let hoveredRating = 0;   // 이 박스의 호버 중인 별점
+
+  // 별 5개 동적 배치
+  for (let i = 0; i < RATING_COUNT; i++) {
+    ratingBox.appendChild(createStarElement());
+  }
+
+  // 별점 상태를 화면에 그려주는 내부 함수
+  const updateStars = (value) => {
+    const stars = ratingBox.children; // 현재 박스의 자식들(직계 자식)
+    for (let i = 0; i < RATING_COUNT; i++) {
+      if (!stars[i]) continue;
+      
+      const fillTarget = stars[i].querySelector('.rightSBstar-fill');
+      if (fillTarget) {
+        const fillPercentage = getClipPathPercent(i + 1, value);
+        fillTarget.style.clipPath = `inset(0 ${fillPercentage}% 0 0)`;
+      }
+
+      // scale 효과용 클래스 토글 (filled 기준 보정)
+      if (i + 1 <= value) {
+        stars[i].classList.add('filled');
+      } else {
+        stars[i].classList.remove('filled');
+      }
+    }
+  };
+
+  // 마우스 무브 이벤트 핸들러
+  const handleMouseMove = (e) => {
+    const rect = ratingBox.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+
+    // 0.5 단위 올림 계산
+    const value = Math.ceil((x / width) * RATING_COUNT * 2) / 2;
+    hoveredRating = Math.min(Math.max(value, 0.5), RATING_COUNT);
+
+    updateStars(hoveredRating);
+  };
+
+  // 마우스 클릭 시 별점 고정
+  const fixRating = () => {
+    if (hoveredRating === 0) return;
+    currentRating = hoveredRating;
+    updateStars(currentRating);
+
+    ratingBox.setAttribute('data-score', currentRating); // 부모 박스 속성으로 점수 기록
+  };
+
+  // 마우스가 떠날 때 기존 점수로 리셋
+  const resetRating = () => {
+    hoveredRating = 0;
+    updateStars(currentRating);
+  };
+
+  // 각 컨테이너 박스에 이벤트를 개별 부여
+  ratingBox.addEventListener('mousemove', handleMouseMove);
+  ratingBox.addEventListener('mouseleave', resetRating);
+  ratingBox.addEventListener('click', fixRating);
+
+  // 최초 초기화
+  updateStars(currentRating);
+});
+
+
+////// 등록하기 버튼 눌렀을 때 데이터 객체로 묶음
+document.addEventListener("DOMContentLoaded", () => {
+  const submitBtn = document.querySelector('.rightSB-reviewSubmitBtn');
+
+  if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+      // 현재 화면에 보여지고 있는 활성화된 탭 콘텐츠 박스를 가져옴
+      const activeTab = document.querySelector('.rightSB-tabContent.rightSB-activeContent');
+      
+      if (!activeTab) return;
+
+      // ----------------------------------------------------
+      // CASE 1: [실거주 후기] 탭이 열려있을 때의 전송 로직
+      // ----------------------------------------------------
+      if (activeTab.id === 'tabContentReview') {
+        const ratings = activeTab.querySelectorAll('.rightSB-rating');
+        const scores = { night: 0, convenience: 0, atmosphere: 0 };
+
+        ratings.forEach((box) => {
+          const type = box.getAttribute('data-type');
+          const score = parseFloat(box.getAttribute('data-score')) || 0;
+          if (type) scores[type] = score;
+        });
+
+        const reviewTextarea = activeTab.querySelector('.rightSB-reviewContent');
+        const reviewText = reviewTextarea ? reviewTextarea.value : '';
+        
+        const agreeCheckbox = activeTab.querySelector('#check-agree');
+        const isAgreed = agreeCheckbox ? agreeCheckbox.checked : false;
+
+        // 필수 검증 (Validation)
+        if (scores.night === 0 || scores.convenience === 0 || scores.atmosphere === 0) {
+          alert('모든 항목의 만족도 별점을 선택해주세요.');
+          return;
+        }
+        if (!reviewText.trim()) {
+          alert('자세한 후기를 작성해주세요!');
+          return;
+        }
+        if (!isAgreed) {
+          alert('개인정보 수집 및 이용에 동의하셔야 등록이 가능합니다.');
+          return;
+        }
+
+        // 후기 탭 최종 데이터 패키징
+        const finalReviewData = {
+          type: 'review',
+          rating: scores,
+          content: reviewText,
+          isAgreed: isAgreed
+        };
+
+        console.log('📦 [실거주 후기] 서버로 전송할 데이터:', finalReviewData);
+      } 
+      
+      // ----------------------------------------------------
+      // CASE 2: [Q&A 질문 남기기] 탭이 열려있을 때의 전송 로직
+      // ----------------------------------------------------
+      else if (activeTab.id === 'tabContentQnA') {
+        const qnaTextarea = activeTab.querySelector('.rightSB-reviewContent');
+        const qnaText = qnaTextarea ? qnaTextarea.value : '';
+        
+        const agreeCheckboxQnA = activeTab.querySelector('#check-agree2');
+        const isAgreedQnA = agreeCheckboxQnA ? agreeCheckboxQnA.checked : false;
+
+        if (!qnaText.trim()) {
+          alert('궁금한 내용을 입력해주세요.');
+          return;
+        }
+        if (!isAgreedQnA) {
+          alert('개인정보 수집 및 이용에 동의하셔야 질문 등록이 가능합니다.');
+          return;
+        }
+
+        // Q&A 탭 최종 데이터 패키징
+        const finalQnaData = {
+          type: 'qna',
+          content: qnaText,
+          isAgreed: isAgreedQnA
+        };
+
+        console.log('📦 [Q&A 질문남기기] 서버로 전송할 데이터:', finalQnaData);
+      }
+    });
+  }
+});
+

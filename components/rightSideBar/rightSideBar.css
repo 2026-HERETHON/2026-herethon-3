@@ -17,16 +17,16 @@
 }
 
 .rightSB-content::-webkit-scrollbar {
-  width: 6px; /* 스크롤바 너비 */
+  width: 1px; /* 스크롤바 너비 */
 }
 
 .rightSB-content::-webkit-scrollbar-track {
-  background: transparent; /* 스크롤바 배경을 투명하게 */
+  background: transparent;
 }
 
 .rightSB-content::-webkit-scrollbar-thumb {
-  background: #fff; /* 스크롤바 바 색상 (기존 border 색감과 통일) */
-  border-radius: 4px; /* 동글동글하게 */
+  background: #fff;
+  border-radius: 4px;
 }
 
 .rightSB-region {
@@ -329,7 +329,6 @@
   background: var(--GrayScale-White, #fff);
 
   box-sizing: border-box;
-  overflow: visible;
   margin-top: 27px;
 }
 
@@ -394,8 +393,13 @@
   display: block;
 }
 
+.rightSB-tabContentWrapper {
+}
+
 .rightSB-reviewContainerBox {
-  margin-left: 14px;
+  padding-left: 14px;
+  padding-bottom: 13px;
+  padding-right: 16px;
 }
 
 .rightSB-reviewTitle {
@@ -453,6 +457,8 @@
 
 .rightSB-reviewCheckListTitleDetail {
   color: var(--GrayScale-600, #7b7578);
+
+  margin-bottom: 12px;
 
   /* Others/Caption */
   font-family: Pretendard;
@@ -534,12 +540,187 @@
   stroke: #000;
 }
 
+.rightSB-reviewContentContainer {
+  position: relative;
+}
+
+.rightSB-reviewContentContainer textarea {
+  width: 382px;
+  height: 237px;
+  padding: 6px 8px 7px 8px;
+  justify-content: center;
+  align-items: center;
+  resize: none;
+
+  box-sizing: border-box;
+  margin-bottom: 23px;
+
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-400, #a89ea1);
+
+  color: var(--GrayScale-black, #1a1a1a);
+
+  /* Body/S */
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 21px */
+  letter-spacing: -0.28px;
+
+  overflow-y: auto;
+}
+
+.rightSB-reviewContentContainer textarea::placeholder {
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Body/S */
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 21px */
+  letter-spacing: -0.28px;
+}
+
+.rightSB-reviewContentContainer textarea:focus {
+  outline: none;
+}
+
+.rightSB-reviewContentContainer textarea::-webkit-scrollbar {
+  width: 4px; /* 스크롤바 너비 */
+  
+}
+
+.rightSB-reviewContentContainer textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rightSB-reviewContentContainer textarea::-webkit-scrollbar-thumb {
+  background: #A89EA1;
+  border-radius: 4px;
+
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+
+  background-clip: padding-box;
+}
+
+.rightSB-reviewContentContainer textarea::-webkit-scrollbar-button {
+    display: none;
+}
+
+.rightSB-reviewContentContainer textarea::-webkit-scrollbar-button:vertical:start:decrement,
+.rightSB-reviewContentContainer textarea::-webkit-scrollbar-button:vertical:end:decrement
+ {
+    display: block;
+    height:5px;
+}
+
+.rightSB-currentChars {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 10;
+
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Others/Caption */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+
+  pointer-events: none;
+}
+
+.rightSB-personalInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rightSB-personalInfo2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 22px;
+}
+
+.rightSB-personalInfoAgree {
+  display: flex;
+  align-items: center;
+}
+
+.rightSB-personalInfoAgree input {
+  display: none;
+}
+
+.rightSB-customCheckLabel {
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  height: 18px;
+}
+
+.rightSB-customCheckLabel .rightSB-checkImg {
+  width: 19px;
+  height: 19px;
+  margin-right: 13px;
+  content: url("./rightSB-images/uncheck.svg");
+}
+
+.rightSB-customCheckInput:checked
+  + .rightSB-customCheckLabel
+  .rightSB-checkImg {
+  content: url("./rightSB-images/checked.svg");
+}
+
+.rightSB-personalInfoAgree > span {
+  color: #000;
+
+  vertical-align: middle;
+
+  /* Others/Caption */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+.rightSB-personalInfoDetails {
+  color: var(--GrayScale-600, #7b7578);
+  text-align: right;
+
+  /* Others/Caption */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+.rightSB-personalInfoDetails img {
+  width: 5px;
+  height: 10px;
+  stroke-width: 1.5px;
+  stroke: var(--GrayScale-600, #7b7578);
+  margin-left: 10px;
+  margin-right: 16px;
+}
+
 .rightSB-reviewBtn {
   display: flex;
   flex-direction: column;
   gap: 15px;
 
   margin-left: 34px;
+  margin-top: 15px;
 }
 
 .rightSB-reviewSubmitBtn {
@@ -580,4 +761,89 @@
   letter-spacing: -0.32px;
 
   cursor: pointer;
+}
+
+/*사용자 별점 표기 기능*/
+.rightSB-rating {
+  display: flex;
+}
+
+.rightSB-ratingInput {
+  display: none;
+}
+
+.rating__label .rightSB-starIcon {
+  width: 16.152px;
+  height: 16.152px;
+  stroke-width: 1px;
+  stroke: var(--GrayScale-400, #a89ea1);
+  display: block;
+  background-image: url("./rightSB-images/emptyStar.svg");
+  background-repeat: no-repeat;
+}
+
+.rating__label {
+  width: 8.076px; /* 원본 사이즈/2 */
+  overflow: hidden;
+  cursor: pointer;
+}
+.rating__label .rightSB-starIcon {
+  width: 8.076px; /* 원본 사이즈/2 */
+  height: 16.152px;
+  display: block;
+  position: relative;
+  left: 0;
+  background-image: url("./rightSB-images/filledStar.svg");
+  background-repeat: no-repeat;
+}
+
+.rating__label--full .rightSB-starIcon {
+  background-position: right;
+  margin-right: 1px;
+}
+.rating__label--half .rightSB-starIcon {
+  background-position: left;
+}
+
+/*사용자 별점 입력 구현*/
+
+.rightSB-rating {
+  width: fit-content;
+  display: flex;
+  cursor: pointer;
+  gap: 11px;
+  justify-content: center;
+}
+
+.rightSBstar {
+  position: relative;
+  width: 16.152px;
+  height: 16.152px;
+  transition: transform 0.2s ease;
+}
+
+.rightSBstar:hover,
+.star.filled {
+  transform: scale(1.15);
+}
+
+.rightSBstar-empty,
+.rightSBstar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16.152px;
+  height: 16.152px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  transition: clip-path 0.2s ease;
+}
+
+.rightSBstar-empty {
+  background-image: url("./rightSB-images/emptyStar.svg");
+}
+
+.rightSBstar-fill {
+  background-image: url("./rightSB-images/filledStar.svg");
+  clip-path: inset(0 100% 0 0);
 }

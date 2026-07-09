@@ -144,7 +144,7 @@
                         </div>
                       </div>
                     </div>
-                    <div>별점 표기할 곳</div>
+                    <div class="rightSB-rating" data-type="night"></div>
                   </div>
 
                   <div class="rightSB-reviewChecks">
@@ -157,7 +157,7 @@
                         </div>
                       </div>
                     </div>
-                    <div>별점 표기할 곳</div>
+                    <div class="rightSB-rating" data-type="convenience"></div>
                   </div>
 
                   <div class="rightSB-reviewChecks">
@@ -170,7 +170,7 @@
                         </div>
                       </div>
                     </div>
-                    <div>별점 표기할 곳</div>
+                    <div class="rightSB-rating" data-type="atmosphere"></div>
                   </div>
                 </div>
 
@@ -178,10 +178,74 @@
                 <div class="rightSB-reviewCheckListTitleDetail">
                   실거주 경험을 바탕으로 솔직한 후기를 남겨주세요.
                 </div>
+                <div class="rightSB-reviewContentContainer">
+                  <textarea
+                    class="rightSB-reviewContent"
+                    placeholder="예) 밤길은 어떤지, 주변 편의시설은 어떤지, 실제로 거주해보니 느낀 점 등을 자유롭게 적어주세요."
+                  ></textarea>
+                  <div class="rightSB-currentChars"><span>0</span>/500</div>
+                </div>
+
+                <div class="rightSB-personalInfo">
+                  <div class="rightSB-personalInfoAgree">
+                    <input
+                      type="checkbox"
+                      id="check-agree"
+                      class="rightSB-customCheckInput"
+                    />
+                    <label for="check-agree" class="rightSB-customCheckLabel">
+                      <img
+                        src="./rightSB-images/uncheck.svg"
+                        class="rightSB-checkImg"
+                        alt="체크안됨"
+                      />
+                    </label>
+                    <span>개인정보 수집 및 이용에 동의합니다.</span>
+                  </div>
+                  <div class="rightSB-personalInfoDetails">
+                    <span>자세히 보기</span>
+                    <img src="./rightSB-images/personalInfoDetails.svg" />
+                  </div>
+                </div>
               </div>
             </div>
+
             <div id="tabContentQnA" class="rightSB-tabContent">
-              Q&A 영역 내용이 들어갈 곳입니다.
+              <div class="rightSB-reviewTitle">
+                <img src="./rightSB-images/backBtn.svg" />
+                질문 남기기
+              </div>
+              <div class="rightSB-reviewContainerBox">
+                <div class="rightSB-reviewContentContainer">
+                  <textarea
+                    class="rightSB-reviewContent"
+                    placeholder="궁금한 내용을 입력해주세요."
+                  ></textarea>
+                  <div class="rightSB-currentChars"><span>0</span>/500</div>
+                </div>
+
+                <div class="rightSB-personalInfo2">
+                  <div class="rightSB-personalInfoAgree">
+                    <input
+                      type="checkbox"
+                      id="check-agree2"
+                      class="rightSB-customCheckInput"
+                    />
+                    <label for="check-agree2" class="rightSB-customCheckLabel">
+                      <img
+                        src="./rightSB-images/uncheck.svg"
+                        class="rightSB-checkImg"
+                        alt="체크안됨"
+                      />
+                    </label>
+                    <span>개인정보 수집 및 이용에 동의합니다.</span>
+                  </div>
+                  <div class="rightSB-personalInfoDetails">
+                    <span>자세히 보기</span>
+                    <img src="./rightSB-images/personalInfoDetails.svg" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
