@@ -1,11 +1,25 @@
+.rightSB-wholeContainer {
+  display: flex;
+  align-items: center;
+
+  width: 551px;
+  height: 1023px;
+  box-sizing: border-box;
+  filter: drop-shadow(-4px 4px 20px rgba(0, 0, 0, 0.1));
+}
+
+.rightSB-close {
+  width: 35.386px;
+  height: 60.157px;
+  background: var(--GrayScale-White, #fff);
+}
+
 .rightSB-body {
   width: 506px;
   height: 1023px;
 
   background: var(--GrayScale-White, #fff);
 
-  /* 그림자/오른쪽 패널 그림자 */
-  box-shadow: -4px 4px 20px 0 rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
@@ -1457,4 +1471,3 @@
   justify-content: center;
   cursor: pointer;
 }
-
