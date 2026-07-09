@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>헤레톤 3팀</title>
     <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="./components/rightSideBar/rightSideBar.css" />
   </head>
   <body>
+    <!--nav-->
     <nav>
       <div id="navbar-container">
         <div class="navbar-logoImg">로고</div>
@@ -28,18 +30,31 @@
       </div>
     </nav>
 
-    <aisde>
-      <div id="leftPanel-container"></div>
-    </aisde>
+    <!--안심맵 페이지-->
+    <div id="page-safetyMap" class="main-page-group">
+      <aside>
+        <div id="leftPanel-container">왼쪽 패널 자리</div>
+      </aside>
 
-    <main>
-      <div id="mainMap-conatiner"></div>
-    </main>
+      <main>
+        <div id="mainMap-conatiner">메인맵</div>
+      </main>
 
-    <aside>
-      <div id="rightSideBar-container"></div>
-    </aside>
+      <aside>
+        <div id="rightSideBar-container">우측 사이드바 자리</div>
+      </aside>
+    </div>
 
+    <!--제휴서비스 페이지-->
+    <div id="page-commercial" class="main-page-group main-page-hide">
+      <main style="padding: 40px; text-align: center">
+        <h2>제휴 서비스 페이지 준비 중입니다.</h2>
+      </main>
+    </div>
+
+    <!--JS-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./components/rightSideBar/rightSideBar.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

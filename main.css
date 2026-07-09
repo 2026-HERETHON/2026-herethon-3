@@ -1,3 +1,4 @@
+/*메인페이지 네비게이션 바 디자인*/
 nav {
   color: #000;
   text-align: center;
@@ -81,6 +82,18 @@ nav .navbar-ahref {
   color: inherit;
 }
 
+/*네비게이션 선택함에 따라 달라지는 메인 페이지 구현*/
 main {
   width: 1579px;
+}
+
+/* 탭 전환 시 화면을 숨겨주는 클래스 */
+.main-page-hide {
+  display: none !important;
+}
+
+/* 안심맵 상태일 때 왼쪽패널, 지도, 사이드바 가로 배치*/
+#page-safetyMap {
+  display: flex;
+  flex-direction: row;
 }
