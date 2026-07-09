@@ -337,11 +337,37 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.querySelector(".rightSB-reviewCancleBtn")
     ?.addEventListener("click", backToMainList);
 
-  // 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 공통 처리
+  // --- [💡 수정] 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 토글 및 이미지 변경 처리 ---
+
+  // 찜하기 상태를 기억할 변수 (false: 찜 안함, true: 찜함)
+  let isWished = false;
+
   document.querySelectorAll(".wish-btn").forEach((btn) => {
-    btn.addEventListener("click", () =>
-      alert("❤️ 이 동네가 찜 목록에 추가되었습니다!"),
-    );
+    btn.addEventListener("click", () => {
+      // 1. 상태 뒤집기 (토글)
+      isWished = !isWished;
+
+      // 2. 화면에 있는 모든 찜하기 버튼의 하트 이미지 수집
+      const allHeartImgs = document.querySelectorAll(
+        ".wish-btn .rightSB-heartImg",
+      );
+
+      // 3. 상태에 따라 이미지 경로 및 알림창 분기 처리
+      allHeartImgs.forEach((img) => {
+        if (isWished) {
+          img.src = "./rightSB-images/fullHeart.svg"; // 채워진 하트 경로
+        } else {
+          img.src = "./rightSB-images/heart.svg"; // 원래 빈 하트 경로
+        }
+      });
+
+      // 4. 피드백 알림창
+      if (isWished) {
+        alert("❤️ 이 동네가 찜 목록에 추가되었습니다.");
+      } else {
+        alert("💔 찜 목록에서 제외되었습니다.");
+      }
+    });
   });
 
   // --- [G] 3번째 버튼 그룹 내 [등록하기] 공통 버튼 라우팅 처리 ---
@@ -664,4 +690,96 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 💡 DOMContentLoaded 블록 내부에서 안전하게 실행되도록 구성
   renderQnas(mockQnasFromServer);
+
+  // --- [K] 백엔드 데이터 연동 5각형 레이더 차트 모듈 ---
+
+  // 1. 임시 백엔드 데이터 (0에서 100 사이의 점수라고 가정)
+  const mockGraphDataFromServer = {
+    cctv: 85,
+    streetLight: 70,
+    police: 45,
+    emergencyBell: 60,
+    crimeZone: 75, // 범죄주의 구간 (안전할수록 점수가 높거나 기획에 맞게 설정)
+  };
+
+  // 2. 차트를 생성하는 함수
+  function renderSafetyChart(data) {
+    const ctx = document.getElementById("safetyRadarChart");
+    if (!ctx) return;
+
+    // 이미 생성된 차트가 있다면 파괴하고 새로 그리기 (데이터 업데이트 대응)
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+
+    // 3. Chart.js 객체 생성
+    new Chart(ctx, {
+      type: "radar", //  레이더(오각형) 타입 지정
+      data: {
+        labels: ["CCTV", "가로등", "파출소", "비상벨", ["범죄주의", "구간"]], // 축 이름
+        datasets: [
+          {
+            data: [
+              data.cctv,
+              data.streetLight,
+              data.police,
+              data.emergencyBell,
+              data.crimeZone,
+            ],
+
+            // 🎨 디자인 커스텀 (보내주신 이미지와 유사한 블루 톤 설정)
+            backgroundColor: "rgba(23, 137, 255, 0.55)", // 내부 채우기 색상
+            borderColor: "#1077ff", // 선 색상
+            borderWidth: 1.5,
+            pointBackgroundColor: "#1077ff", // 꼭짓점 점 색상
+            pointRadius: 1, // 점 크기
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          legend: { display: false }, // 상단 범례(Label) 숨김
+        },
+        // 💡 차트 전체 패딩을 주어 글자가 외각 경계선에 잘리는 것을 원천 방지
+        layout: {
+          padding: 0,
+        },
+        scales: {
+          r: {
+            min: 0, // 최솟값
+            max: 100, // 최댓값
+            ticks: { display: false, stepSize: 25 }, // 내부 숫자 그리드 텍스트 숨김
+
+            backgroundColor: "#F0EDEE",
+            startAngle: 0,
+
+            grid: {
+              color: "#D9D2D4", // 오각형 테두리 선 색상
+            },
+            angleLines: {
+              color: "#D9D2D4", // 중심에서 뻗어나가는 선 색상
+            },
+            pointLabels: {
+              // 축 글자(CCTV, 가로등 등) 스타일 지정
+              font: {
+                family: "Pretendard",
+                size: 12,
+                weight: "600",
+                style: "normal",
+              },
+              color: "#7B7578",
+              lineHeight: 1.5,
+              letterSpacing: -0.24,
+              textAlign: "left",
+            },
+          },
+        },
+        maintainAspectRatio: false, // 부모 박스 크기에 맞춰 꽉 차게 조절
+      },
+    });
+  }
+
+  // 최초 실행!
+  renderSafetyChart(mockGraphDataFromServer);
 }); // 👈 DOMContentLoaded 이벤트가 완전히 끝나는 중괄호입니다. 파일의 맨 마지막 줄이 됩니다.

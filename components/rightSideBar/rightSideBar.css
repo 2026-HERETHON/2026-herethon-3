@@ -61,8 +61,6 @@
   justify-content: center;
   align-items: flex-start;
   gap: 12px;
-
-  margin-right: 33px;
 }
 
 .rightSB-safetyScoreTitle {
@@ -149,9 +147,12 @@
 }
 
 .rightSB-safetyGraph {
-  height: 112px;
-  width: 120px;
-  background-color: black;
+  height: 174px;
+  width: 212px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rightSB-safetyScoreContainer button {
@@ -1149,7 +1150,7 @@
   justify-content: space-between;
   border-bottom: 1px solid #e1d9db; /* 연한 분리선 */
   box-sizing: border-box;
-  cursor: pointer; 
+  cursor: pointer;
 }
 
 .rightSB-qnaCard:last-child {
