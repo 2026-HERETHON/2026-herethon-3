@@ -2,37 +2,46 @@
   display: flex;
   align-items: center;
 
-  height: 1023px;
+  width: 30vw;
+  min-width: 500px;
+  max-width: 550px;
+
+  height: calc(100vh - 60px);
   box-sizing: border-box;
+
   filter: drop-shadow(-4px 4px 20px rgba(0, 0, 0, 0.1));
 }
 
 .rightSB-close {
-  width: 35.386px;
-  height: 60.157px;
+  width: 35px;
+  height: 60px;
   background: var(--GrayScale-White, #fff);
+  border-radius: 10px 0 0 10px;
 }
 
 .rightSB-body {
-  width: 506px;
-  height: 1023px;
-
+  flex: 1;
+  height: 100%;
   background: var(--GrayScale-White, #fff);
-
   box-sizing: border-box;
 }
 
 .rightSB-content {
-  margin-left: 34px;
-  height: 813px;
+  padding: 0 6%;
+  height: calc(100% - 60px); /* 전체 높이 꽉 채우기 */
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .rightSB-region {
   display: flex;
   flex-direction: row;
-  width: 412px;
+  width: 85%;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box;
 
   padding-top: 23px;
   margin-left: 34px;
@@ -56,7 +65,7 @@
 }
 
 .region-underline {
-  width: 506px;
+  width: 100%px;
   height: 1px;
   background: #d9d2d4;
 }
@@ -197,6 +206,7 @@
 
 .rightSB-satisfactionContainer {
   margin-top: 24px;
+  flex-shrink: 0;
 }
 
 .rightSB-satisfactionTitle {
@@ -322,7 +332,7 @@
 }
 
 .rightSB-reviewContainer {
-  width: 412px;
+  width: 100%;
   border-radius: 10px 10px 0 0;
   border: 1px solid var(--GrayScale-200, #d9d2d4);
   border-bottom: none;
@@ -332,6 +342,10 @@
   margin-top: 27px;
 
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .rightSB-reviewContainer.rightSB-showBorder {
@@ -409,8 +423,8 @@
 }
 
 .rightSB-tabContentWrapper {
-  height: 358px;
-  overflow-y: auto;
+  flex: 1; /* ⭕ [핵심] 탭 내부에서도 남는 세로 공간을 다 쓰도록 설정 */
+  overflow-y: auto; /* ⭕ [핵심] 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -467,7 +481,7 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  width: 382px;
+  width: 100%;
   padding: 6px 8px 5px 8px;
   margin-top: 12px;
   margin-bottom: 28px;
@@ -752,11 +766,14 @@
   flex-direction: column;
   gap: 15px;
 
-  margin-top: 15px;
+  margin-top: auto;
+  padding-top: 15px;
+  padding-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .rightSB-reviewSubmitBtn {
-  width: 412px;
+  width: 100%;
   padding: 8px 0;
   border-radius: 10px;
   background: var(--Color-Blue900, #1077ff);
@@ -776,7 +793,7 @@
 }
 
 .rightSB-reviewCancleBtn {
-  width: 412px;
+  width: 100%;
   padding: 8px 0;
   border-radius: 10px;
   background-color: #fff;
@@ -793,6 +810,8 @@
   letter-spacing: -0.32px;
 
   cursor: pointer;
+
+  margin-bottom: 37px;
 }
 
 .rightSB-askingQImg {
@@ -981,7 +1000,7 @@
 /* 카드 내 별점 및 텍스트 후기 */
 .rightSB-reviewTextWrapper {
   display: flex;
-  gap: 63px;
+  justify-content: space-between;
   align-items: flex-end;
 }
 
