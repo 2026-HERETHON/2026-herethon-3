@@ -25,7 +25,8 @@ DONG_GROUPS = {
     "상계동": {"gu_code": "11110", "names": None, "name_contains": "상계"},
     "신림동": {
         "gu_code": "11210",
-        "names": ['서원동', '신원동', '서림동', '신사동', '신림동', '난향동', '조원동', '대학동', '난곡동', '삼성동', '미성동'],
+        "names": ['서원동', '신원동', '서림동', '신사동', '신림동', '난향동',
+                  '조원동', '대학동', '난곡동', '삼성동', '미성동'],
         "name_contains": None,
     },
 }
@@ -40,6 +41,21 @@ INDICATORS = [
 ]
 
 assert sum(i["weight"] for i in INDICATORS) == 100
+
+# WMS 등급 색상 범례 - lgdInfo API가 불안정할 수 있어 정적값으로 고정
+# (IF_0080, IF_0087 둘 다 동일한 1~10등급 색상 체계를 사용함)
+STATIC_LEGEND = {
+    (255, 255, 178): 1,
+    (254, 232, 139): 2,
+    (254, 209, 101): 3,
+    (253, 183, 81): 4,
+    (253, 155, 67): 5,
+    (250, 122, 53): 6,
+    (244, 86, 41): 7,
+    (234, 52, 32): 8,
+    (211, 26, 35): 9,
+    (189, 0, 38): 10,
+}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -123,7 +139,7 @@ def get_subdongs(boundary_gdf: gpd.GeoDataFrame, group_key: str) -> gpd.GeoDataF
 # ══════════════════════════════════════════════════════════════
 
 def count_by_subdong(df: pd.DataFrame, lat_col: str, lon_col: str,
-                    subdongs_gdf: gpd.GeoDataFrame, count_col: str = None) -> pd.Series:
+                      subdongs_gdf: gpd.GeoDataFrame, count_col: str = None) -> pd.Series:
     """포인트 데이터를 세부 행정동별로 집계. 결과 index = ADM_NM"""
     valid = df.dropna(subset=[lat_col, lon_col])
     gdf_points = gpd.GeoDataFrame(
@@ -132,32 +148,12 @@ def count_by_subdong(df: pd.DataFrame, lat_col: str, lon_col: str,
     joined = gpd.sjoin(gdf_points, subdongs_gdf[["ADM_NM", "geometry"]], how="inner", predicate="within")
 
     result = joined.groupby("ADM_NM")[count_col].sum() if count_col else joined.groupby("ADM_NM").size()
-    # 데이터가 하나도 없는 세부 행정동도 0으로 채워넣기
     return result.reindex(subdongs_gdf["ADM_NM"], fill_value=0)
 
 
 # ══════════════════════════════════════════════════════════════
 # 3. WMS 지표 - 폴리곤 클리핑 기반 등급 평균
 # ══════════════════════════════════════════════════════════════
-
-
-url = "http://www.safemap.go.kr/openapi2/lgdInfo"
-params = {"serviceKey": SAFEMAP_API_KEY, "intId": "IF_0080"}
-res = requests.get(url, params=params)
-
-print("status_code:", res.status_code)
-print("headers:", res.headers.get("Content-Type"))
-print("응답 앞부분:", res.text[:500])
-
-def fetch_legend(int_id: str, api_key: str) -> dict:
-    url = "http://www.safemap.go.kr/openapi2/lgdInfo"
-    res = requests.get(url, params={"serviceKey": api_key, "intId": int_id})
-    items = res.json()["body"]["items"]["item"]
-    return {
-        tuple(int(item["IMAGE"].lstrip("#")[i:i+2], 16) for i in (0, 2, 4)): int(item["LGD_NO"])
-        for item in items
-    }
-
 
 def closest_grade(pixel_rgb, color_to_grade: dict, tolerance: int = 15):
     best_grade, best_dist = None, float("inf")
@@ -243,9 +239,9 @@ def main():
     dataframes = load_all_data()
     boundary_gdf = load_boundary()
 
-    print("\nWMS 범례 로딩 중...")
+    # 범례는 API 호출 대신 정적값 사용 (lgdInfo 엔드포인트 불안정 대응)
     legends = {
-        ind["legend_id"]: fetch_legend(ind["legend_id"], SAFEMAP_API_KEY)
+        ind["legend_id"]: STATIC_LEGEND
         for ind in INDICATORS if ind["type"] == "wms"
     }
 
@@ -255,7 +251,6 @@ def main():
         subdongs = get_subdongs(boundary_gdf, group_key)
         print(f"  세부 행정동 {len(subdongs)}개: {subdongs['ADM_NM'].tolist()}")
 
-        # CSV 4개 지표 - 세부 행정동별 일괄 집계
         count_results = {}
         for ind in INDICATORS:
             if ind["type"] == "count":
@@ -277,7 +272,6 @@ def main():
 
         results[group_key] = {"group_key": group_key, "subdongs": subdong_raws}
 
-    # 정규화 기준: 전체(2개 법정동의 모든 세부 행정동)를 통틀어 최댓값 계산
     all_raws = [sd["raw"] for g in results.values() for sd in g["subdongs"]]
     max_vals = {
         ind["key"]: max(r[ind["key"]] for r in all_raws) or 1
@@ -304,3 +298,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    

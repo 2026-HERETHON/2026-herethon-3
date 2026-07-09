@@ -1,0 +1,240 @@
+{
+  "상계동": {
+    "group_key": "상계동",
+    "subdongs": [
+      {
+        "name": "상계1동",
+        "raw": {
+          "cctv": 371.0,
+          "light": 482.0,
+          "bell": 5.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 82.6
+      },
+      {
+        "name": "상계2동",
+        "raw": {
+          "cctv": 256.0,
+          "light": 496.0,
+          "bell": 1.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 67.7
+      },
+      {
+        "name": "상계5동",
+        "raw": {
+          "cctv": 309.0,
+          "light": 618.0,
+          "bell": 0.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 71.6
+      },
+      {
+        "name": "상계8동",
+        "raw": {
+          "cctv": 89.0,
+          "light": 19.0,
+          "bell": 6.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 54.5
+      },
+      {
+        "name": "상계9동",
+        "raw": {
+          "cctv": 80.0,
+          "light": 36.0,
+          "bell": 2.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 64.0
+      },
+      {
+        "name": "상계10동",
+        "raw": {
+          "cctv": 72.0,
+          "light": 21.0,
+          "bell": 3.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 53.5
+      },
+      {
+        "name": "상계3·4동",
+        "raw": {
+          "cctv": 373.0,
+          "light": 1013.0,
+          "bell": 6.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 90.6
+      },
+      {
+        "name": "상계6·7동",
+        "raw": {
+          "cctv": 211.0,
+          "light": 91.0,
+          "bell": 5.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 70.4
+      }
+    ]
+  },
+  "신림동": {
+    "group_key": "신림동",
+    "subdongs": [
+      {
+        "name": "서원동",
+        "raw": {
+          "cctv": 124.0,
+          "light": 676.0,
+          "bell": 52.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 80.4
+      },
+      {
+        "name": "신원동",
+        "raw": {
+          "cctv": 77.0,
+          "light": 657.0,
+          "bell": 43.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 67.3
+      },
+      {
+        "name": "서림동",
+        "raw": {
+          "cctv": 96.0,
+          "light": 666.0,
+          "bell": 62.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 80.2
+      },
+      {
+        "name": "신사동",
+        "raw": {
+          "cctv": 101.0,
+          "light": 728.0,
+          "bell": 43.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 79.3
+      },
+      {
+        "name": "신림동",
+        "raw": {
+          "cctv": 73.0,
+          "light": 525.0,
+          "bell": 33.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 64.1
+      },
+      {
+        "name": "난향동",
+        "raw": {
+          "cctv": 68.0,
+          "light": 253.0,
+          "bell": 56.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 72.3
+      },
+      {
+        "name": "조원동",
+        "raw": {
+          "cctv": 94.0,
+          "light": 532.0,
+          "bell": 55.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 67.4
+      },
+      {
+        "name": "대학동",
+        "raw": {
+          "cctv": 135.0,
+          "light": 666.0,
+          "bell": 87.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 74.4
+      },
+      {
+        "name": "난곡동",
+        "raw": {
+          "cctv": 156.0,
+          "light": 919.0,
+          "bell": 86.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 78.8
+      },
+      {
+        "name": "삼성동",
+        "raw": {
+          "cctv": 121.0,
+          "light": 727.0,
+          "bell": 91.0,
+          "police": 0.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 75.1
+      },
+      {
+        "name": "미성동",
+        "raw": {
+          "cctv": 172.0,
+          "light": 893.0,
+          "bell": 96.0,
+          "police": 1.0,
+          "night_safety": 0.0,
+          "crime_zone": 0.0
+        },
+        "safety_score": 90.1
+      }
+    ]
+  }
+}
