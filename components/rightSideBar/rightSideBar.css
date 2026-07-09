@@ -786,12 +786,25 @@
   height: 14px;
   margin-right: 14px;
 }
+
 .rightSB-heartImg {
   stroke-width: 1.6px;
   stroke: #000;
   width: 16px;
   height: 14px;
   margin-right: 14px;
+}
+
+.go-to-review-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wish-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /*사용자 별점 표기 기능*/
@@ -877,4 +890,341 @@
 .rightSBstar-fill {
   background-image: url("./rightSB-images/filledStar.svg");
   clip-path: inset(0 100% 0 0);
+}
+
+/*리뷰 리스트 디자인*/
+.rightSB-reviewCard {
+  padding: 16px 21px 15px 16px;
+  border-bottom: 1px solid #e1d9db;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 유저 프로필 및 정보 라인 */
+.rightSB-cardUserLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rightSB-cardUserInfo {
+  display: flex;
+  align-items: center;
+}
+.rightSB-cardAvatar {
+  width: 26px;
+  height: 26px;
+  margin-right: 8px;
+
+  background:
+    url("./rightSB-images/profile.svg") no-repeat center / contain,
+    /* 이미지 (안 깎임) */ var(--GrayScale-100, #f0edee); /* 회색 배경 */
+
+  background-size: 14px 15px;
+  border-radius: 100%;
+}
+
+.rightSB-cardNickname {
+  color: #000;
+
+  margin-right: 12px;
+
+  /* Others/Caption-Bold */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+.rightSB-cardPeriod {
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Others/Caption */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+.rightSB-cardDate {
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Others/Caption-Bold */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+/* 카드 내 별점 및 텍스트 후기 */
+.rightSB-reviewTextWrapper {
+  display: flex;
+  gap: 63px;
+  align-items: flex-end;
+}
+
+.rightSB-cardRatingLine {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom: 8px;
+}
+
+.rightSB-cardStars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.rightSB-cardStarsDisplay {
+  position: relative;
+  display: inline-flex;
+  width: 71px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.rightSB-cardEmptyStars {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: 4px;
+  width: 100%;
+  height: 10px;
+  z-index: 1;
+}
+
+.rightSB-cardFilledStars {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: 4px;
+  height: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+
+  margin: 0;
+  padding: 0;
+}
+
+.rightSB-cardStarIcon {
+  width: 11px;
+  height: 10px;
+  flex-shrink: 0;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.rightSB-cardScore {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 10px;
+}
+
+.rightSB-cardText {
+  color: var(--GrayScale-black, #1a1a1a);
+
+  /* Others/Caption */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+
+  width: 262px;
+  height: 36px;
+}
+
+.rightSB-cardLikeBtn {
+  display: flex;
+  width: 29px;
+  height: 18px;
+  box-sizing: content-box;
+  padding: 3px 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  border-radius: 20px;
+  background: var(--GrayScale-100, #f0edee);
+  cursor: pointer;
+
+  color: var(--GrayScale-800, #5b5658);
+
+  /* Others/Caption-Bold */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+/*QnA 리스트 검색창*/
+.rightSB-qnaSearchWrapper {
+  box-sizing: border-box;
+  margin: 14px 14px 9px 14px;
+  display: flex;
+  width: 382px;
+  height: 35px;
+  padding: 5px 8px;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-400, #a89ea1);
+}
+
+.rightSB-qnaSearchWrapper > input {
+  display: flex;
+  border: none;
+  width: 340px;
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Body/S */
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 21px */
+  letter-spacing: -0.28px;
+}
+
+.rightSB-qnaSearchWrapper > input:focus {
+  outline: none;
+}
+
+.rightSB-qnaSearchWrapper > button {
+  width: 31px;
+  height: 25px;
+  border-radius: 10px;
+  border: none;
+  box-sizing: border-box;
+
+  flex-shrink: 0;
+  background-color: var(--Color-Blue900, #1077ff);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.rightSB-qnaSearchWrapper img {
+  stroke: var(--GrayScale-White, #fff);
+  width: 14px;
+  height: 14px;
+}
+
+/* --- Q&A 탭 리스트 스타일 구조 --- */
+/* 개별 Q&A 카드 컴포넌트 */
+#rightSB-qnaCardContainer {
+  display: flex;
+  flex-direction: column;
+  width: 382px;
+  margin-left: 14px;
+  box-sizing: border-box;
+}
+
+.rightSB-qnaCard {
+  width: 100%;
+  padding: 11px 26px 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e1d9db; /* 연한 분리선 */
+  box-sizing: border-box;
+  cursor: pointer; 
+}
+
+.rightSB-qnaCard:last-child {
+  border-bottom: none; /* 마지막 카드는 밑줄 제거 */
+  margin-bottom: 0;
+}
+
+.rightSB-qnaLeft {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: 1;
+}
+
+/* 하늘색 둥근 Q 프로필 */
+.rightSB-qnaAvatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 17.5px;
+  background: var(--Color-Blue200, #c4ecfe);
+  color: var(--Color-Blue900, #1077ff);
+
+  /* Body/L-Bold */
+  font-family: Pretendard;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 30px */
+  letter-spacing: -0.4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.rightSB-qnaQuestion {
+  color: #000;
+
+  /* Body/S-Medium */
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 150%; /* 21px */
+
+  display: -webkit-box;
+  -webkit-line-clamp: 1; /* 질문이 너무 길면 한 줄 처리 후 말줄임(...) */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rightSB-qnaRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.rightSB-qnaAnswerText {
+  color: var(--GrayScale-600, #7b7578);
+
+  /* Others/Caption */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+}
+
+.rightSB-qnaArrow {
+  width: 5px;
+  height: 10px;
+  stroke-width: 1.5px;
+  stroke: var(--GrayScale-600, #7b7578);
 }

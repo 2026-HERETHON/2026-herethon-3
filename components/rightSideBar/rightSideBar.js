@@ -269,19 +269,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // [공통 복귀 로직 함수]
   const backToMainList = () => {
-    const activeTab = document.querySelector(
-      ".rightSB-tabContent.rightSB-activeContent",
-    );
+    const activeTab = document
+      .getElementById("tabContentReview")
+      ?.classList.contains("rightSB-activeContent")
+      ? document.getElementById("tabContentReview")
+      : document.getElementById("tabContentQnA");
+
+    if (!activeTab) return;
+
     if (activeTab.id === "tabContentReview") {
+      // 1. 후기 텍스트 영역 비우기 및 글자수(0/500) 리셋
+      const textarea = reviewFormSub.querySelector(".rightSB-reviewContent");
+      if (textarea) textarea.value = "";
+      const charSpan = reviewFormSub.querySelector(
+        ".rightSB-currentChars > span",
+      );
+      if (charSpan) charSpan.textContent = "0";
+
+      // 2. 후기 체크박스 동의 해제
+      const agreeCheckbox = reviewFormSub.querySelector("#check-agree");
+      if (agreeCheckbox) agreeCheckbox.checked = false;
+
+      // 3. 후기 만족도 별점(0점) 및 채워진 그래픽 초기화
+      const ratings = reviewFormSub.querySelectorAll(".rightSB-rating");
+      ratings.forEach((box) => {
+        box.setAttribute("data-score", "0");
+        const stars = box.children;
+        for (let i = 0; i < stars.length; i++) {
+          stars[i].classList.remove("filled");
+          const fillTarget = stars[i].querySelector(".rightSBstar-fill");
+          if (fillTarget) fillTarget.style.clipPath = "inset(0 100% 0 0)";
+        }
+      });
+
+      // 4. 화면 전환
       reviewFormSub?.classList.add("rightSB-hide");
       reviewListSub?.classList.remove("rightSB-hide");
-    } else {
+    } else if (activeTab.id === "tabContentQnA") {
+      // 1. Q&A 텍스트 영역 비우기 및 글자수 리셋
+      const textarea = qnaFormSub.querySelector(".rightSB-reviewContent");
+      if (textarea) textarea.value = "";
+      const charSpan = qnaFormSub.querySelector(".rightSB-currentChars > span");
+      if (charSpan) charSpan.textContent = "0";
+
+      // 2. Q&A 체크박스 동의 해제
+      const agreeCheckbox = qnaFormSub.querySelector("#check-agree2");
+      if (agreeCheckbox) agreeCheckbox.checked = false;
+
+      // 3. 화면 전환
       qnaFormSub?.classList.add("rightSB-hide");
       qnaListSub?.classList.remove("rightSB-hide");
     }
+
+    // 아래 버튼 묶음 스위칭 함수 호출
     updateBottomButtons();
   };
-
   // 상단 화살표(<) 이미지 클릭 시 목록 복귀
   reviewFormSub
     ?.querySelector(".rightSB-reviewTitle img")
@@ -321,10 +363,10 @@ document.addEventListener("DOMContentLoaded", () => {
           if (type) scores[type] = score;
         });
 
-        const text = reviewFormSub.querySelector(
-          ".rightSB-reviewContent",
-        ).value;
-        const isAgreed = reviewFormSub.querySelector("#check-agree").checked;
+        const textarea = reviewFormSub.querySelector(".rightSB-reviewContent"); // 💡 리셋을 위해 엘리먼트로 수집
+        const text = textarea.value;
+        const agreeCheckbox = reviewFormSub.querySelector("#check-agree"); // 💡 리셋을 위해 엘리먼트로 수집
+        const isAgreed = agreeCheckbox.checked;
 
         if (
           scores.night === 0 ||
@@ -349,12 +391,38 @@ document.addEventListener("DOMContentLoaded", () => {
           isAgreed,
         });
         alert("후기가 성공적으로 등록되었습니다!");
+
+        // 💡 [실거주 후기 폼 초기화 코드 추가]
+        // 1. 텍스트 영역 비우기 및 글자수 표기(0/500) 리셋
+        textarea.value = "";
+        const charSpan = reviewFormSub.querySelector(
+          ".rightSB-currentChars > span",
+        );
+        if (charSpan) charSpan.textContent = "0";
+
+        // 2. 체크박스 동의 해제
+        agreeCheckbox.checked = false;
+
+        // 3. 만족도 별점(0점) 및 채워진 그래픽 초기화
+        ratings.forEach((box) => {
+          box.setAttribute("data-score", "0");
+          // 생성해 둔 별 자식 요소들의 clipPath 마스크를 다시 100%로 가려버림
+          const stars = box.children;
+          for (let i = 0; i < stars.length; i++) {
+            stars[i].classList.remove("filled");
+            const fillTarget = stars[i].querySelector(".rightSBstar-fill");
+            if (fillTarget) fillTarget.style.clipPath = "inset(0 100% 0 0)";
+          }
+        });
+
         backToMainList();
       }
       // [CASE 2: Q&A 질문 등록 전송 및 밸리데이션]
       else if (activeTab.id === "tabContentQnA") {
-        const text = qnaFormSub.querySelector(".rightSB-reviewContent").value;
-        const isAgreed = qnaFormSub.querySelector("#check-agree2").checked;
+        const textarea = qnaFormSub.querySelector(".rightSB-reviewContent"); // 💡 리셋을 위해 엘리먼트로 수집
+        const text = textarea.value;
+        const agreeCheckbox = qnaFormSub.querySelector("#check-agree2"); // 💡 리셋을 위해 엘리먼트로 수집
+        const isAgreed = agreeCheckbox.checked;
 
         if (!text.trim()) {
           alert("궁금한 내용을 입력해주세요.");
@@ -370,6 +438,18 @@ document.addEventListener("DOMContentLoaded", () => {
           isAgreed,
         });
         alert("질문이 성공적으로 등록되었습니다!");
+
+        // [Q&A 폼 초기화 코드 추가]
+        // 1. 텍스트 영역 비우기 및 글자수 표기 리셋
+        textarea.value = "";
+        const charSpan = qnaFormSub.querySelector(
+          ".rightSB-currentChars > span",
+        );
+        if (charSpan) charSpan.textContent = "0";
+
+        // 2. 체크박스 동의 해제
+        agreeCheckbox.checked = false;
+
         backToMainList();
       }
     });
@@ -403,4 +483,185 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }, 100);
   }
-});
+
+  // --- [I] 백엔드 연동용 후기 리스트 동적 렌더링 모듈 ---
+
+  // 1. 임시 백엔드 데이터 (나중에 fetch나 axios로 받아올 데이터 배열)
+  const mockReviewsFromServer = [
+    {
+      id: 101,
+      nickname: "별빛여행자",
+      residence: "상계동 거주 중",
+      date: "3일 전",
+      score: 2.5,
+      content:
+        "밤에 귀가할 때 가로등이 많아서 안심돼요. 주변에 편의점, 병원도 가까워서 생활하기 편합니다.",
+      likes: 12,
+    },
+    {
+      id: 102,
+      nickname: "따뜻한 봄날",
+      residence: "상계동 거주 중",
+      date: "1주 전",
+      score: 4.0,
+      content:
+        "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
+      likes: 3,
+    },
+    {
+      id: 103,
+      nickname: "따뜻한 봄날",
+      residence: "상계동 거주 중",
+      date: "1주 전",
+      score: 3.9,
+      content:
+        "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
+      likes: 3,
+    },
+  ];
+
+  // 2. 데이터를 받아와서 화면에 뿌려주는 함수
+  function renderReviews(reviews) {
+    const container = document.getElementById("rightSB-reviewCardContainer");
+    if (!container) return;
+
+    // 기존에 더미로 들어있던 내용 청소
+    container.innerHTML = "";
+
+    // 데이터가 하나도 없을 때 예외 처리
+    if (reviews.length === 0) {
+      container.innerHTML = `<div style="text-align:center; color:#7b7578; padding:4px 0;">첫 번째 후기를 남겨보세요!</div>`;
+      return;
+    }
+
+    // 3. 루프를 돌며 동적 템플릿 생성
+    reviews.forEach((review) => {
+      // 💡 별 5개 이미지 세트 가공 (상단 만족도 방식과 동일하게 인라인 스타일 간섭 제거)
+      let emptyStarsHTML = "";
+      let filledStarsHTML = "";
+      for (let i = 0; i < 5; i++) {
+        emptyStarsHTML += `<img src="./rightSB-images/emptyStar.svg" alt="빈별" class="rightSB-cardStarIcon" />`;
+        filledStarsHTML += `<img src="./rightSB-images/filledStar.svg" alt="채워진별" class="rightSB-cardStarIcon" />`;
+      }
+
+      // 💡 반 개 단위(0.5단위)로 점수 정렬
+      const roundedScore = Math.round(review.score * 2) / 2;
+      const filledStarsCount = Math.floor(roundedScore);
+      const hasHalfStar = roundedScore % 1 !== 0;
+
+      // 💡 [초정밀 수정] 별 내부 공백과 스케일 오차를 반영한 픽셀 매칭
+      let totalWidth = filledStarsCount * 11 + filledStarsCount * 4;
+
+      if (hasHalfStar) {
+        totalWidth += 5.5;
+      } else if (filledStarsCount > 0) {
+        totalWidth -= 4; // 맨 마지막 별 뒤의 여분 간격 제거
+      }
+
+      // 리액트의 return <div>...</div> 과 같은 컴포넌트 양식 만들기
+      const cardHTML = `
+        <div class="rightSB-reviewCard" data-id="${review.id}">
+          <div class="rightSB-cardUserLine">
+            <div class="rightSB-cardUserInfo">
+              <div class="rightSB-cardAvatar"></div>
+              <div>
+                <span class="rightSB-cardNickname">${review.nickname}</span>
+                <span class="rightSB-cardPeriod">${review.residence}</span>
+              </div>
+            </div>
+            <span class="rightSB-cardDate">${review.date}</span>
+          </div>
+
+          <div class="rightSB-reviewTextWrapper">
+            <div>
+              <div class="rightSB-cardRatingLine">
+                
+                <div class="rightSB-cardStarsDisplay">
+                  <div class="rightSB-cardEmptyStars">
+                    ${emptyStarsHTML}
+                  </div>
+                  <div class="rightSB-cardFilledStars" style="width: ${totalWidth}px;">
+                    ${filledStarsHTML}
+                  </div>
+                </div>
+
+                <span class="rightSB-cardScore">${review.score.toFixed(1)}</span>
+              </div>
+              <div class="rightSB-cardText">${review.content}</div>
+            </div>
+            <button class="rightSB-cardLikeBtn">
+              <img src="./rightSB-images/thumbsUp.svg" style="width:11px; height:10px;" />
+              <span>${review.likes}</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      // 부모 컨테이너에 차곡차곡 누적 추가하기
+      container.insertAdjacentHTML("beforeend", cardHTML);
+    });
+  }
+  // 함수 실행시켜서 화면에 카드들 띄우기!
+  renderReviews(mockReviewsFromServer);
+
+  // ==========================================
+  // --- [J] 백源 연동용 Q&A 리스트 동적 렌더링 모듈 ---
+  // ==========================================
+
+  // 1. 임시 Q&A 데이터 (나중에 서버에서 가져올 배열)
+  const mockQnasFromServer = [
+    { id: 201, question: "밤에 혼자 걸어다녀도 괜찮을까요?", answerCount: 2 },
+    { id: 202, question: "주차는 편리한가요?", answerCount: 2 },
+    { id: 203, question: "버스나 지하철 접근성은 어떤가요?", answerCount: 1 },
+    { id: 204, question: "주변에 편의점이나 마트는 많나요?", answerCount: 2 },
+    {
+      id: 205,
+      question: "이 동네의 가장 큰 장단점은 무엇인가요?",
+      answerCount: 3,
+    },
+    { id: 206, question: "밤에 혼자 걸어다녀도 괜찮을까요?", answerCount: 2 },
+    { id: 207, question: "주차는 편리한가요?", answerCount: 2 },
+    { id: 208, question: "버스나 지하철 접근성은 어떤가요?", answerCount: 1 },
+    { id: 209, question: "주변에 편의점이나 마트는 많나요?", answerCount: 2 },
+    {
+      id: 210,
+      question: "이 동네의 가장 큰 장단점은 무엇인가요?",
+      answerCount: 3,
+    },
+  ];
+
+  // 2. Q&A 데이터를 화면에 뿌려주는 함수
+  function renderQnas(qnas) {
+    const container = document.getElementById("rightSB-qnaCardContainer");
+    if (!container) return;
+
+    // 초기화
+    container.innerHTML = "";
+
+    // 질문이 없을 때 처리
+    if (qnas.length === 0) {
+      container.innerHTML = `<div style="text-align:center; color:#7b7578; padding:24px 0;">등록된 질문이 없습니다. 첫 질문을 던져보세요!</div>`;
+      return;
+    }
+
+    // 3. 루프를 돌며 동적 카드 템플릿 주입
+    qnas.forEach((qna) => {
+      const qnaHTML = `
+        <div class="rightSB-qnaCard" data-id="${qna.id}">
+          <div class="rightSB-qnaLeft">
+            <div class="rightSB-qnaAvatar">Q</div>
+            <span class="rightSB-qnaQuestion">${qna.question}</span>
+          </div>
+          <div class="rightSB-qnaRight">
+            <span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span>
+            <img src="./rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML("beforeend", qnaHTML);
+    });
+  }
+
+  // 💡 DOMContentLoaded 블록 내부에서 안전하게 실행되도록 구성
+  renderQnas(mockQnasFromServer);
+}); // 👈 DOMContentLoaded 이벤트가 완전히 끝나는 중괄호입니다. 파일의 맨 마지막 줄이 됩니다.

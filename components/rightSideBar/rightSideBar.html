@@ -132,7 +132,7 @@
             >
               <!--실거주 후기 List-->
               <div class="rightSB-reviewListSubPage">
-                <div>후기 내용들...</div>
+                <div id="rightSB-reviewCardContainer"></div>
               </div>
 
               <!--실거주 후기 Form-->
@@ -233,10 +233,18 @@
             <div id="tabContentQnA" class="rightSB-tabContent">
               <!--QnA List-->
               <div class="rightSB-qnaListSubPage">
-                <div>QnA 리스트 내용</div>
+                <!--QnA 검색창-->
+                <div class="rightSB-qnaSearchWrapper">
+                  <input placeholder="검색어를 입력해주세요." />
+                  <button class="rightSB-qnaSearchBtn">
+                    <img src="./rightSB-images/search.svg" alt="검색" />
+                  </button>
+                </div>
+                <!--QnA 질문 리스트-->
+                <div id="rightSB-qnaCardContainer"></div>
               </div>
-              <!--QnA Form-->
 
+              <!--QnA Form-->
               <div class="rightSB-qnaFormSubPage rightSB-hide">
                 <div class="rightSB-reviewTitle">
                   <img
@@ -291,8 +299,7 @@
             <img
               src="./rightSB-images/askingQ.svg"
               class="rightSB-askingQImg"
-            />
-            후기 작성하기
+            />후기 작성하기
           </button>
           <button class="rightSB-reviewCancleBtn wish-btn">
             <img src="./rightSB-images/heart.svg" class="rightSB-heartImg" />
