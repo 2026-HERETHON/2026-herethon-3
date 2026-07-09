@@ -44,6 +44,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'neighborhoods',
+    "accounts.apps.AccountsConfig",
+    "reviews.apps.ReviewsConfig",
+    "grids.apps.GridsConfig",
+    "qna.apps.QnaConfig",
+    
 ]
 
 MIDDLEWARE = [
@@ -109,14 +114,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+AUTH_USER_MODEL = 'accounts.User'
 
-TIME_ZONE = "UTC"
+LANGUAGE_CODE = "ko-kr"
+
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
 USE_TZ = True
 
+USE_L10N = True #한국 날짜, 숫자 형식
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
