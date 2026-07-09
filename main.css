@@ -84,7 +84,8 @@ nav .navbar-ahref {
 
 /*네비게이션 선택함에 따라 달라지는 메인 페이지 구현*/
 main {
-  width: 1579px;
+  flex: 1; 
+  box-sizing: border-box;
 }
 
 /* 탭 전환 시 화면을 숨겨주는 클래스 */
@@ -96,4 +97,19 @@ main {
 #page-safetyMap {
   display: flex;
   flex-direction: row;
+  width: 100%;
+  height: calc(100vh - 60px); /* 내비바 높이 60px을 뺀 나머지 꽉 채우기 */
+  overflow: hidden;
+}
+
+/* 우측 사이드바 닫기 */
+#rightSideBar-container {
+  transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+#rightSideBar-container.sidebar-collapsed {
+  transform: translateX(506px);
+  /* 만약 완전히 안 사라지고 화살표만 살짝 남겨두고 싶다면 
+     translateX(506px); 로 고치면 버튼만 화면에 이쁘게 남습니다! */
 }

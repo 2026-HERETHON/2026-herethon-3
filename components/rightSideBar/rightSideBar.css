@@ -2,7 +2,6 @@
   display: flex;
   align-items: center;
 
-  width: 551px;
   height: 1023px;
   box-sizing: border-box;
   filter: drop-shadow(-4px 4px 20px rgba(0, 0, 0, 0.1));
