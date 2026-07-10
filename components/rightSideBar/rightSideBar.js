@@ -17,12 +17,12 @@ function handleStarRating() {
 
     let emptyStarsHTML = "";
     for (let i = 0; i < 5; i++) {
-      emptyStarsHTML += `<img src="./rightSB-images/emptyStar.svg" alt="빈별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
+      emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" alt="빈별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
     }
 
     let filledStarsHTML = "";
     for (let i = 0; i < 5; i++) {
-      filledStarsHTML += `<img src="./rightSB-images/filledStar.svg" alt="채워진별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
+      filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" alt="채워진별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
     }
 
     const roundedScore = Math.floor(score * 2) / 2;
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const qnaListBtnGroup = allBtnGroups[1]; // Q&A 목록용 (질문 남기기 / 찜하기)
   const formSubmitBtnGroup = allBtnGroups[2]; // 공통 폼 등록용 (등록하기 / 취소)
 
- // --- [B] 통합 버튼 상태 제어 함수 (수정본) ---
+  // --- [B] 통합 버튼 상태 제어 함수 (수정본) ---
   function updateBottomButtons() {
     // 1. 모든 버튼 일단 숨김
     reviewListBtnGroup?.classList.add("rightSB-hide");
@@ -102,10 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Q&A 탭일 때
       if (qnaFormSub && !qnaFormSub.classList.contains("rightSB-hide")) {
         formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 질문 작성 폼일 때만 등록/취소 버튼
-      } 
+      }
       // 💡 [여기 수정] 목록 상태이거나 '상세 보기 페이지' 상태일 때 둘 다 질문 남기기/찜하기 버튼 유지!
       else {
-        qnaListBtnGroup?.classList.remove("rightSB-hide"); 
+        qnaListBtnGroup?.classList.remove("rightSB-hide");
       }
     }
   }
@@ -339,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.querySelector(".rightSB-reviewCancleBtn")
     ?.addEventListener("click", backToMainList);
 
-  // --- [💡 수정] 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 토글 및 이미지 변경 처리 ---
+  // ---- 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 토글 및 이미지 변경 처리 ---
 
   // 찜하기 상태를 기억할 변수 (false: 찜 안함, true: 찜함)
   let isWished = false;
@@ -357,9 +357,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // 3. 상태에 따라 이미지 경로 및 알림창 분기 처리
       allHeartImgs.forEach((img) => {
         if (isWished) {
-          img.src = "./rightSB-images/fullHeart.svg"; // 채워진 하트 경로
+          img.src = "./components/rightSideBar/rightSB-images/fullHeart.svg"; // 채워진 하트 경로
         } else {
-          img.src = "./rightSB-images/heart.svg"; // 원래 빈 하트 경로
+          img.src = "./components/rightSideBar/rightSB-images/heart.svg"; // 원래 빈 하트 경로
         }
       });
 
@@ -371,6 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
 
   // --- [G] 3번째 버튼 그룹 내 [등록하기] 공통 버튼 라우팅 처리 ---
   formSubmitBtnGroup
@@ -568,8 +569,8 @@ document.addEventListener("DOMContentLoaded", () => {
       let emptyStarsHTML = "";
       let filledStarsHTML = "";
       for (let i = 0; i < 5; i++) {
-        emptyStarsHTML += `<img src="./rightSB-images/emptyStar.svg" alt="빈별" class="rightSB-cardStarIcon" />`;
-        filledStarsHTML += `<img src="./rightSB-images/filledStar.svg" alt="채워진별" class="rightSB-cardStarIcon" />`;
+        emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" alt="빈별" class="rightSB-cardStarIcon" />`;
+        filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" alt="채워진별" class="rightSB-cardStarIcon" />`;
       }
 
       // 💡 반 개 단위(0.5단위)로 점수 정렬
@@ -618,7 +619,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="rightSB-cardText">${review.content}</div>
             </div>
             <button class="rightSB-cardLikeBtn">
-              <img src="./rightSB-images/thumbsUp.svg" style="width:11px; height:10px;" />
+              <img src="./components/rightSideBar/rightSB-images/thumbsUp.svg" style="width:11px; height:10px;" />
               <span>${review.likes}</span>
             </button>
           </div>
@@ -644,7 +645,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: 204, question: "주변에 편의점이나 마트는 많나요?", answerCount: 2 },
     {
       id: 205,
-      question: "이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?",
+      question:
+        "이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?이 동네의 가장 큰 장단점은 무엇인가요?",
       answerCount: 3,
     },
     { id: 206, question: "밤에 혼자 걸어다녀도 괜찮을까요?", answerCount: 2 },
@@ -682,7 +684,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="rightSB-qnaRight">
             <span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span>
-            <img src="./rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
+            <img src="./components/rightSideBar/rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
           </div>
         </div>
       `;
@@ -692,7 +694,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 💡 DOMContentLoaded 블록 내부에서 안전하게 실행되도록 구성
   renderQnas(mockQnasFromServer);
-
+  document
+    .querySelector(".rightSB-qnaDetailSubPage")
+    ?.classList.add("rightSB-hide");
+  document
+    .querySelector(".rightSB-reviewFormSubPage")
+    ?.classList.add("rightSB-hide");
+  document
+    .querySelector(".rightSB-qnaFormSubPage")
+    ?.classList.add("rightSB-hide");
   // --- [K] 백엔드 데이터 연동 5각형 레이더 차트 모듈 ---
 
   // 1. 임시 백엔드 데이터 (0에서 100 사이의 점수라고 가정)
@@ -855,7 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="rightSB-qnaRight">
             <span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span>
-            <img src="./rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
+            <img src="./components/rightSideBar/rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
           </div>
         </div>
       `;
@@ -932,4 +942,31 @@ document.addEventListener("DOMContentLoaded", () => {
       qnaListSub?.classList.remove("rightSB-hide");
       updateBottomButtons(); // 하단 버튼 레이아웃 원복
     });
+
+  // 메인페이지에서 사이드바 닫는 기능
+  const toggleBtn = document.querySelector(".rightSB-close");
+  const sidebarWrapper = document.getElementById("rightSideBar-container");
+
+  if (toggleBtn && sidebarWrapper) {
+    toggleBtn.addEventListener("click", () => {
+      // 버튼을 누를 때마다 클래스를 켜고 끕니다
+      sidebarWrapper.classList.toggle("sidebar-collapsed");
+    });
+  }
+
+  
+  //내부 X 버튼 이벤트 구역 X버튼 누를 시 삭제
+
+const exitBtn = document.querySelector(".rightSB-exitImg");
+const sidebarExit = document.querySelector(".rightSB-wholeContainer");
+
+if (exitBtn) {
+  exitBtn.addEventListener("click", () => {
+    sidebarExit.classList.add("main-page-hide");
+  });
+}
+
+  //사이드바 최초 생성
+  // 나중에 사이드바를 다시 보여줘야 하는 순간이 오면 이걸 실행하세요! document.getElementById("rightSideBar-container")?.classList.remove("main-page-hide");
+
 }); // 👈 DOMContentLoaded 이벤트가 완전히 끝나는 중괄호입니다. 파일의 맨 마지막 줄이 됩니다.
