@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import requests
+
+from datetime import datetime, timezone
 from PIL import Image
 from io import BytesIO
 from shapely.geometry import Point
@@ -26,8 +28,7 @@ DONG_GROUPS = {
     "상계동": {"gu_code": "11110", "names": None, "name_contains": "상계"},
     "신림동": {
         "gu_code": "11210",
-        "names": ['서원동', '신원동', '서림동', '신사동', '신림동', '난향동',
-                  '조원동', '대학동', '난곡동', '삼성동', '미성동'],
+        "names": ['서원동', '신원동', '서림동', '신사동', '신림동', '난향동', '조원동', '대학동', '난곡동', '삼성동', '미성동'],
         "name_contains": None,
     },
 }
@@ -145,7 +146,7 @@ def load_wms_fallback() -> dict:
 # ══════════════════════════════════════════════════════════════
 
 def count_by_subdong(df: pd.DataFrame, lat_col: str, lon_col: str,
-                      subdongs_gdf: gpd.GeoDataFrame, count_col: str = None) -> pd.Series:
+                    subdongs_gdf: gpd.GeoDataFrame, count_col: str = None) -> pd.Series:
     valid = df.dropna(subset=[lat_col, lon_col])
     gdf_points = gpd.GeoDataFrame(
         valid, geometry=gpd.points_from_xy(valid[lon_col], valid[lat_col]), crs="EPSG:4326"
@@ -209,7 +210,7 @@ def get_wms_grade_for_polygon(layer_url: str, polygon, api_key: str, legend: dic
 
 
 def get_wms_with_fallback(layer_url: str, polygon, api_key: str, legend: dict,
-                           fallback_value: float, subdong_name: str, indicator_key: str, size: int = 256) -> float:
+                        fallback_value: float, subdong_name: str, indicator_key: str, size: int = 256) -> float:
     try:
         return get_wms_grade_for_polygon(layer_url, polygon, api_key, legend, size)
     except Exception as e:
@@ -337,10 +338,152 @@ def export_safety_score_polygons(boundary_gdf: gpd.GeoDataFrame, results: dict, 
         os.remove(output_path)
     gdf_out.to_file(output_path, driver="GeoJSON")
     print(f"{output_path}: {len(gdf_out)}개 세부 행정동 저장")
-
+    
 
 # ══════════════════════════════════════════════════════════════
-# 7. 실행
+# 7. Django fixture export (Grid, Facility 모델용)
+# ══════════════════════════════════════════════════════════════
+
+
+def export_grid_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, output_path: str,
+                        app_label: str = "grids"):
+    """세부 행정동 데이터를 Django Grid 모델 fixture(JSON)로 변환"""
+    records = []
+    pk = 1
+    now_str = datetime.now(timezone.utc).isoformat()
+
+    for group_key in DONG_GROUPS:
+        subdongs = get_subdongs(boundary_gdf, group_key)
+        score_map = {sd["name"]: sd for sd in results[group_key]["subdongs"]}
+
+        for _, row in subdongs.iterrows():
+            name = row["ADM_NM"]
+            sd = score_map[name]
+            centroid = row.geometry.centroid
+
+            geom_json = json.loads(gpd.GeoSeries([row.geometry], crs="EPSG:4326").to_json())
+            boundary_geometry = geom_json["features"][0]["geometry"]
+
+            records.append({
+                "model": f"{app_label}.grid",
+                "pk": pk,
+                "fields": {
+                    "dong_group": group_key,
+                    "dong": name,
+                    "is_legal_dong": False,
+                    "latitude": centroid.y,
+                    "longitude": centroid.x,
+                    "boundary_geojson": json.dumps(boundary_geometry, ensure_ascii=False),
+                    "safety_score": sd["safety_score"],
+                    "cctv_count": int(sd["raw"]["cctv"]),
+                    "light_count": int(sd["raw"]["light"]),
+                    "bell_count": int(sd["raw"]["bell"]),
+                    "police_count": int(sd["raw"]["police"]),
+                    "created_at": now_str,
+                    "updated_at": now_str,
+                }
+            })
+            pk += 1
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+    print(f"{output_path}: Grid(세부 행정동) {len(records)}건 저장")
+
+
+
+def export_facility_fixture(dataframes: dict, boundary_gdf: gpd.GeoDataFrame, output_path: str, app_label: str = "grids"):
+    """개별 시설(CCTV/가로등/비상벨/파출소) 데이터를 Django Facility 모델 fixture(JSON)로 변환"""
+    all_subdongs = pd.concat([
+        get_subdongs(boundary_gdf, "상계동"),
+        get_subdongs(boundary_gdf, "신림동"),
+    ])
+    boundary_union = unary_union(all_subdongs.geometry)
+
+    facility_specs = [
+        {"type": "cctv",   "df": "cctv",   "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None},
+        {"type": "light",  "df": "light",  "lat_col": "위도",       "lon_col": "경도",       "count_col": "설치개수"},
+        {"type": "bell",   "df": "bell",   "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None},
+        {"type": "police", "df": "police", "lat_col": "위도",       "lon_col": "경도",       "count_col": None},
+    ]
+
+    records = []
+    pk = 1
+
+    for spec in facility_specs:
+        df = dataframes[spec["df"]]
+        valid = df.dropna(subset=[spec["lat_col"], spec["lon_col"]]).copy()
+        gdf_points = gpd.GeoDataFrame(
+            valid, geometry=gpd.points_from_xy(valid[spec["lon_col"]], valid[spec["lat_col"]]), crs="EPSG:4326"
+        )
+        filtered = gdf_points[gdf_points.within(boundary_union)]
+
+        for _, row in filtered.iterrows():
+            count_value = int(row[spec["count_col"]]) if spec["count_col"] else 1
+            records.append({
+                "model": f"{app_label}.facility",
+                "pk": pk,
+                "fields": {
+                    "type": spec["type"],
+                    "latitude": row.geometry.y,
+                    "longitude": row.geometry.x,
+                    "count": count_value,
+                }
+            })
+            pk += 1
+
+        print(f"  {spec['type']}: {len(filtered)}건 준비 완료")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+    print(f"{output_path}: Facility {len(records)}건 저장")
+
+def export_legal_dong_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, output_path: str,
+                                start_pk: int, app_label: str = "grids"):
+    """법정동(상계동/신림동) 전체 단위 Grid 레코드 fixture 생성 (후기/QNA용)"""
+    records = []
+    pk = start_pk
+    now_str = datetime.now(timezone.utc).isoformat()
+    dong_level = results["dong_level_totals"]
+
+    for group_key in DONG_GROUPS:
+        subdongs = get_subdongs(boundary_gdf, group_key)
+        union_polygon = unary_union(subdongs.geometry)
+        centroid = union_polygon.centroid
+
+        geom_json = json.loads(gpd.GeoSeries([union_polygon], crs="EPSG:4326").to_json())
+        boundary_geometry = geom_json["features"][0]["geometry"]
+
+        raw = dong_level[group_key]["raw"]
+        score = dong_level[group_key]["safety_score"]
+
+        records.append({
+            "model": f"{app_label}.grid",
+            "pk": pk,
+            "fields": {
+                "dong_group": group_key,
+                "dong": group_key,
+                "is_legal_dong": True,
+                "latitude": centroid.y,
+                "longitude": centroid.x,
+                "boundary_geojson": json.dumps(boundary_geometry, ensure_ascii=False),
+                "safety_score": score,
+                "cctv_count": int(raw["cctv"]),
+                "light_count": int(raw["light"]),
+                "bell_count": int(raw["bell"]),
+                "police_count": int(raw["police"]),
+                "created_at": now_str,
+                "updated_at": now_str,
+            }
+        })
+        pk += 1
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+    print(f"{output_path}: 법정동 전체 Grid {len(records)}건 저장 (pk {start_pk}~{pk-1})")
+    
+    
+# ══════════════════════════════════════════════════════════════
+# 8. 실행
 # ══════════════════════════════════════════════════════════════
 
 def main():
@@ -426,7 +569,16 @@ def main():
     export_all_facility_points(dataframes, boundary_gdf)
     export_safety_score_polygons(boundary_gdf, results, os.path.join(DATA_DIR, "safety_score_polygons.geojson"))
 
+    # Django fixture export (BE1 - grids 앱)
+    print("\n" + "=" * 40)
+    print("Django fixture export")
+    print("=" * 40)
+    export_grid_fixture(boundary_gdf, results, os.path.join(DATA_DIR, "grid_fixture.json"))
+    export_legal_dong_fixture(boundary_gdf, results, os.path.join(DATA_DIR, "legal_dong_fixture.json"), start_pk=20)
+    export_facility_fixture(dataframes, boundary_gdf, os.path.join(DATA_DIR, "facility_fixture.json"))
+
     return results, boundary_gdf
+
 
 
 if __name__ == "__main__":
