@@ -128,7 +128,6 @@ def get_subdongs(boundary_gdf: gpd.GeoDataFrame, group_key: str) -> gpd.GeoDataF
 
 
 def load_wms_fallback() -> dict:
-    """서버 장애 시 대체용 - 법정동 전체 단위로 미리 확보해둔 WMS 값"""
     path = os.path.join(DATA_DIR, "safety_scores_backup_wms_ok.json")
     with open(path, encoding="utf-8") as f:
         backup = json.load(f)
@@ -177,7 +176,6 @@ def pixel_to_latlon(px, py, bbox, width, height):
 
 
 def get_wms_grade_for_polygon(layer_url: str, polygon, api_key: str, legend: dict, size: int = 256) -> float:
-    """폴리곤 클리핑 기반 등급 평균 계산. 실패 시 예외 발생시킴 (호출부에서 폴백 처리)"""
     min_lon, min_lat, max_lon, max_lat = polygon.bounds
     bbox_str = f"{min_lon},{min_lat},{max_lon},{max_lat}"
     params = {
@@ -212,7 +210,6 @@ def get_wms_grade_for_polygon(layer_url: str, polygon, api_key: str, legend: dic
 
 def get_wms_with_fallback(layer_url: str, polygon, api_key: str, legend: dict,
                            fallback_value: float, subdong_name: str, indicator_key: str, size: int = 256) -> float:
-    """WMS 계산 시도, 실패하면 폴백값 사용"""
     try:
         return get_wms_grade_for_polygon(layer_url, polygon, api_key, legend, size)
     except Exception as e:
@@ -250,19 +247,14 @@ def compute_score(raw: dict, max_vals: dict) -> float:
 
 def compute_dong_level_scores(results: dict, boundary_gdf: gpd.GeoDataFrame,
                                 legends: dict, wms_fallback: dict) -> dict:
-    """세부 행정동을 합쳐서 법정동(상계동/신림동) 전체 단위 raw 값 계산"""
     dong_raws = {}
-
     for group_key in DONG_GROUPS:
         subdongs = get_subdongs(boundary_gdf, group_key)
-
-        # CSV 4개 - 세부 행정동 raw 값들을 그대로 합산
         raw = {}
         for ind in INDICATORS:
             if ind["type"] == "count":
                 raw[ind["key"]] = sum(sd["raw"][ind["key"]] for sd in results[group_key]["subdongs"])
 
-        # WMS 2개 - 세부 행정동들을 하나로 합친 폴리곤으로 재요청
         union_polygon = unary_union(subdongs.geometry)
         for ind in INDICATORS:
             if ind["type"] == "wms":
@@ -279,7 +271,76 @@ def compute_dong_level_scores(results: dict, boundary_gdf: gpd.GeoDataFrame,
 
 
 # ══════════════════════════════════════════════════════════════
-# 6. 실행
+# 6. 프론트엔드용 GeoJSON export
+# ══════════════════════════════════════════════════════════════
+
+def export_points_geojson(df: pd.DataFrame, lat_col: str, lon_col: str,
+                            boundary_union, output_path: str, extra_cols: list = None):
+    """개별 시설 좌표를 GeoJSON Point로 export (마커 클러스터링용, 대상 영역 안의 것만)"""
+    valid = df.dropna(subset=[lat_col, lon_col]).copy()
+    gdf_points = gpd.GeoDataFrame(
+        valid, geometry=gpd.points_from_xy(valid[lon_col], valid[lat_col]), crs="EPSG:4326"
+    )
+    filtered = gdf_points[gdf_points.within(boundary_union)].copy()
+
+    cols = ["geometry"] + (extra_cols or [])
+    filtered = filtered[cols]
+
+    if os.path.exists(output_path):
+        os.remove(output_path)
+    filtered.to_file(output_path, driver="GeoJSON")
+    print(f"{output_path}: {len(filtered)}건 저장")
+
+
+def export_all_facility_points(dataframes: dict, boundary_gdf: gpd.GeoDataFrame):
+    all_subdongs = pd.concat([
+        get_subdongs(boundary_gdf, "상계동"),
+        get_subdongs(boundary_gdf, "신림동"),
+    ])
+    boundary_union = unary_union(all_subdongs.geometry)
+
+    export_points_geojson(dataframes["cctv"], "WGS84위도", "WGS84경도", boundary_union,
+                        os.path.join(DATA_DIR, "points_cctv.geojson"))
+    export_points_geojson(dataframes["light"], "위도", "경도", boundary_union,
+                        os.path.join(DATA_DIR, "points_light.geojson"),
+                        extra_cols=["설치개수"])
+    export_points_geojson(dataframes["bell"], "WGS84위도", "WGS84경도", boundary_union,
+                        os.path.join(DATA_DIR, "points_bell.geojson"))
+    export_points_geojson(dataframes["police"], "위도", "경도", boundary_union,
+                        os.path.join(DATA_DIR, "points_police.geojson"))
+
+
+def export_safety_score_polygons(boundary_gdf: gpd.GeoDataFrame, results: dict, output_path: str):
+    """세부 행정동 폴리곤 + 안심점수를 GeoJSON으로 export (choropleth 색칠용)"""
+    all_features = []
+
+    for group_key in DONG_GROUPS:
+        subdongs = get_subdongs(boundary_gdf, group_key)
+        score_map = {sd["name"]: sd for sd in results[group_key]["subdongs"]}
+
+        for _, row in subdongs.iterrows():
+            name = row["ADM_NM"]
+            sd_data = score_map[name]
+            all_features.append({
+                "ADM_NM": name,
+                "dong_group": group_key,
+                "safety_score": sd_data["safety_score"],
+                "cctv": sd_data["raw"]["cctv"],
+                "light": sd_data["raw"]["light"],
+                "bell": sd_data["raw"]["bell"],
+                "police": sd_data["raw"]["police"],
+                "geometry": row.geometry,
+            })
+
+    gdf_out = gpd.GeoDataFrame(all_features, crs="EPSG:4326")
+    if os.path.exists(output_path):
+        os.remove(output_path)
+    gdf_out.to_file(output_path, driver="GeoJSON")
+    print(f"{output_path}: {len(gdf_out)}개 세부 행정동 저장")
+
+
+# ══════════════════════════════════════════════════════════════
+# 7. 실행
 # ══════════════════════════════════════════════════════════════
 
 def main():
@@ -317,7 +378,6 @@ def main():
 
         results[group_key] = {"group_key": group_key, "subdongs": subdong_raws}
 
-    # 세부 행정동끼리 비교하는 정규화 기준
     all_raws = [sd["raw"] for g in results.values() for sd in g["subdongs"]]
     max_vals = {
         ind["key"]: max(r[ind["key"]] for r in all_raws) or 1
@@ -336,13 +396,11 @@ def main():
         for sd in group["subdongs"]:
             print(f"  {sd['name']}: {sd['safety_score']}점")
 
-    # 법정동 전체 통합 점수
     print("\n" + "=" * 40)
     print("법정동 전체 통합 결과")
     print("=" * 40)
     dong_raws = compute_dong_level_scores(results, boundary_gdf, legends, wms_fallback)
 
-    # 법정동 전체끼리 비교하는 정규화 기준 (세부 행정동 max_vals와 별도)
     dong_max_vals = {
         ind["key"]: max(dong_raws[g][ind["key"]] for g in DONG_GROUPS) or 1
         for ind in INDICATORS if ind["type"] == "count"
@@ -360,6 +418,13 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"\n결과 저장 완료: {output_path}")
+
+    # 프론트엔드용 GeoJSON export
+    print("\n" + "=" * 40)
+    print("프론트엔드용 GeoJSON export")
+    print("=" * 40)
+    export_all_facility_points(dataframes, boundary_gdf)
+    export_safety_score_polygons(boundary_gdf, results, os.path.join(DATA_DIR, "safety_score_polygons.geojson"))
 
     return results, boundary_gdf
 
