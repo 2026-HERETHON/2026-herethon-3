@@ -17,6 +17,8 @@
   height: 60px;
   background: var(--GrayScale-White, #fff);
   border-radius: 10px 0 0 10px;
+
+  cursor: pointer;
 }
 
 .rightSB-body {
@@ -38,7 +40,7 @@
 .rightSB-region {
   display: flex;
   flex-direction: row;
-  width: 85%;
+  width: 79%;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
@@ -62,6 +64,8 @@
   width: 12px;
   height: 12px;
   flex-shrink: 0;
+
+  cursor: pointer;
 }
 
 .region-underline {
@@ -175,6 +179,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  margin-top: 12px;
 }
 
 .rightSB-safetyScoreContainer button {
@@ -332,7 +338,7 @@
 }
 
 .rightSB-reviewContainer {
-  width: 100%;
+  width: 412px;
   border-radius: 10px 10px 0 0;
   border: 1px solid var(--GrayScale-200, #d9d2d4);
   border-bottom: none;
@@ -398,7 +404,7 @@
 }
 
 .rightSB-reviewNavUnderline {
-  width: 410px;
+  width: 100%;
   height: 2px;
   background: #d9d2d4;
   margin-top: -2px;
@@ -539,7 +545,7 @@
 }
 
 .rightSB-reviewChecks {
-  width: 100%;
+  width: 97%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -592,7 +598,7 @@
 }
 
 .rightSB-reviewContentContainer textarea {
-  width: 382px;
+  width: 100%;
   height: 237px;
   padding: 6px 8px 7px 8px;
   justify-content: center;
@@ -774,7 +780,7 @@
 }
 
 .rightSB-reviewSubmitBtn {
-  width: 100%;
+  width: 412px;
   padding: 8px 0;
   border-radius: 10px;
   background: var(--Color-Blue900, #1077ff);
@@ -794,7 +800,7 @@
 }
 
 .rightSB-reviewCancleBtn {
-  width: 100%;
+  width: 412px;
   padding: 8px 0;
   border-radius: 10px;
   background-color: #fff;
@@ -1304,7 +1310,7 @@
 
 .rightSB-detailQuestionLine {
   display: flex;
-  width: 382px;
+  width: 100%;
   justify-content: space-between;
   align-items: flex-end;
 }

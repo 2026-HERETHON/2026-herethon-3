@@ -339,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.querySelector(".rightSB-reviewCancleBtn")
     ?.addEventListener("click", backToMainList);
 
-  // --- [💡 수정] 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 토글 및 이미지 변경 처리 ---
+  // ---- 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 토글 및 이미지 변경 처리 ---
 
   // 찜하기 상태를 기억할 변수 (false: 찜 안함, true: 찜함)
   let isWished = false;
@@ -371,6 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
 
   // --- [G] 3번째 버튼 그룹 내 [등록하기] 공통 버튼 라우팅 처리 ---
   formSubmitBtnGroup
@@ -693,7 +694,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 💡 DOMContentLoaded 블록 내부에서 안전하게 실행되도록 구성
   renderQnas(mockQnasFromServer);
-
+  document
+    .querySelector(".rightSB-qnaDetailSubPage")
+    ?.classList.add("rightSB-hide");
+  document
+    .querySelector(".rightSB-reviewFormSubPage")
+    ?.classList.add("rightSB-hide");
+  document
+    .querySelector(".rightSB-qnaFormSubPage")
+    ?.classList.add("rightSB-hide");
   // --- [K] 백엔드 데이터 연동 5각형 레이더 차트 모듈 ---
 
   // 1. 임시 백엔드 데이터 (0에서 100 사이의 점수라고 가정)
@@ -934,7 +943,6 @@ document.addEventListener("DOMContentLoaded", () => {
       updateBottomButtons(); // 하단 버튼 레이아웃 원복
     });
 
-    
   // 메인페이지에서 사이드바 닫는 기능
   const toggleBtn = document.querySelector(".rightSB-close");
   const sidebarWrapper = document.getElementById("rightSideBar-container");
@@ -945,4 +953,20 @@ document.addEventListener("DOMContentLoaded", () => {
       sidebarWrapper.classList.toggle("sidebar-collapsed");
     });
   }
+
+  
+  //내부 X 버튼 이벤트 구역 X버튼 누를 시 삭제
+
+const exitBtn = document.querySelector(".rightSB-exitImg");
+const sidebarExit = document.querySelector(".rightSB-wholeContainer");
+
+if (exitBtn) {
+  exitBtn.addEventListener("click", () => {
+    sidebarExit.classList.add("main-page-hide");
+  });
+}
+
+  //사이드바 최초 생성
+  // 나중에 사이드바를 다시 보여줘야 하는 순간이 오면 이걸 실행하세요! document.getElementById("rightSideBar-container")?.classList.remove("main-page-hide");
+
 }); // 👈 DOMContentLoaded 이벤트가 완전히 끝나는 중괄호입니다. 파일의 맨 마지막 줄이 됩니다.
