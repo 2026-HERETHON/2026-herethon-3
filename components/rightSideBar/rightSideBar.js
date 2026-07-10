@@ -549,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
-  // 2. 데이터를 받아와서 화면에 뿌려주는 함수
+  // 2. 데이터를 받아와서 화면에 뿌려주는 함수 (요기로 통째로 덮어쓰기 하세요!)
   function renderReviews(reviews) {
     const container = document.getElementById("rightSB-reviewCardContainer");
     if (!container) return;
@@ -563,9 +563,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 3. 루프를 돌며 동적 템플릿 생성
+    // 3. 루프 동적 템플릿 생성
     reviews.forEach((review) => {
-      // 💡 별 5개 이미지 세트 가공 (상단 만족도 방식과 동일하게 인라인 스타일 간섭 제거)
       let emptyStarsHTML = "";
       let filledStarsHTML = "";
       for (let i = 0; i < 5; i++) {
@@ -573,21 +572,17 @@ document.addEventListener("DOMContentLoaded", () => {
         filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" alt="채워진별" class="rightSB-cardStarIcon" />`;
       }
 
-      // 💡 반 개 단위(0.5단위)로 점수 정렬
       const roundedScore = Math.round(review.score * 2) / 2;
       const filledStarsCount = Math.floor(roundedScore);
       const hasHalfStar = roundedScore % 1 !== 0;
 
-      // 💡 [초정밀 수정] 별 내부 공백과 스케일 오차를 반영한 픽셀 매칭
       let totalWidth = filledStarsCount * 11 + filledStarsCount * 4;
-
       if (hasHalfStar) {
         totalWidth += 5.5;
       } else if (filledStarsCount > 0) {
-        totalWidth -= 4; // 맨 마지막 별 뒤의 여분 간격 제거
+        totalWidth -= 4; 
       }
 
-      // 리액트의 return <div>...</div> 과 같은 컴포넌트 양식 만들기
       const cardHTML = `
         <div class="rightSB-reviewCard" data-id="${review.id}">
           <div class="rightSB-cardUserLine">
@@ -604,7 +599,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="rightSB-reviewTextWrapper">
             <div>
               <div class="rightSB-cardRatingLine">
-                
                 <div class="rightSB-cardStarsDisplay">
                   <div class="rightSB-cardEmptyStars">
                     ${emptyStarsHTML}
@@ -613,21 +607,62 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${filledStarsHTML}
                   </div>
                 </div>
-
                 <span class="rightSB-cardScore">${review.score.toFixed(1)}</span>
               </div>
               <div class="rightSB-cardText">${review.content}</div>
             </div>
-            <button class="rightSB-cardLikeBtn">
-              <img src="./components/rightSideBar/rightSB-images/thumbsUp.svg" style="width:11px; height:10px;" />
-              <span>${review.likes}</span>
+            
+            <button class="rightSB-cardLikeBtn" data-liked="false" data-base-likes="${review.likes}">
+              <img src="./components/rightSideBar/rightSB-images/thumbsUp.svg" class="rightSB-likeImg" style="width:11px; height:10px;" />
+              <span class="rightSB-likeCount">${review.likes}</span>
             </button>
           </div>
         </div>
       `;
 
-      // 부모 컨테이너에 차곡차곡 누적 추가하기
       container.insertAdjacentHTML("beforeend", cardHTML);
+    });
+
+    // 생성된 모든 후기 카드의 좋아요 버튼에 개별 클릭 이벤트 바인딩하기
+    const likeButtons = container.querySelectorAll(".rightSB-cardLikeBtn");
+    
+    likeButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        // 이벤트 버블링 방지 (카드를 클릭했을 때 다른 서브페이지로 튀는 현상 막기)
+        e.stopPropagation();
+
+        const isLiked = btn.getAttribute("data-liked") === "true";
+        const baseLikes = parseInt(btn.getAttribute("data-base-likes"), 10);
+        const countSpan = btn.querySelector(".rightSB-likeCount");
+        const imgIcon = btn.querySelector(".rightSB-likeImg");
+
+        if (!isLiked) {
+
+          // 1. 👍 좋아요 활성화 상태 전환
+          btn.setAttribute("data-liked", "true");
+          countSpan.textContent = baseLikes + 1; // 숫자 1 올리기
+          imgIcon.src = "./components/rightSideBar/rightSB-images/filledThumbsUp.svg"; // 채워진 따봉 경로
+
+          // 🎨 디자인 변경 
+          btn.style.borderRadius = "20px";
+          btn.style.border = "1px solid var(--Color-Blue900, #1077FF)";
+          btn.style.background = "var(--Color-Blue200, #C4ECFE)";
+          btn.style.color = "var(--Color-Blue900, #1077FF)"; // 글자도 세트로 파랗게 조율
+        } 
+        else {
+
+
+          // 2. 👎 좋아요 다시 취소 토글 상태 전환
+          btn.setAttribute("data-liked", "false");
+          countSpan.textContent = baseLikes; // 원래 숫자로 원복
+          imgIcon.src = "./components/rightSideBar/rightSB-images/thumbsUp.svg"; // 빈 따봉 경로 원복
+
+          // 🎨 디자인 원래대로 복귀
+          btn.style.border = "none";
+          btn.style.background = "var(--GrayScale-100, #f0edee)";
+          btn.style.color = "var(--GrayScale-800, #5b5658)";
+        }
+      });
     });
   }
   // 함수 실행시켜서 화면에 카드들 띄우기!

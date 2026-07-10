@@ -18,16 +18,21 @@ nav {
   font-weight: 400;
   line-height: 150%; /* 24px */
   letter-spacing: -0.32px;
+
+
 }
 
 #navbar-container {
   height: 60px;
+  min-height: 60px;
+  max-height: 60px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   border-bottom: 2px solid #d9d2d4;
+  background-color: #fff;
 }
 
 .navbar-Select {
@@ -94,6 +99,7 @@ nav .navbar-ahref {
 main {
   flex: 1; 
   box-sizing: border-box;
+  pointer-events: none;
 }
 
 /* 탭 전환 시 화면을 숨겨주는 클래스 */
@@ -103,11 +109,23 @@ main {
 
 /* 안심맵 상태일 때 왼쪽패널, 지도, 사이드바 가로 배치*/
 #page-safetyMap {
+  position: relative;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   width: 100%;
-  height: calc(100vh - 60px); /* 내비바 높이 60px을 뺀 나머지 꽉 채우기 */
+  height: 100vh;
   overflow: hidden;
+
+  pointer-events: none;
+}
+
+aside {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  box-sizing: border-box;
+  pointer-events: auto;
 }
 
 /* 우측 사이드바 닫기 */
@@ -119,3 +137,20 @@ main {
 #rightSideBar-container.sidebar-collapsed {
   transform: translateX(calc(100% - 35px));
 }
+
+/*main map 디자인*/
+#mainMap-conatiner {
+  position: absolute;
+  top:0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+#map {
+  height:100%;
+  width:100%;
+  pointer-events: auto !important;
+}
+

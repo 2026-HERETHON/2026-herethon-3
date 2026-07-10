@@ -2,9 +2,9 @@
   display: flex;
   align-items: center;
 
-  width: 30vw;
-  min-width: 500px;
-  max-width: 550px;
+  width: 545px;
+  min-width: 545px;
+  max-width: 545px;
 
   height: calc(100vh - 60px);
   box-sizing: border-box;

@@ -13,8 +13,18 @@
       <div id="navbar-container">
         <div class="navbar-logoImg">로고</div>
         <div class="navbar-Select">
-          <div class="navbar-menu navbar-safetyMap beBold" data-target="page-safetyMap">안심맵</div>
-          <div class="navbar-menu navbar-commercial" data-target="page-commercial">제휴 서비스</div>
+          <div
+            class="navbar-menu navbar-safetyMap beBold"
+            data-target="page-safetyMap"
+          >
+            안심맵
+          </div>
+          <div
+            class="navbar-menu navbar-commercial"
+            data-target="page-commercial"
+          >
+            제휴 서비스
+          </div>
           <div class="navbar-underline"></div>
         </div>
         <a href="./login/login.html" class="navbar-ahref">
@@ -37,10 +47,12 @@
       </aside>
 
       <main>
-        <div id="mainMap-conatiner">메인맵</div>
+        <div id="mainMap-conatiner">
+          <div id="map"></div>
+        </div>
       </main>
 
-      <aside>
+      <aside class="rightSB-aside">
         <div id="rightSideBar-container">
           <div class="rightSB-wholeContainer">
             <div class="rightSB-close">
@@ -489,7 +501,31 @@
     </div>
 
     <!--JS-->
+    <!--그래프 구현 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--카카오맵-->
+    <script
+      type="text/javascript"
+      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=bf623b88c0f6dc20fec1663e69dcc22d&autoload=false"
+    ></script>
+    <script>
+      var map; 
+
+      kakao.maps.load(function () {
+        var container = document.getElementById("map");
+        if (container) {
+          var options = {
+            center: new kakao.maps.LatLng(37.6542, 127.0568),
+            level: 3,
+          };
+          
+          map = new kakao.maps.Map(container, options); 
+
+          window.map = map; 
+        }
+      });
+    </script>
+
     <script src="./components/rightSideBar/rightSideBar.js"></script>
     <script src="main.js"></script>
   </body>
