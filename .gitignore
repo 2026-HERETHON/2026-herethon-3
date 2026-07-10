@@ -336,3 +336,19 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,python,django,venv
+
+# 원본 공공데이터 및 캐시 (용량 큼, 로컬에만 보관)
+data/*.shp
+data/*.shx
+data/*.dbf
+data/*.prj
+data/*.cpg
+data/CCTV*.csv
+data/서울특별시_*.csv
+data/전국*.csv
+data/경찰청_*.csv
+data/police_geocoded.csv
+data/station_geocoded.csv
+data/safety_scores_backup_wms_ok.json
+data/안전비상벨*.csv
+data/안전비상벨위치정보_서울특별시.csv
