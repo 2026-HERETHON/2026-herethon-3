@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from grids.models import Grid  # 앱 이름 확인 필요
 from .models import Review, ReviewLike
 from .forms import ReviewForm
-
+from django.db.models import Avg
 
 def review_list(request, grid_id):  # REV-001, REV-004
     grid = get_object_or_404(Grid, pk=grid_id)
@@ -26,12 +26,25 @@ def review_list(request, grid_id):  # REV-001, REV-004
             user=request.user, review__in=reviews
         ).values_list('review_id', flat=True)
 
+    # 영역별 만족도 평균 집계
+    rating_summary = reviews.aggregate(
+        rating_night=Avg('rating_night'),
+        rating_amenity=Avg('rating_amenity'),
+        rating_mood=Avg('rating_mood'),
+    )
+    rating_summary = {
+        key: round(value, 1) if value is not None else 0
+        for key, value in rating_summary.items()
+    }
+
+
     context = {
         'grid': grid,
         'reviews': reviews,
         'sort': sort,
         'liked_review_ids': set(liked_review_ids),
         'is_empty': not reviews.exists(),  # 후기 없음 예외처리
+        'rating_summary': rating_summary,
     }
     return render(request, 'reviews/list.html', context)
 
