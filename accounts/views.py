@@ -7,15 +7,18 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from grids.models import Grid
 from .models import SavedGrid
+from django.utils import timezone
 
 def signup_view(request):  # AUTH-001
     if request.user.is_authenticated:
         return redirect('home')
 
     if request.method == 'POST':
-        form = SignUpForm(request.POST)
+        form = SignUpForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.privacy_agreed_at = timezone.now()
+            user.save()
             login(request, user)
             return redirect('home')
         return render(request, 'accounts/signup.html', {'form': form})
