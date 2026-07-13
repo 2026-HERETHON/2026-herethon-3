@@ -22,14 +22,14 @@
 }
 
 .rightSB-body {
-  flex: 1;
+  width: 506px;
   height: 100%;
   background: var(--GrayScale-White, #fff);
   box-sizing: border-box;
 }
 
 .rightSB-content {
-  padding: 0 6%;
+  padding: 0 47px;
   height: calc(100% - 60px); /* 전체 높이 꽉 채우기 */
   box-sizing: border-box;
 
@@ -40,7 +40,6 @@
 .rightSB-region {
   display: flex;
   flex-direction: row;
-  width: 79%;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
@@ -92,13 +91,13 @@
 .rightSB-safetyScoreTitle {
   color: #000;
 
-  /* Body/M-Bold */
+  /* Body/L-Bold */
   font-family: Pretendard;
-  font-size: 16px;
+  font-size: 20px;
   font-style: normal;
   font-weight: 600;
-  line-height: 150%; /* 24px */
-  letter-spacing: -0.32px;
+  line-height: 150%; /* 30px */
+  letter-spacing: -0.4px;
 }
 
 .rightSB-safteyScore {
@@ -163,13 +162,13 @@
 .rightSB-regionDescription {
   color: #000;
 
-  /* Others/Caption */
+  /* Body/M */
   font-family: Pretendard;
-  font-size: 12px;
+  font-size: 16px;
   font-style: normal;
   font-weight: 400;
-  line-height: 150%; /* 18px */
-  letter-spacing: -0.24px;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
 }
 
 .rightSB-safetyGraph {
@@ -180,7 +179,7 @@
   align-items: center;
   justify-content: center;
 
-  margin-top: 12px;
+  margin-top: 20px;
 }
 
 .rightSB-safetyScoreContainer button {
@@ -339,6 +338,7 @@
 
 .rightSB-reviewContainer {
   width: 412px;
+  height: 404px !important;
   border-radius: 10px 10px 0 0;
   border: 1px solid var(--GrayScale-200, #d9d2d4);
   border-bottom: none;
@@ -349,9 +349,10 @@
 
   overflow: hidden;
   display: flex;
+  position: relative;
   flex-direction: column;
   flex: 1;
-  min-height: 0;
+  min-height: 100px;
 }
 
 .rightSB-reviewContainer.rightSB-showBorder {
@@ -429,7 +430,8 @@
 }
 
 .rightSB-tabContentWrapper {
-  flex: 1; /* ⭕ [핵심] 탭 내부에서도 남는 세로 공간을 다 쓰도록 설정 */
+  min-height: 348px;
+  max-height: 500px;
   overflow-y: auto; /* ⭕ [핵심] 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
   overflow-x: hidden;
   box-sizing: border-box;
@@ -689,83 +691,6 @@
   pointer-events: none;
 }
 
-.rightSB-personalInfo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.rightSB-personalInfo2 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 22px;
-}
-
-.rightSB-personalInfoAgree {
-  display: flex;
-  align-items: center;
-}
-
-.rightSB-personalInfoAgree input {
-  display: none;
-}
-
-.rightSB-customCheckLabel {
-  cursor: pointer;
-  display: inline-block;
-  vertical-align: middle;
-  height: 18px;
-}
-
-.rightSB-customCheckLabel .rightSB-checkImg {
-  width: 19px;
-  height: 19px;
-  margin-right: 13px;
-  content: url("./rightSB-images/uncheck.svg");
-}
-
-.rightSB-customCheckInput:checked
-  + .rightSB-customCheckLabel
-  .rightSB-checkImg {
-  content: url("./rightSB-images/checked.svg");
-}
-
-.rightSB-personalInfoAgree > span {
-  color: #000;
-
-  vertical-align: middle;
-
-  /* Others/Caption */
-  font-family: Pretendard;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 150%; /* 18px */
-  letter-spacing: -0.24px;
-}
-
-.rightSB-personalInfoDetails {
-  color: var(--GrayScale-600, #7b7578);
-  text-align: right;
-
-  /* Others/Caption */
-  font-family: Pretendard;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 150%; /* 18px */
-  letter-spacing: -0.24px;
-}
-
-.rightSB-personalInfoDetails img {
-  width: 5px;
-  height: 10px;
-  stroke-width: 1.5px;
-  stroke: var(--GrayScale-600, #7b7578);
-  margin-left: 10px;
-  margin-right: 16px;
-}
 
 /*버튼들*/
 .rightSB-reviewBtn {
@@ -817,8 +742,6 @@
   letter-spacing: -0.32px;
 
   cursor: pointer;
-
-  margin-bottom: 37px;
 }
 
 .rightSB-askingQImg {
@@ -835,6 +758,16 @@
   width: 16px;
   height: 14px;
   margin-right: 14px;
+}
+
+.rightSB-regionHeartImg {
+  width: 22px;
+  height: 19px;
+  margin-right: 39px;
+  stroke-width: 1.6px;
+  stroke: var(--GrayScale-black, #1a1a1a);
+
+  cursor: pointer;
 }
 
 .go-to-review-form {
@@ -971,13 +904,13 @@
 
   margin-right: 12px;
 
-  /* Others/Caption-Bold */
+  /* Body/S-Bold */
   font-family: Pretendard;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 600;
-  line-height: 150%; /* 18px */
-  letter-spacing: -0.24px;
+  line-height: 150%; /* 21px */
+  letter-spacing: -0.28px;
 }
 
 .rightSB-cardPeriod {
@@ -1070,21 +1003,27 @@
 }
 
 .rightSB-cardScore {
-  font-size: 14px;
+  color: var(--GrayScale-black, #1a1a1a);
+
+  /* Others/Caption-Bold */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
   font-weight: 600;
-  line-height: 10px;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
 }
 
 .rightSB-cardText {
   color: var(--GrayScale-black, #1a1a1a);
 
-  /* Others/Caption */
+  /* Body/S */
   font-family: Pretendard;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 400;
-  line-height: 150%; /* 18px */
-  letter-spacing: -0.24px;
+  line-height: 150%; /* 21px */
+  letter-spacing: -0.28px;
 
   width: 262px;
   height: 36px;
@@ -1497,5 +1436,100 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+}
+
+/* 로그아웃 시 블러 처리될 오버레이 마스크 레이어 */
+.rightSB-overlayWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  padding-bottom: 37px;
+  box-sizing: border-box;
+  flex: 1 !important;
+  min-height: 0px;
+}
+
+.rightSB-auth-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  /* 부모 스크롤박스 크기에 유연하게 100% 밀착 대응 */
+  position: absolute;
+  top: 27px;
+  left: 0;
+  bottom: 37px;
+  width: 412px;
+  height: calc(100% - 27px - 37px);
+  min-height: 382px;
+  z-index: 100;
+
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 2px solid var(--GrayScale-200, #d9d2d4);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(9px);
+}
+
+.rightSB-auth-overlay img {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 24px;
+}
+
+.rightSB-overlayMent {
+  color: #000;
+  text-align: center;
+
+  /* Body/L-Bold */
+  font-family: Pretendard;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 30px */
+  letter-spacing: -0.4px;
+
+  margin-bottom: 11px;
+}
+
+.rightSB-overlayMentS {
+  color: #000;
+  text-align: center;
+
+  /* Body/M */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+
+  margin-bottom: 71px;
+}
+
+.rightSB-auth-loginBtn {
+  display: flex;
+  width: 249px;
+  padding: 8px 0;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  background: var(--Color-Blue900, #1077ff);
+
+  color: #fff;
+
+  /* Body/M-Bold */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+
+  border: none;
   cursor: pointer;
 }
