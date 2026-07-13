@@ -2,6 +2,8 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from .models import Grid, Facility
+from django.views.decorators.csrf import csrf_exempt
+from shapely.geometry import Point, shape
 
 
 def grid_list(request):
@@ -79,3 +81,40 @@ def facility_list(request):
 
     return JsonResponse({"type": facility_type, "count": len(data), "facilities": data},
                         json_dumps_params={'ensure_ascii': False})
+
+# 판정로직
+@csrf_exempt
+def verify_location(request):
+    """GPS 좌표가 지정한 법정동 경계 안에 있는지 판정 (실거주지 인증용)"""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST 요청만 허용됩니다"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+        lat = float(body["latitude"])
+        lon = float(body["longitude"])
+        dong = body["dong"]
+    except (KeyError, ValueError, json.JSONDecodeError):
+        return JsonResponse({"error": "latitude, longitude, dong 파라미터가 필요합니다"}, status=400)
+
+    try:
+        grid = Grid.objects.get(dong=dong, is_legal_dong=True)
+    except Grid.DoesNotExist:
+        return JsonResponse({"error": f"'{dong}'에 해당하는 법정동을 찾을 수 없습니다"}, status=404)
+    except Grid.MultipleObjectsReturned:
+        return JsonResponse({"error": "동 이름이 중복됩니다. is_legal_dong 확인 필요"}, status=400)
+
+    if not grid.boundary_geojson:
+        return JsonResponse({"error": "해당 법정동에 경계 데이터가 없습니다"}, status=500)
+
+    boundary = shape(json.loads(grid.boundary_geojson))
+    point = Point(lon, lat)  # GeoJSON은 (경도, 위도) 순서
+
+    is_verified = boundary.contains(point)
+
+    return JsonResponse({
+        "dong": dong,
+        "is_verified": is_verified,
+        "latitude": lat,
+        "longitude": lon,
+    })
