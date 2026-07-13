@@ -83,8 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // const isTokenExist = localStorage.getItem("token")
 
     // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
-    // const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
-    const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
+    const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
+    // const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
 
     const contentContainer = document.querySelector(".rightSB-overlayWrapper");
     if (!contentContainer) return;
@@ -939,5 +939,51 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+// components/rightSideBar/rightSideBar.js 내부 DOMContentLoaded 안쪽에 추가
+
+  // 🎯 우측 사이드바의 [점수 기준 보기] 버튼 타겟팅
+  const openScoreInfoBtn = document.querySelector(".rightSB-safetyScoreContainer button");
+
+  if (openScoreInfoBtn) {
+    openScoreInfoBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const overlay = document.getElementById("loginPopupOverlay");
+      const contentBox = document.getElementById("loginPopupContent");
+
+      // 1. 외부 login.html 파일 가져오기 (점수 기준 보기가 포함되어 있음!)
+      fetch("./login/login.html")
+        .then(response => {
+          if (!response.ok) throw new Error("네트워크 응답에 문제가 있습니다.");
+          return response.text();
+        })
+        .then(htmlData => {
+          // 2. 팝업 상자 안에 소스 삽입
+          contentBox.innerHTML = htmlData;
+          
+          // 3. ⭐️ 점수 기준 보기 전용 규격(518px * 733px) 주입 및 노출
+          contentBox.style.width = "518px";
+          contentBox.style.height = "733px";
+          overlay.classList.remove("popup-hide");
+
+          // 4. ⭐️ 중요: HTML이 삽입된 직후 login.js에 추가할 점수 팝업 초기화 함수 실행!
+          if (typeof initScoreInfoEvent === "function") {
+            initScoreInfoEvent();
+          }
+
+          // 5. [X] 닫기 버튼 기능 결합
+          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
+          closeBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+              overlay.classList.add("popup-hide");
+            });
+          });
+        })
+        .catch(err => console.error("점수 기준 팝업 로드 중 에러 발생:", err));
+    });
+  }
+
+
 });
 
