@@ -1,0 +1,19 @@
+<h2>내가 작성한 글</h2>
+
+<h3>실거주 후기 ({{ reviews.count }})</h3>
+<ul>
+{% for r in reviews %}
+    <li>{{ r.grid.dong }} / 평점 {{ r.average_rating }} / {{ r.review_content }} / {{ r.created_at }}</li>
+{% empty %}
+    <li>작성한 후기가 없어요.</li>
+{% endfor %}
+</ul>
+
+<h3>Q&A ({{ questions.count }})</h3>
+<ul>
+{% for q in questions %}
+    <li>{{ q.question_content }} — 답변 {{ q.answers.count }}개</li>
+{% empty %}
+    <li>작성한 질문이 없어요.</li>
+{% endfor %}
+</ul>
