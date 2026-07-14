@@ -126,6 +126,8 @@ function selectItem(level, name) {
 
   closeAll();
 
+  updateInfoBox();
+
   // (나중에 지도 연동) 선택된 지역으로 지도 이동 등을 여기서 처리
   // console.log(selected.sido, selected.gu, selected.dong);
 }
@@ -167,3 +169,51 @@ document.addEventListener("click", () => {
 renderList("sido");
 renderList("gu");
 renderList("dong");
+
+
+// 동별 지도 정보 개수 데이터
+
+// ===== 동별 지도 정보 개수 데이터 =====
+// 신림동 값은 임시 — 실제 값으로 교체하세요
+const regionInfoData = {
+  상계동: {
+    cctv: "1761개",
+    streetlight: "2776개",
+    police: "4곳",
+    alarm: "28개",
+  },
+  신림동: {
+    cctv: "1217개",     // 신림동 실제 값으로 교체
+    streetlight: "7242개",
+    police: "5곳",
+    alarm: "704개",
+  },
+};
+
+// 하단 정보 박스 접기/펼치기
+const infoHeader = document.querySelector(".mapOverlay-infoHeader");
+const infoList = document.querySelector(".mapOverlay-infoList");
+const infoToggle = document.querySelector(".mapOverlay-infoToggle");
+
+infoHeader.addEventListener("click", () => {
+  infoList.classList.toggle("mapOverlay-hide");     // 항목들 숨김/보임
+  infoToggle.classList.toggle("mapOverlay-flipped"); // 화살표 방향 전환
+});
+
+// 하단 정보 박스의 개수를 현재 선택된 동 기준으로 갱신
+function updateInfoBox() {
+  const dong = selected.dong; // 드롭다운에서 선택된 동
+  const info = regionInfoData[dong];
+
+  // 데이터 없으면 전부 "-"로
+  document.querySelectorAll(".mapOverlay-infoCount").forEach((el) => {
+    const type = el.dataset.type; // cctv / streetlight / police / alarm
+    if (info && info[type]) {
+      el.textContent = info[type];
+    } else {
+      el.textContent = "-";
+    }
+  });
+}
+
+updateInfoBox();
