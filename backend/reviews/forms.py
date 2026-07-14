@@ -1,13 +1,22 @@
 from django import forms
 from .models import Review
+from decimal import Decimal
 
-RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
-
+#RATING_CHOICES = [(i, str(i)) for i in range(1, 6)] #정수 단위
+RATING_CHOICES = [
+    (Decimal(f"{i * 0.5:.1f}"), f"{i * 0.5:.1f}") for i in range(0, 11)
+] # 0.5 단위
 
 class ReviewForm(forms.ModelForm):
-    rating_night = forms.ChoiceField(choices=RATING_CHOICES, label='밤길 체감 안전도')
-    rating_amenity = forms.ChoiceField(choices=RATING_CHOICES, label='편의시설 만족도')
-    rating_mood = forms.ChoiceField(choices=RATING_CHOICES, label='동네 분위기')
+    rating_night = forms.TypedChoiceField(
+        choices=RATING_CHOICES, coerce=Decimal, label='밤길 체감 안전도'
+    )
+    rating_amenity = forms.TypedChoiceField(
+        choices=RATING_CHOICES, coerce=Decimal, label='편의시설 만족도'
+    )
+    rating_mood = forms.TypedChoiceField(
+        choices=RATING_CHOICES, coerce=Decimal, label='동네 분위기'
+    )
 
     class Meta:
         model = Review
