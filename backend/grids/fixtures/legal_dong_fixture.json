@@ -3,6 +3,8 @@
     "model": "grids.grid",
     "pk": 20,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계동",
       "is_legal_dong": true,
@@ -16,14 +18,16 @@
       "police_count": 4,
       "night_safety_grade": 2.9,
       "crime_zone_grade": 1.8,
-      "created_at": "2026-07-14T08:33:56.507196+00:00",
-      "updated_at": "2026-07-14T08:33:56.507196+00:00"
+      "created_at": "2026-07-14T09:27:59.275327+00:00",
+      "updated_at": "2026-07-14T09:27:59.275327+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 21,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "신림동",
       "is_legal_dong": true,
@@ -37,8 +41,8 @@
       "police_count": 5,
       "night_safety_grade": 2.39,
       "crime_zone_grade": 2.15,
-      "created_at": "2026-07-14T08:33:56.507196+00:00",
-      "updated_at": "2026-07-14T08:33:56.507196+00:00"
+      "created_at": "2026-07-14T09:27:59.275327+00:00",
+      "updated_at": "2026-07-14T09:27:59.275327+00:00"
     }
   }
 ]

@@ -3,6 +3,8 @@
     "model": "grids.grid",
     "pk": 1,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계1동",
       "is_legal_dong": false,
@@ -16,14 +18,16 @@
       "police_count": 1,
       "night_safety_grade": 2.13,
       "crime_zone_grade": 1.63,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 2,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계2동",
       "is_legal_dong": false,
@@ -37,14 +41,16 @@
       "police_count": 0,
       "night_safety_grade": 3.5,
       "crime_zone_grade": 2.4,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 3,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계5동",
       "is_legal_dong": false,
@@ -58,14 +64,16 @@
       "police_count": 0,
       "night_safety_grade": 3.23,
       "crime_zone_grade": 1.88,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 4,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계8동",
       "is_legal_dong": false,
@@ -79,14 +87,16 @@
       "police_count": 0,
       "night_safety_grade": 3.92,
       "crime_zone_grade": 1.95,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 5,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계9동",
       "is_legal_dong": false,
@@ -100,14 +110,16 @@
       "police_count": 1,
       "night_safety_grade": 3.71,
       "crime_zone_grade": 1.9,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 6,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계10동",
       "is_legal_dong": false,
@@ -121,14 +133,16 @@
       "police_count": 0,
       "night_safety_grade": 3.3,
       "crime_zone_grade": 1.76,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 7,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계3·4동",
       "is_legal_dong": false,
@@ -142,14 +156,16 @@
       "police_count": 1,
       "night_safety_grade": 2.61,
       "crime_zone_grade": 1.53,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 8,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "노원구",
       "dong_group": "상계동",
       "dong": "상계6·7동",
       "is_legal_dong": false,
@@ -163,14 +179,16 @@
       "police_count": 1,
       "night_safety_grade": 3.77,
       "crime_zone_grade": 1.95,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 9,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "서원동",
       "is_legal_dong": false,
@@ -184,14 +202,16 @@
       "police_count": 1,
       "night_safety_grade": 3.38,
       "crime_zone_grade": 2.29,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 10,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "신원동",
       "is_legal_dong": false,
@@ -205,14 +225,16 @@
       "police_count": 0,
       "night_safety_grade": 2.39,
       "crime_zone_grade": 2.52,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 11,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "서림동",
       "is_legal_dong": false,
@@ -226,14 +248,16 @@
       "police_count": 1,
       "night_safety_grade": 1.81,
       "crime_zone_grade": 1.65,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 12,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "신사동",
       "is_legal_dong": false,
@@ -247,14 +271,16 @@
       "police_count": 1,
       "night_safety_grade": 2.39,
       "crime_zone_grade": 1.88,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 13,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "신림동",
       "is_legal_dong": false,
@@ -268,14 +294,16 @@
       "police_count": 0,
       "night_safety_grade": 4.48,
       "crime_zone_grade": 3.53,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 14,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "난향동",
       "is_legal_dong": false,
@@ -289,14 +317,16 @@
       "police_count": 1,
       "night_safety_grade": 1.94,
       "crime_zone_grade": 1.95,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 15,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "조원동",
       "is_legal_dong": false,
@@ -310,14 +340,16 @@
       "police_count": 0,
       "night_safety_grade": 2.61,
       "crime_zone_grade": 2.31,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 16,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "대학동",
       "is_legal_dong": false,
@@ -331,14 +363,16 @@
       "police_count": 0,
       "night_safety_grade": 2.35,
       "crime_zone_grade": 2.36,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 17,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "난곡동",
       "is_legal_dong": false,
@@ -352,14 +386,16 @@
       "police_count": 0,
       "night_safety_grade": 1.81,
       "crime_zone_grade": 1.72,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 18,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "삼성동",
       "is_legal_dong": false,
@@ -373,14 +409,16 @@
       "police_count": 0,
       "night_safety_grade": 2.45,
       "crime_zone_grade": 1.93,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   },
   {
     "model": "grids.grid",
     "pk": 19,
     "fields": {
+      "sido": "서울특별시",
+      "gu": "관악구",
       "dong_group": "신림동",
       "dong": "미성동",
       "is_legal_dong": false,
@@ -394,8 +432,8 @@
       "police_count": 1,
       "night_safety_grade": 2.0,
       "crime_zone_grade": 1.88,
-      "created_at": "2026-07-14T08:33:56.448218+00:00",
-      "updated_at": "2026-07-14T08:33:56.448218+00:00"
+      "created_at": "2026-07-14T09:27:59.219244+00:00",
+      "updated_at": "2026-07-14T09:27:59.219244+00:00"
     }
   }
 ]

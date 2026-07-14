@@ -2,6 +2,10 @@ from django.db import models
 
 
 class Grid(models.Model):
+    # 시/도 (예: "서울특별시", "경기도") - 필터/그룹핑용
+    sido = models.CharField(max_length=20, blank=True) 
+    # 시/군/구 (예: "노원구", "관악구") - 필터/그룹핑용
+    gu = models.CharField(max_length=20, blank=True) 
     # 법정동 (예: "상계동", "신림동") - 필터/그룹핑용
     dong_group = models.CharField(max_length=50)
     is_legal_dong = models.BooleanField(default=False)  # True: 법정동 전체(상계동/신림동), False: 세부 행정동
@@ -61,3 +65,14 @@ class Facility(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()} ({self.latitude}, {self.longitude})"
+
+class District(models.Model):
+    """서울 25개 구 참고용 목록 (상단 지역 선택 드롭다운용)"""
+    name = models.CharField(max_length=20, unique=True)
+    has_data = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
