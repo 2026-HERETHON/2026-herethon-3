@@ -1,0 +1,18 @@
+<p>닉네임: {{ user.nickname }}</p>
+<p>성별: {{ user.get_gender_display }}</p>
+<p>아이디: {{ user.username }}</p>
+
+<p>거주지:
+    {% if user.verified_grid %}
+        {{ user.verified_grid.sido }} {{ user.verified_grid.sigungu }} {{ user.verified_grid.dong }}
+    {% else %}
+        미설정
+    {% endif %}
+</p>
+<p>프로필 사진:
+    {% if user.profile_image %}
+        <img src="{{ user.profile_image.url }}" width="80">
+    {% else %}
+        없음
+    {% endif %}
+</p>

@@ -10,20 +10,6 @@
     <div style="margin-left:20px; border-left:2px solid #ccc; padding-left:10px;">
       <strong>{{ answer.user.nickname }}</strong>
       <p>{{ answer.answer_content }}</p>
-
-      {% for comment in answer.comments.all %}
-        <div style="margin-left:20px; color:gray;">
-          <strong>{{ comment.user.nickname }}</strong>: {{ comment.comment_content }}
-        </div>
-      {% endfor %}
-
-      {% if request.user.is_authenticated %}
-        <form method="post" action="{% url 'qna:comment_create' answer.id %}">
-          {% csrf_token %}
-          {{ comment_form.as_p }}
-          <button type="submit">댓글 작성</button>
-        </form>
-      {% endif %}
     </div>
   {% endfor %}
 
