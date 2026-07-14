@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -18,8 +19,6 @@ nav {
   font-weight: 400;
   line-height: 150%; /* 24px */
   letter-spacing: -0.32px;
-
-
 }
 
 #navbar-container {
@@ -36,7 +35,7 @@ nav {
 }
 
 .navbar-Select {
-    position: relative;
+  position: relative;
   display: flex;
   justify-content: center;
   gap: 20px; /*일단 임의로 넣었어요*/
@@ -97,7 +96,7 @@ nav .navbar-ahref {
 
 /*네비게이션 선택함에 따라 달라지는 메인 페이지 구현*/
 main {
-  flex: 1; 
+  flex: 1;
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -128,6 +127,11 @@ aside {
   pointer-events: auto;
 }
 
+.rightSB-aside {
+  position: relative; /* 혹은 기존 position 유지 */
+  margin-left: auto; /* 왼쪽 마진을 auto로 주면 flex 안에서 무조건 우측 끝으로 밀착해! */
+}
+
 /* 우측 사이드바 닫기 */
 #rightSideBar-container {
   transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1);
@@ -141,7 +145,7 @@ aside {
 /*main map 디자인*/
 #mainMap-conatiner {
   position: absolute;
-  top:0;
+  top: 0;
   left: 0;
   width: 100%;
   height: 100%;
@@ -149,8 +153,45 @@ aside {
   pointer-events: none;
 }
 #map {
-  height:100%;
-  width:100%;
+  height: 100%;
+  width: 100%;
   pointer-events: auto !important;
 }
 
+/*로그인 팝업*/
+.contentbox {
+  position: relative;
+}
+
+/* main.css */
+#loginPopupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* 배경 어둡게 */
+  z-index: 999;
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#loginPopupContent {
+  width: 518px;   /* 기본 로그인 너비 */
+  height: 689px;  /* 기본 로그인 높이 */
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  
+  /* 0.4초 동안 부드럽게 창 크기가 변하도록 애니메이션 설정 */
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              height 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.popup-hide {
+  display: none !important;
+}

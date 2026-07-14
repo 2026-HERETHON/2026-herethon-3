@@ -57,9 +57,6 @@ function handleStarRating() {
 /// 2. 동적 드롭다운/입력 폼 컴포넌트 초기화 및 독립 버튼 스위칭 제어
 /// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-  // 최초 실행 점수 로드
-  handleStarRating();
-
   // --- [A] 엘리먼트 수집 및 버튼 묶음 인덱싱 ---
   const navMenus = document.querySelectorAll(".rightSB-navbar-menu");
   const indicator = document.querySelector(".rightSB-navbar-indicator");
@@ -69,46 +66,85 @@ document.addEventListener("DOMContentLoaded", () => {
   const reviewFormSub = document.querySelector(".rightSB-reviewFormSubPage");
   const qnaListSub = document.querySelector(".rightSB-qnaListSubPage");
   const qnaFormSub = document.querySelector(".rightSB-qnaFormSubPage");
+  const qnaDetailSub = document.querySelector(".rightSB-qnaDetailSubPage");
 
-  // HTML 하단에 순서대로 배치된 버튼 박스 3개 정밀 수집
   const allBtnGroups = document.querySelectorAll(
-    ".rightSB-content > .rightSB-reviewBtn",
+    ".rightSB-overlayWrapper > .rightSB-reviewBtn",
   );
-  const reviewListBtnGroup = allBtnGroups[0]; // 후기 목록용 (후기 작성하기 / 찜하기)
-  const qnaListBtnGroup = allBtnGroups[1]; // Q&A 목록용 (질문 남기기 / 찜하기)
-  const formSubmitBtnGroup = allBtnGroups[2]; // 공통 폼 등록용 (등록하기 / 취소)
+  const reviewListBtnGroup = allBtnGroups[0];
+  const qnaListBtnGroup = allBtnGroups[1];
+  const formSubmitBtnGroup = allBtnGroups[2];
 
-  // --- [B] 통합 버튼 상태 제어 함수 (수정본) ---
+  // ==========================================
+  // 로그인 상태 체크 및 탭 제어 기능
+  // ==========================================
+  function checkAuthAndToggleTabs() {
+    // 🔓 실제 연동용: localStorage에 토큰이 있으면 true(로그인), 없으면 false(로그아웃)
+    // const isTokenExist = localStorage.getItem("token")
+
+    // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
+    const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
+    // const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
+
+    const contentContainer = document.querySelector(".rightSB-overlayWrapper");
+    if (!contentContainer) return;
+
+    const existingOverlay = contentContainer.querySelector(
+      ".rightSB-auth-overlay",
+    );
+    if (existingOverlay) existingOverlay.remove();
+
+    if (!isTokenExist) {
+      const overlayHTML = `
+        <div class="rightSB-auth-overlay">
+          <img src="./components/rightSideBar/rightSB-images/lock.svg" alt="잠금" />
+          <div class="rightSB-overlayMent">실제 거주 여성들의 솔직한 후기와 Q&A는<br>회원에게만 공개됩니다.</div>
+          <div class="rightSB-overlayMentS">로그인하고 더 안전한 동네 정보를 확인해보세요.</div>
+          <button class="rightSB-auth-loginBtn">로그인하러 가기</button>
+        </div>
+      `;
+      contentContainer.insertAdjacentHTML("beforeend", overlayHTML);
+    }
+  }
+
+  // --- [B] 통합 버튼 상태 제어 함수 (로그아웃 반투명 배경 연동본) ---
   function updateBottomButtons() {
-    // 1. 모든 버튼 일단 숨김
+    // 다 숨기기 초기화
     reviewListBtnGroup?.classList.add("rightSB-hide");
     qnaListBtnGroup?.classList.add("rightSB-hide");
     formSubmitBtnGroup?.classList.add("rightSB-hide");
 
-    // 2. 현재 활성화된 메인 탭 확인
-    const activeTab = document.querySelector(
-      ".rightSB-tabContent.rightSB-activeContent",
-    );
-    if (!activeTab) return;
+    // 🎯 [여기 수정] 만약 로그아웃 블러 마스크가 켜져 있다면?
+    // 버튼을 숨기지 말고, 기본 '후기 작성하기 / 이 동네 찜하기' 버튼 1쌍을 뒤에 투명하게 노출해 줍니다!
+    const isOverlayOn = document.querySelector(".rightSB-auth-overlay") !== null;
+    if (isOverlayOn) {
+      reviewListBtnGroup?.classList.remove("rightSB-hide"); // 🔓 버튼 1쌍을 켜두어 마스크 뒤에 비치게 만듦!
+      return; 
+    }
+
+    // 아래는 로그인 상태일 때 원래 도는 로직 (그대로 유지)
+    const activeTab = document.querySelector(".rightSB-tabContent.rightSB-activeContent");
+    if (!activeTab) return; 
 
     if (activeTab.id === "tabContentReview") {
-      // 실거주 후기 탭일 때
       if (reviewFormSub && !reviewFormSub.classList.contains("rightSB-hide")) {
-        formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 폼 작성 중일 때만 등록/취소 버튼
+        formSubmitBtnGroup?.classList.remove("rightSB-hide");
       } else {
-        reviewListBtnGroup?.classList.remove("rightSB-hide"); // 목록 상태
+        reviewListBtnGroup?.classList.remove("rightSB-hide");
       }
     } else if (activeTab.id === "tabContentQnA") {
-      // Q&A 탭일 때
       if (qnaFormSub && !qnaFormSub.classList.contains("rightSB-hide")) {
-        formSubmitBtnGroup?.classList.remove("rightSB-hide"); // 질문 작성 폼일 때만 등록/취소 버튼
-      }
-      // 💡 [여기 수정] 목록 상태이거나 '상세 보기 페이지' 상태일 때 둘 다 질문 남기기/찜하기 버튼 유지!
-      else {
+        formSubmitBtnGroup?.classList.remove("rightSB-hide");
+      } else {
         qnaListBtnGroup?.classList.remove("rightSB-hide");
       }
     }
   }
+
+  // 데이터 로드 및 초기화 트리거 순서 배치
+  handleStarRating();
+  checkAuthAndToggleTabs();
+  updateBottomButtons();
 
   // --- [C] 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
   function updateIndicator(target) {
@@ -132,8 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentMenu.classList.contains("rightSB-reviewSelected")) {
         const reviewTab = document.getElementById("tabContentReview");
         if (reviewTab) {
-          reviewTab.classList.add("rightSB-activeContent");
-          // 탭 변경 시 서브페이지 목록으로 강제 롤백
+          reviewTab.classList.add("rightSB-activeContent"); // 🎯 오타 완벽 제거 완료!
           reviewFormSub?.classList.add("rightSB-hide");
           reviewListSub?.classList.remove("rightSB-hide");
         }
@@ -141,24 +176,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const qnaTab = document.getElementById("tabContentQnA");
         if (qnaTab) {
           qnaTab.classList.add("rightSB-activeContent");
-          // 탭 변경 시 서브페이지 목록으로 강제 롤백
           qnaFormSub?.classList.add("rightSB-hide");
+          qnaDetailSub?.classList.add("rightSB-hide");
           qnaListSub?.classList.remove("rightSB-hide");
         }
       }
-      // 탭 전환 후 버튼 업데이트 트리거
       updateBottomButtons();
     });
   });
 
-  // 초기 로드 시 밑줄 및 버튼 세팅
   const activeMenu = document.querySelector(
     ".rightSB-navbar-menu.rightSB-beBold",
   );
   if (activeMenu) {
     setTimeout(() => updateIndicator(activeMenu), 50);
   }
-  updateBottomButtons(); // 최초 버튼 셋 렌더링
 
   // --- [D] 다중 textarea 글자수 실시간 제한 규칙 ---
   const reviewContainers = document.querySelectorAll(
@@ -187,10 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const createStarElement = () => {
     const rightSBstar = document.createElement("div");
     rightSBstar.className = "rightSBstar";
-    rightSBstar.innerHTML = `
-      <div class="rightSBstar-empty"></div>
-      <div class="rightSBstar-fill"></div>
-    `;
+    rightSBstar.innerHTML = `<div class="rightSBstar-empty"></div><div class="rightSBstar-fill"></div>`;
     return rightSBstar;
   };
 
@@ -249,9 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateStars(currentRating);
   });
 
-  // --- [F] 1,2,3,4 서브페이지 라우팅 및 독립 버튼 유기적 매핑 ---
-
-  // [1페이지 -> 2페이지 이동] (후기 작성하기 클릭)
+  // --- [F] 서브페이지 라우팅 및 독립 버튼 유기적 매핑 ---
   reviewListBtnGroup
     ?.querySelector(".go-to-review-form")
     ?.addEventListener("click", () => {
@@ -260,7 +287,6 @@ document.addEventListener("DOMContentLoaded", () => {
       updateBottomButtons();
     });
 
-  // [3페이지 -> 4페이지 이동] (질문 남기기 클릭)
   qnaListBtnGroup
     ?.querySelector(".go-to-review-form")
     ?.addEventListener("click", () => {
@@ -269,18 +295,12 @@ document.addEventListener("DOMContentLoaded", () => {
       updateBottomButtons();
     });
 
-  // [공통 복귀 로직 함수]
   const backToMainList = () => {
-    const activeTab = document
+    const isReview = document
       .getElementById("tabContentReview")
-      ?.classList.contains("rightSB-activeContent")
-      ? document.getElementById("tabContentReview")
-      : document.getElementById("tabContentQnA");
+      ?.classList.contains("rightSB-activeContent");
 
-    if (!activeTab) return;
-
-    if (activeTab.id === "tabContentReview") {
-      // 1. 후기 텍스트 영역 비우기 및 글자수(0/500) 리셋
+    if (isReview) {
       const textarea = reviewFormSub.querySelector(".rightSB-reviewContent");
       if (textarea) textarea.value = "";
       const charSpan = reviewFormSub.querySelector(
@@ -288,11 +308,9 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       if (charSpan) charSpan.textContent = "0";
 
-      // 2. 후기 체크박스 동의 해제
       const agreeCheckbox = reviewFormSub.querySelector("#check-agree");
       if (agreeCheckbox) agreeCheckbox.checked = false;
 
-      // 3. 후기 만족도 별점(0점) 및 채워진 그래픽 초기화
       const ratings = reviewFormSub.querySelectorAll(".rightSB-rating");
       ratings.forEach((box) => {
         box.setAttribute("data-score", "0");
@@ -304,76 +322,60 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // 4. 화면 전환
       reviewFormSub?.classList.add("rightSB-hide");
       reviewListSub?.classList.remove("rightSB-hide");
-    } else if (activeTab.id === "tabContentQnA") {
-      // 1. Q&A 텍스트 영역 비우기 및 글자수 리셋
+    } else {
       const textarea = qnaFormSub.querySelector(".rightSB-reviewContent");
       if (textarea) textarea.value = "";
       const charSpan = qnaFormSub.querySelector(".rightSB-currentChars > span");
       if (charSpan) charSpan.textContent = "0";
 
-      // 2. Q&A 체크박스 동의 해제
       const agreeCheckbox = qnaFormSub.querySelector("#check-agree2");
       if (agreeCheckbox) agreeCheckbox.checked = false;
 
-      // 3. 화면 전환
       qnaFormSub?.classList.add("rightSB-hide");
       qnaListSub?.classList.remove("rightSB-hide");
     }
-
-    // 아래 버튼 묶음 스위칭 함수 호출
     updateBottomButtons();
   };
-  // 상단 화살표(<) 이미지 클릭 시 목록 복귀
+
   reviewFormSub
     ?.querySelector(".rightSB-reviewTitle img")
     ?.addEventListener("click", backToMainList);
   qnaFormSub
     ?.querySelector(".rightSB-reviewTitle img")
     ?.addEventListener("click", backToMainList);
-
-  // 3번째 버튼 그룹 내 [취소] 버튼 클릭 시 목록 복귀
   formSubmitBtnGroup
     ?.querySelector(".rightSB-reviewCancleBtn")
     ?.addEventListener("click", backToMainList);
 
-  // ---- 1, 2번째 버튼 그룹 내 [이 동네 찜하기] 토글 및 이미지 변경 처리 ---
-
-  // 찜하기 상태를 기억할 변수 (false: 찜 안함, true: 찜함)
+  // --- [찜하기 기능] ---
   let isWished = false;
-
-  document.querySelectorAll(".wish-btn").forEach((btn) => {
+  document.querySelectorAll(".wish-btn, .rightSB-regionHeartImg").forEach((btn) => {
     btn.addEventListener("click", () => {
-      // 1. 상태 뒤집기 (토글)
       isWished = !isWished;
-
-      // 2. 화면에 있는 모든 찜하기 버튼의 하트 이미지 수집
+      
+      // 🎯 [수정] 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
       const allHeartImgs = document.querySelectorAll(
-        ".wish-btn .rightSB-heartImg",
+        ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg"
       );
-
-      // 3. 상태에 따라 이미지 경로 및 알림창 분기 처리
+      
       allHeartImgs.forEach((img) => {
-        if (isWished) {
-          img.src = "./components/rightSideBar/rightSB-images/fullHeart.svg"; // 채워진 하트 경로
-        } else {
-          img.src = "./components/rightSideBar/rightSB-images/heart.svg"; // 원래 빈 하트 경로
-        }
+        // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
+        img.src = isWished 
+          ? "./components/rightSideBar/rightSB-images/fullHeart.svg" 
+          : "./components/rightSideBar/rightSB-images/heart.svg";
       });
-
-      // 4. 피드백 알림창
-      if (isWished) {
-        alert("❤️ 이 동네가 찜 목록에 추가되었습니다.");
-      } else {
-        alert("💔 찜 목록에서 제외되었습니다.");
-      }
+      
+      alert(
+        isWished
+          ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
+          : "💔 찜 목록에서 제외되었습니다.",
+      );
     });
   });
 
-
-  // --- [G] 3번째 버튼 그룹 내 [등록하기] 공통 버튼 라우팅 처리 ---
+  // --- [G] 등록하기 처리 ---
   formSubmitBtnGroup
     ?.querySelector(".rightSB-reviewSubmitBtn")
     ?.addEventListener("click", () => {
@@ -382,7 +384,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       if (!activeTab) return;
 
-      // [CASE 1: 후기 작성 등록 전송 및 밸리데이션]
       if (activeTab.id === "tabContentReview") {
         const ratings = reviewFormSub.querySelectorAll(".rightSB-rating");
         const scores = { night: 0, convenience: 0, atmosphere: 0 };
@@ -392,10 +393,9 @@ document.addEventListener("DOMContentLoaded", () => {
           if (type) scores[type] = score;
         });
 
-        const textarea = reviewFormSub.querySelector(".rightSB-reviewContent"); // 💡 리셋을 위해 엘리먼트로 수집
+        const textarea = reviewFormSub.querySelector(".rightSB-reviewContent");
         const text = textarea.value;
-        const agreeCheckbox = reviewFormSub.querySelector("#check-agree"); // 💡 리셋을 위해 엘리먼트로 수집
-        const isAgreed = agreeCheckbox.checked;
+        const agreeCheckbox = reviewFormSub.querySelector("#check-agree");
 
         if (
           scores.night === 0 ||
@@ -409,18 +409,16 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("자세한 후기를 작성해주세요!");
           return;
         }
-        if (!isAgreed) {
+        if (!agreeCheckbox.checked) {
           alert("개인정보 수집 및 이용에 동의하셔야 등록이 가능합니다.");
           return;
         }
-
         console.log("📦 [실거주 후기 데이터 백엔드 발송]:", {
           rating: scores,
           content: text,
           isAgreed,
         });
         alert("후기가 성공적으로 등록되었습니다!");
-
         // 💡 [실거주 후기 폼 초기화 코드 추가]
         // 1. 텍스트 영역 비우기 및 글자수 표기(0/500) 리셋
         textarea.value = "";
@@ -445,9 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         backToMainList();
-      }
-      // [CASE 2: Q&A 질문 등록 전송 및 밸리데이션]
-      else if (activeTab.id === "tabContentQnA") {
+      } else if (activeTab.id === "tabContentQnA") {
         const textarea = qnaFormSub.querySelector(".rightSB-reviewContent"); // 💡 리셋을 위해 엘리먼트로 수집
         const text = textarea.value;
         const agreeCheckbox = qnaFormSub.querySelector("#check-agree2"); // 💡 리셋을 위해 엘리먼트로 수집
@@ -483,29 +479,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  // --- [H] 스크롤바 바닥 감지 및 동적 바텀 보더 토글 기능 ---
+  // --- [H] 스크롤바 바닥 감지 ---
   const scrollWrapper = document.querySelector(".rightSB-tabContentWrapper");
   const reviewContainer = document.querySelector(".rightSB-reviewContainer");
 
   if (scrollWrapper && reviewContainer) {
     scrollWrapper.addEventListener("scroll", () => {
-      // scrollTop(내려온 길이) + clientHeight(보이는 창 높이)가
-      // scrollHeight(내부 내용물 전체 높이)와 같아지면 바닥에 닿은 것입니다.
-      // 소수점 오차 방지를 위해 -2px 버퍼를 둡니다.
       const isBottom =
         scrollWrapper.scrollTop + scrollWrapper.clientHeight >=
         scrollWrapper.scrollHeight - 2;
-
-      if (isBottom) {
-        // 끝까지 스크롤 다 내렸을 때 하단 보더 켜기!
-        reviewContainer.classList.add("rightSB-showBorder");
-      } else {
-        // 조금이라도 위로 올라가면 다시 하단 보더 감추기!
-        reviewContainer.classList.remove("rightSB-showBorder");
-      }
+      if (isBottom) reviewContainer.classList.add("rightSB-showBorder");
+      else reviewContainer.classList.remove("rightSB-showBorder");
     });
-
-    // 만 내용물이 너무 적어서 처음부터 스크롤바가 안 생기는 경우를 대비해 최초 1회 체크
     setTimeout(() => {
       if (scrollWrapper.clientHeight >= scrollWrapper.scrollHeight) {
         reviewContainer.classList.add("rightSB-showBorder");
@@ -513,9 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   }
 
-  // --- [I] 백엔드 연동용 후기 리스트 동적 렌더링 모듈 ---
-
-  // 1. 임시 백엔드 데이터 (나중에 fetch나 axios로 받아올 데이터 배열)
+  // --- [I] 후기 리스트 동적 렌더링 모듈 ---
   const mockReviewsFromServer = [
     {
       id: 101,
@@ -523,8 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
       residence: "상계동 거주 중",
       date: "3일 전",
       score: 2.5,
-      content:
-        "밤에 귀가할 때 가로등이 많아서 안심돼요. 주변에 편의점, 병원도 가까워서 생활하기 편합니다.",
+      content: "밤에 귀가할 때 가로등이 많아서 안심돼요.",
       likes: 12,
     },
     {
@@ -533,8 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
       residence: "상계동 거주 중",
       date: "1주 전",
       score: 4.0,
-      content:
-        "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
+      content: "조용한 주택가라 좋고 가로등도 밝아요.",
       likes: 3,
     },
     {
@@ -547,14 +528,41 @@ document.addEventListener("DOMContentLoaded", () => {
         "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
       likes: 3,
     },
+    {
+      id: 104,
+      nickname: "따뜻한 봄날",
+      residence: "상계동 거주 중",
+      date: "1주 전",
+      score: 3.9,
+      content:
+        "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
+      likes: 3,
+    },
+    {
+      id: 104,
+      nickname: "따뜻한 봄날",
+      residence: "상계동 거주 중",
+      date: "1주 전",
+      score: 3.9,
+      content:
+        "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
+      likes: 3,
+    },
+    {
+      id: 104,
+      nickname: "따뜻한 봄날",
+      residence: "상계동 거주 중",
+      date: "1주 전",
+      score: 3.9,
+      content:
+        "조용한 주택가라 좋고, 비상벨 설치도 잘 되어 있어요. 다만 일부 골목은 조금 어두워요.",
+      likes: 3,
+    },
   ];
 
-  // 2. 데이터를 받아와서 화면에 뿌려주는 함수 (요기로 통째로 덮어쓰기 하세요!)
   function renderReviews(reviews) {
     const container = document.getElementById("rightSB-reviewCardContainer");
     if (!container) return;
-
-    // 기존에 더미로 들어있던 내용 청소
     container.innerHTML = "";
 
     // 데이터가 하나도 없을 때 예외 처리
@@ -563,15 +571,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 3. 루프 동적 템플릿 생성
     reviews.forEach((review) => {
       let emptyStarsHTML = "";
       let filledStarsHTML = "";
       for (let i = 0; i < 5; i++) {
-        emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" alt="빈별" class="rightSB-cardStarIcon" />`;
-        filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" alt="채워진별" class="rightSB-cardStarIcon" />`;
+        emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" class="rightSB-cardStarIcon" />`;
+        filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" class="rightSB-cardStarIcon" />`;
       }
-
       const roundedScore = Math.round(review.score * 2) / 2;
       const filledStarsCount = Math.floor(roundedScore);
       const hasHalfStar = roundedScore % 1 !== 0;
@@ -580,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (hasHalfStar) {
         totalWidth += 5.5;
       } else if (filledStarsCount > 0) {
-        totalWidth -= 4; 
+        totalWidth -= 4;
       }
 
       const cardHTML = `
@@ -619,13 +625,11 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
       `;
-
       container.insertAdjacentHTML("beforeend", cardHTML);
     });
-
     // 생성된 모든 후기 카드의 좋아요 버튼에 개별 클릭 이벤트 바인딩하기
     const likeButtons = container.querySelectorAll(".rightSB-cardLikeBtn");
-    
+
     likeButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         // 이벤트 버블링 방지 (카드를 클릭했을 때 다른 서브페이지로 튀는 현상 막기)
@@ -637,21 +641,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const imgIcon = btn.querySelector(".rightSB-likeImg");
 
         if (!isLiked) {
-
           // 1. 👍 좋아요 활성화 상태 전환
           btn.setAttribute("data-liked", "true");
           countSpan.textContent = baseLikes + 1; // 숫자 1 올리기
-          imgIcon.src = "./components/rightSideBar/rightSB-images/filledThumbsUp.svg"; // 채워진 따봉 경로
+          imgIcon.src =
+            "./components/rightSideBar/rightSB-images/filledThumbsUp.svg"; // 채워진 따봉 경로
 
-          // 🎨 디자인 변경 
+          // 🎨 디자인 변경
           btn.style.borderRadius = "20px";
           btn.style.border = "1px solid var(--Color-Blue900, #1077FF)";
           btn.style.background = "var(--Color-Blue200, #C4ECFE)";
           btn.style.color = "var(--Color-Blue900, #1077FF)"; // 글자도 세트로 파랗게 조율
-        } 
-        else {
-
-
+        } else {
           // 2. 👎 좋아요 다시 취소 토글 상태 전환
           btn.setAttribute("data-liked", "false");
           countSpan.textContent = baseLikes; // 원래 숫자로 원복
@@ -667,12 +668,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // 함수 실행시켜서 화면에 카드들 띄우기!
   renderReviews(mockReviewsFromServer);
-
-  // ==========================================
-  // --- [J] 백源 연동용 Q&A 리스트 동적 렌더링 모듈 ---
-  // ==========================================
-
-  // 1. 임시 Q&A 데이터 (나중에 서버에서 가져올 배열)
+  // --- [J] Q&A 리스트 렌더링 및 상세페이지 유기적 라우팅 통합 모듈 ---
   const mockQnasFromServer = [
     { id: 201, question: "밤에 혼자 걸어다녀도 괜찮을까요?", answerCount: 2 },
     { id: 202, question: "주차는 편리한가요?", answerCount: 2 },
@@ -695,12 +691,50 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
-  // 2. Q&A 데이터를 화면에 뿌려주는 함수
+  const mockAnswersFromServer = {
+    201: [
+      {
+        nickname: "별빛여행자",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content: "네, 큰 길 위주로 다니시면 괜찮아요. 가로등도 많아요!",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+      {
+        nickname: "산책러",
+        residence: "상계동 거주 중",
+        date: "3일 전",
+        content:
+          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
+      },
+    ],
+  };
+
   function renderQnas(qnas) {
     const container = document.getElementById("rightSB-qnaCardContainer");
     if (!container) return;
 
-    // 초기화
+    //초기화
     container.innerHTML = "";
 
     // 질문이 없을 때 처리
@@ -709,62 +743,82 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 3. 루프를 돌며 동적 카드 템플릿 주입
     qnas.forEach((qna) => {
       const qnaHTML = `
         <div class="rightSB-qnaCard" data-id="${qna.id}">
-          <div class="rightSB-qnaLeft">
-            <div class="rightSB-qnaAvatar">Q</div>
-            <span class="rightSB-qnaQuestion">${qna.question}</span>
-          </div>
-          <div class="rightSB-qnaRight">
-            <span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span>
-            <img src="./components/rightSideBar/rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
-          </div>
-        </div>
-      `;
+          <div class="rightSB-qnaLeft"><div class="rightSB-qnaAvatar">Q</div><span class="rightSB-qnaQuestion">${qna.question}</span></div>
+          <div class="rightSB-qnaRight"><span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span></div>
+        </div>`;
       container.insertAdjacentHTML("beforeend", qnaHTML);
     });
+
+    container.querySelectorAll(".rightSB-qnaCard").forEach((card) => {
+      card.addEventListener("click", () => {
+        const qnaId = card.getAttribute("data-id");
+        document.getElementById("qnaDetailTitle").textContent =
+          card.querySelector(".rightSB-qnaQuestion").textContent;
+
+        const ansContainer = document.getElementById("qnaAnswerContainer");
+        if (ansContainer) {
+          ansContainer.innerHTML = "";
+          (mockAnswersFromServer[qnaId] || []).forEach((ans) => {
+            const ansHTML = `
+        <div class="rightSB-answerCard">
+          <div class="rightSB-ansUserLine">
+            <div class="rightSB-ansUserInfo">
+              <div class="rightSB-ansAvatar"></div>
+              <div>
+                <span class="rightSB-ansNickname">${ans.nickname}</span>
+                <span class="rightSB-ansPeriod">${ans.residence}</span>
+              </div>
+            </div>
+            <span class="rightSB-ansDate">${ans.date}</span>
+          </div>
+          <div class="rightSB-ansText">${ans.content}</div>
+        </div>
+      `;
+            ansContainer.insertAdjacentHTML("beforeend", ansHTML);
+          });
+        }
+        qnaListSub?.classList.add("rightSB-hide");
+        qnaDetailSub?.classList.remove("rightSB-hide");
+        updateBottomButtons();
+      });
+    });
   }
-
-  // 💡 DOMContentLoaded 블록 내부에서 안전하게 실행되도록 구성
   renderQnas(mockQnasFromServer);
-  document
-    .querySelector(".rightSB-qnaDetailSubPage")
-    ?.classList.add("rightSB-hide");
-  document
-    .querySelector(".rightSB-reviewFormSubPage")
-    ?.classList.add("rightSB-hide");
-  document
-    .querySelector(".rightSB-qnaFormSubPage")
-    ?.classList.add("rightSB-hide");
-  // --- [K] 백엔드 데이터 연동 5각형 레이더 차트 모듈 ---
 
-  // 1. 임시 백엔드 데이터 (0에서 100 사이의 점수라고 가정)
+  qnaDetailSub
+    ?.querySelector(".rightSB-detailBackBtn")
+    ?.addEventListener("click", () => {
+      qnaDetailSub?.classList.add("rightSB-hide");
+      qnaListSub?.classList.remove("rightSB-hide");
+      updateBottomButtons();
+    });
+
+  // --- [K] 차트 렌더링 ---
   const mockGraphDataFromServer = {
     cctv: 85,
     streetLight: 70,
     police: 45,
     emergencyBell: 60,
-    crimeZone: 75, // 범죄주의 구간 (안전할수록 점수가 높거나 기획에 맞게 설정)
+    crimeZone: 75,
+    womanSafety: 60,
   };
-
-  // 2. 차트를 생성하는 함수
   function renderSafetyChart(data) {
     const ctx = document.getElementById("safetyRadarChart");
     if (!ctx) return;
-
-    // 이미 생성된 차트가 있다면 파괴하고 새로 그리기 (데이터 업데이트 대응)
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) {
-      existingChart.destroy();
-    }
-
-    // 3. Chart.js 객체 생성
     new Chart(ctx, {
-      type: "radar", //  레이더(오각형) 타입 지정
+      type: "radar",
       data: {
-        labels: ["CCTV", "가로등", "파출소", "비상벨", ["범죄주의", "구간"]], // 축 이름
+        labels: [
+          "CCTV",
+          "가로등",
+          "파출소",
+          "비상벨",
+          ["범죄주의", "구간"],
+          ["여성 밤길", "안전"],
+        ],
         datasets: [
           {
             data: [
@@ -773,9 +827,8 @@ document.addEventListener("DOMContentLoaded", () => {
               data.police,
               data.emergencyBell,
               data.crimeZone,
+              data.womanSafety,
             ],
-
-            // 🎨 디자인 커스텀 (보내주신 이미지와 유사한 블루 톤 설정)
             backgroundColor: "rgba(23, 137, 255, 0.55)", // 내부 채우기 색상
             borderColor: "#1077ff", // 선 색상
             borderWidth: 1.5,
@@ -830,178 +883,107 @@ document.addEventListener("DOMContentLoaded", () => {
   // 최초 실행!
   renderSafetyChart(mockGraphDataFromServer);
 
-  // --- [L] Q&A 질문 상세 보기 및 화면 전환 모듈 ---
-
-  // 1. 임시 백엔드 데이터 (상세 질문에 딸린 답변 목록 샘플)
-  const mockAnswersFromServer = {
-    201: [
-      {
-        nickname: "별빛여행자",
-        residence: "상계동 거주 중",
-        date: "3일 전",
-        content: "네, 큰 길 위주로 다니시면 괜찮아요. 가로등도 많아요!",
-      },
-      {
-        nickname: "산책러",
-        residence: "상계동 거주 중",
-        date: "3일 전",
-        content:
-          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
-      },
-      {
-        nickname: "산책러",
-        residence: "상계동 거주 중",
-        date: "3일 전",
-        content:
-          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
-      },
-      {
-        nickname: "산책러",
-        residence: "상계동 거주 중",
-        date: "3일 전",
-        content:
-          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
-      },
-      {
-        nickname: "산책러",
-        residence: "상계동 거주 중",
-        date: "3일 전",
-        content:
-          "저도 밤에 자주 다니는데 위험한 느낌은 없었어요. 늦은 시간에도 사람이 많이 다녀서 괜찮아요.",
-      },
-    ],
-  };
-
-  const qnaDetailSub = document.querySelector(".rightSB-qnaDetailSubPage");
-
-  // 2. 기존 renderQnas 함수 보완 (질문 카드에 클릭 이벤트 리스너 추가하기)
-  function renderQnas(qnas) {
-    const container = document.getElementById("rightSB-qnaCardContainer");
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    if (qnas.length === 0) {
-      container.innerHTML = `<div style="text-align:center; color:#7b7578; padding:24px 0;">등록된 질문이 없습니다.</div>`;
-      return;
-    }
-
-    qnas.forEach((qna) => {
-      // 가상 데이터 매칭용 mock 추가 정보 처리
-      const user = qna.user || "별빛여행자";
-      const date = qna.date || "3일 전";
-      const views = qna.views || 213;
-
-      const qnaHTML = `
-        <div class="rightSB-qnaCard" data-id="${qna.id}" data-user="${user}" data-date="${date}" data-views="${views}">
-          <div class="rightSB-qnaLeft">
-            <div class="rightSB-qnaAvatar">Q</div>
-            <span class="rightSB-qnaQuestion">${qna.question}</span>
-          </div>
-          <div class="rightSB-qnaRight">
-            <span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span>
-            <img src="./components/rightSideBar/rightSB-images/details.svg" class="rightSB-qnaArrow" alt="이동" />
-          </div>
-        </div>
-      `;
-      container.insertAdjacentHTML("beforeend", qnaHTML);
-    });
-
-    // 카드 클릭 시 상세 페이지로 이동 이벤트 바인딩
-    container.querySelectorAll(".rightSB-qnaCard").forEach((card) => {
-      card.addEventListener("click", () => {
-        const qnaId = card.getAttribute("data-id");
-        const questionText = card.querySelector(
-          ".rightSB-qnaQuestion",
-        ).textContent;
-        const answerCountText = card.querySelector(
-          ".rightSB-qnaAnswerText",
-        ).textContent;
-        const user = card.getAttribute("data-user");
-        const date = card.getAttribute("data-date");
-        const views = card.getAttribute("data-views");
-
-        // 상세 정보 주입
-        document.getElementById("qnaDetailTitle").textContent = questionText;
-        document.getElementById("qnaDetailAnsCount").textContent =
-          answerCountText;
-        document.getElementById("qnaDetailUser").textContent = user;
-        document.getElementById("qnaDetailDate").textContent = date;
-        document.getElementById("qnaDetailViews").textContent = views;
-
-        // 답변 목록 그리기
-        renderAnswers(qnaId);
-
-        // 화면 전환 및 하단 버튼 숨김 제어 (상세창 노출 시 메인 하단 버튼들은 숨김)
-        qnaListSub?.classList.add("rightSB-hide");
-        qnaDetailSub?.classList.remove("rightSB-hide");
-
-        updateBottomButtons();
-      });
-    });
-  }
-
-  // 3. 답변을 동적으로 렌더링하는 함수
-  function renderAnswers(qnaId) {
-    const ansContainer = document.getElementById("qnaAnswerContainer");
-    if (!ansContainer) return;
-
-    ansContainer.innerHTML = "";
-    const answers = mockAnswersFromServer[qnaId] || [];
-
-    answers.forEach((ans) => {
-      const ansHTML = `
-        <div class="rightSB-answerCard">
-          <div class="rightSB-ansUserLine">
-            <div class="rightSB-ansUserInfo">
-              <div class="rightSB-ansAvatar"></div>
-              <div>
-                <span class="rightSB-ansNickname">${ans.nickname}</span>
-                <span class="rightSB-ansPeriod">${ans.residence}</span>
-              </div>
-            </div>
-            <span class="rightSB-ansDate">${ans.date}</span>
-          </div>
-          <div class="rightSB-ansText">${ans.content}</div>
-        </div>
-      `;
-      ansContainer.insertAdjacentHTML("beforeend", ansHTML);
-    });
-  }
-
-  // 4. 상세 보기 페이지에서 다시 리스트 목록으로 [뒤로가기] 처리
-  qnaDetailSub
-    ?.querySelector(".rightSB-detailBackBtn")
-    ?.addEventListener("click", () => {
-      qnaDetailSub?.classList.add("rightSB-hide");
-      qnaListSub?.classList.remove("rightSB-hide");
-      updateBottomButtons(); // 하단 버튼 레이아웃 원복
-    });
-
-  // 메인페이지에서 사이드바 닫는 기능
-  const toggleBtn = document.querySelector(".rightSB-close");
-  const sidebarWrapper = document.getElementById("rightSideBar-container");
-
-  if (toggleBtn && sidebarWrapper) {
-    toggleBtn.addEventListener("click", () => {
-      // 버튼을 누를 때마다 클래스를 켜고 끕니다
-      sidebarWrapper.classList.toggle("sidebar-collapsed");
-    });
-  }
-
-  
-  //내부 X 버튼 이벤트 구역 X버튼 누를 시 삭제
-
-const exitBtn = document.querySelector(".rightSB-exitImg");
-const sidebarExit = document.querySelector(".rightSB-wholeContainer");
-
-if (exitBtn) {
-  exitBtn.addEventListener("click", () => {
-    sidebarExit.classList.add("main-page-hide");
+  // 사이드바 접기 토글
+  document.querySelector(".rightSB-close")?.addEventListener("click", () => {
+    document
+      .getElementById("rightSideBar-container")
+      ?.classList.toggle("sidebar-collapsed");
   });
-}
 
-  //사이드바 최초 생성
-  // 나중에 사이드바를 다시 보여줘야 하는 순간이 오면 이걸 실행하세요! document.getElementById("rightSideBar-container")?.classList.remove("main-page-hide");
 
-}); // 👈 DOMContentLoaded 이벤트가 완전히 끝나는 중괄호입니다. 파일의 맨 마지막 줄이 됩니다.
+  // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
+  const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn"); 
+
+  if (openLoginBtn) {
+    openLoginBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // 기본 a태그 이동 기능 막기
+
+      const overlay = document.getElementById("loginPopupOverlay");
+      const contentBox = document.getElementById("loginPopupContent");
+
+      // 2. 외부 login.html 파일 가져오기
+      fetch("./login/login.html")
+        .then(response => response.text())
+        .then(htmlData => {
+          // 3. 팝업 상자 안에 소스 삽입
+          contentBox.innerHTML = htmlData;
+          
+          // 4. 숨겨진 팝업 노출 및 기본 로그인 크기로 초기 설정 보장
+          contentBox.style.width = "518px";
+          contentBox.style.height = "689px";
+          overlay.classList.remove("popup-hide");
+
+          // 5. ⭐️ 중요: HTML이 삽입된 직후에 login.js에 정의된 이벤트들 연결시키기!
+          if (typeof initAuthEvents === "function") {
+            initAuthEvents();
+          }
+
+          // 6. [X] 닫기 버튼 기능 연결
+          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
+          closeBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+              overlay.classList.add("popup-hide");
+            });
+          });
+        })
+        .catch(err => console.error("팝업 로드 중 에러 발생:", err));
+    });
+  }
+
+  // 7. 어두운 배경 클릭 시 팝업 닫기
+  const overlay = document.getElementById("loginPopupOverlay");
+  if (overlay) {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        overlay.classList.add("popup-hide");
+      }
+    });
+  }
+
+// components/rightSideBar/rightSideBar.js 내부 DOMContentLoaded 안쪽에 추가
+
+  // 🎯 우측 사이드바의 [점수 기준 보기] 버튼 타겟팅
+  const openScoreInfoBtn = document.querySelector(".rightSB-safetyScoreContainer button");
+
+  if (openScoreInfoBtn) {
+    openScoreInfoBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const overlay = document.getElementById("loginPopupOverlay");
+      const contentBox = document.getElementById("loginPopupContent");
+
+      // 1. 외부 login.html 파일 가져오기 (점수 기준 보기가 포함되어 있음!)
+      fetch("./login/login.html")
+        .then(response => {
+          if (!response.ok) throw new Error("네트워크 응답에 문제가 있습니다.");
+          return response.text();
+        })
+        .then(htmlData => {
+          // 2. 팝업 상자 안에 소스 삽입
+          contentBox.innerHTML = htmlData;
+          
+          // 3. ⭐️ 점수 기준 보기 전용 규격(518px * 733px) 주입 및 노출
+          contentBox.style.width = "518px";
+          contentBox.style.height = "733px";
+          overlay.classList.remove("popup-hide");
+
+          // 4. ⭐️ 중요: HTML이 삽입된 직후 login.js에 추가할 점수 팝업 초기화 함수 실행!
+          if (typeof initScoreInfoEvent === "function") {
+            initScoreInfoEvent();
+          }
+
+          // 5. [X] 닫기 버튼 기능 결합
+          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
+          closeBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+              overlay.classList.add("popup-hide");
+            });
+          });
+        })
+        .catch(err => console.error("점수 기준 팝업 로드 중 에러 발생:", err));
+    });
+  }
+
+
+});
+
