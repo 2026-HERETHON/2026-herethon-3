@@ -1,3 +1,6 @@
+<p>닉네임: {{ user.nickname }}</p>
+<p>성별: {{ user.get_gender_display }}</p>
+<p>아이디: {{ user.username }}</p>
 
 <p>거주지:
     {% if user.verified_grid %}

@@ -9,9 +9,10 @@ from grids.models import Grid  # 앱 이름 확인 필요
 from .models import Review, ReviewLike
 from .forms import ReviewForm
 from django.db.models import Avg
+from accounts.models import SavedGrid
 
 def review_list(request, grid_id):  # REV-001, REV-004
-    grid = get_object_or_404(Grid, pk=grid_id)
+    grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
     sort = request.GET.get('sort', 'latest')  # latest(최신순) / likes(공감순)
 
     reviews = grid.reviews.all()
@@ -37,6 +38,12 @@ def review_list(request, grid_id):  # REV-001, REV-004
         for key, value in rating_summary.items()
     }
 
+    is_saved = False
+    if request.user.is_authenticated:
+        liked_review_ids = ReviewLike.objects.filter(
+            user=request.user, review__in=reviews
+        ).values_list('review_id', flat=True)
+        is_saved = SavedGrid.objects.filter(user=request.user, grid=grid).exists()
 
     context = {
         'grid': grid,
@@ -45,13 +52,14 @@ def review_list(request, grid_id):  # REV-001, REV-004
         'liked_review_ids': set(liked_review_ids),
         'is_empty': not reviews.exists(),  # 후기 없음 예외처리
         'rating_summary': rating_summary,
+        'is_saved': is_saved,
     }
     return render(request, 'reviews/list.html', context)
 
 
 @login_required
 def review_create(request, grid_id):  # REV-002
-    grid = get_object_or_404(Grid, pk=grid_id)
+    grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
 
     if request.method == 'POST':
         form = ReviewForm(request.POST)

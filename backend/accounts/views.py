@@ -12,7 +12,7 @@ from .models import SavedGrid
 from django.utils import timezone
 
 from reviews.models import Review
-from qna.models import Question
+from qna.models import Question, Answer
 
 def signup_view(request):  # AUTH-001
     if request.user.is_authenticated:
@@ -62,9 +62,16 @@ def profile_view(request):
 @login_required
 @require_POST
 def saved_grid_toggle(request, grid_id):
-    grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
+    grid = get_object_or_404(Grid, pk=grid_id)
 
-    saved, created = SavedGrid.objects.get_or_create(user=request.user, grid=grid)
+    if grid.is_legal_dong:
+        target_grid = grid
+    else:
+        target_grid = get_object_or_404(
+            Grid, dong_group=grid.dong_group, is_legal_dong=True
+        )
+
+    saved, created = SavedGrid.objects.get_or_create(user=request.user, grid=target_grid)
 
     if created:
         is_saved = True
@@ -143,6 +150,7 @@ def profile_posts_view(request):
     context = {
         'reviews': Review.objects.filter(user=request.user).select_related('grid'),
         'questions': Question.objects.filter(user=request.user).select_related('grid').prefetch_related('answers'),
+        'answers': Answer.objects.filter(user=request.user).select_related('question', 'question__grid'),
     }
     return render(request, 'accounts/profile_posts.html', context)
 
