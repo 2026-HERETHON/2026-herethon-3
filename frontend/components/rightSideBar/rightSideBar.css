@@ -430,9 +430,8 @@
 }
 
 .rightSB-tabContentWrapper {
-  min-height: 348px;
   max-height: 500px;
-  overflow-y: auto; /* ⭕ [핵심] 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
+  overflow-y: auto; /* 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -1026,7 +1025,6 @@
   letter-spacing: -0.28px;
 
   width: 262px;
-  height: 36px;
 }
 
 .rightSB-cardLikeBtn {

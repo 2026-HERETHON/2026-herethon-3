@@ -1,5 +1,5 @@
 from django import forms
-from .models import Question, Answer, Comment
+from .models import Question, Answer
 
 
 class QuestionForm(forms.ModelForm):
@@ -29,19 +29,4 @@ class AnswerForm(forms.ModelForm):
         content = self.cleaned_data.get('answer_content', '').strip()
         if not content:
             raise forms.ValidationError('답변 내용을 입력해주세요.')
-        return content
-
-
-class CommentForm(forms.ModelForm):
-    class Meta:
-        model = Comment
-        fields = ['comment_content']
-        widgets = {
-            'comment_content': forms.TextInput(attrs={'placeholder': '댓글을 입력해주세요.'}),
-        }
-
-    def clean_comment_content(self):
-        content = self.cleaned_data.get('comment_content', '').strip()
-        if not content:
-            raise forms.ValidationError('댓글 내용을 입력해주세요.')
         return content

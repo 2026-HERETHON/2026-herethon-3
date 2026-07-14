@@ -2,8 +2,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from grids.models import Grid
-from .models import Question, Answer, Comment
-from .forms import QuestionForm, AnswerForm, CommentForm
+from .models import Question, Answer
+from .forms import QuestionForm, AnswerForm
 
 
 def question_list(request, grid_id):  # 질문 목록 (Q&A 탭)
@@ -39,13 +39,11 @@ def question_detail(request, question_id):  # 질문 상세 (답변/댓글 다 �
     answers = question.answers.all()
 
     answer_form = AnswerForm()
-    comment_form = CommentForm()
 
     return render(request, 'qna/detail.html', {
         'question': question,
         'answers': answers,
         'answer_form': answer_form,
-        'comment_form': comment_form,
     })
 
 
@@ -61,17 +59,3 @@ def answer_create(request, question_id):  # QA-002
             answer.question = question
             answer.save()
     return redirect('qna:detail', question_id=question.id)
-
-
-@login_required
-def comment_create(request, answer_id):  # QA-003
-    answer = get_object_or_404(Answer, pk=answer_id)
-
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.user = request.user
-            comment.answer = answer
-            comment.save()
-    return redirect('qna:detail', question_id=answer.question.id)

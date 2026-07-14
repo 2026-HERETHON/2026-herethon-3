@@ -1,3 +1,5 @@
+import { initKakaoMap } from "./components/kakaoMap/kakaoMap.js";
+
 const NavSelected = document.querySelectorAll(".navbar-menu");
 const NavUnderline = document.querySelector(".navbar-underline");
 const pageGroups = document.querySelectorAll(".main-page-group");
@@ -53,10 +55,11 @@ if (activeMenu) {
 
 // index.html 하단에서 생성한 카카오맵 객체를 가져오기 위한 안전장치
 document.addEventListener("DOMContentLoaded", () => {
+  initKakaoMap();
+
   // 브라우저의 Ctrl + 플러스/마이너스/휠 확대 축소를 막고 지도에 바인딩
   window.addEventListener("keydown", function (e) {
     // 카카오맵 객체가 전역이나 어딘가에 생성되어 있는지 확인 (index.html의 map 변수)
-    // 만약 index.html에서 var map으로 선언했다면 window.map으로 접근 가능하게 설정을 확인해야 합니다.
     const kakaoMap = window.map || (typeof map !== "undefined" ? map : null);
 
     // Ctrl 키가 눌린 상태에서 +, -, 0(기본배율 리셋)을 누르는 경우 가로채기

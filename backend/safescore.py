@@ -33,6 +33,19 @@ DONG_GROUPS = {
     },
 }
 
+GU_MAP = {
+    "상계동": "노원구",
+    "신림동": "관악구",
+}
+SIDO = "서울특별시"
+
+SEOUL_DISTRICTS = [
+    "종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구",
+    "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구",
+    "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구",
+    "서초구", "강남구", "송파구", "강동구",
+]
+
 INDICATORS = [
     {"key": "cctv",   "type": "count", "df": "cctv",  "lat_col": "WGS84위도", "lon_col": "WGS84경도", "count_col": None,      "weight": 20, "invert": False},
     {"key": "light",  "type": "count", "df": "light", "lat_col": "위도",       "lon_col": "경도",       "count_col": "설치개수", "weight": 15, "invert": False},
@@ -368,6 +381,8 @@ def export_grid_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, output_pa
                 "model": f"{app_label}.grid",
                 "pk": pk,
                 "fields": {
+                    "sido": SIDO,
+                    "gu": GU_MAP[group_key],
                     "dong_group": group_key,
                     "dong": name,
                     "is_legal_dong": False,
@@ -379,6 +394,8 @@ def export_grid_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, output_pa
                     "light_count": int(sd["raw"]["light"]),
                     "bell_count": int(sd["raw"]["bell"]),
                     "police_count": int(sd["raw"]["police"]),
+                    "night_safety_grade": round(sd["raw"]["night_safety"] * 10, 2),
+                    "crime_zone_grade": round(sd["raw"]["crime_zone"] * 10, 2),
                     "created_at": now_str,
                     "updated_at": now_str,
                 }
@@ -460,6 +477,8 @@ def export_legal_dong_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, out
             "model": f"{app_label}.grid",
             "pk": pk,
             "fields": {
+                "sido": SIDO,
+                "gu": GU_MAP[group_key],
                 "dong_group": group_key,
                 "dong": group_key,
                 "is_legal_dong": True,
@@ -471,6 +490,8 @@ def export_legal_dong_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, out
                 "light_count": int(raw["light"]),
                 "bell_count": int(raw["bell"]),
                 "police_count": int(raw["police"]),
+                "night_safety_grade": round(raw["night_safety"] * 10, 2),
+                "crime_zone_grade": round(raw["crime_zone"] * 10, 2),
                 "created_at": now_str,
                 "updated_at": now_str,
             }
@@ -480,8 +501,23 @@ def export_legal_dong_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, out
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
     print(f"{output_path}: 법정동 전체 Grid {len(records)}건 저장 (pk {start_pk}~{pk-1})")
-    
-    
+
+
+def export_district_fixture(output_path: str, app_label: str = "grids"):
+    records = []
+    for i, name in enumerate(SEOUL_DISTRICTS, start=1):
+        records.append({
+            "model": f"{app_label}.district",
+            "pk": i,
+            "fields": {
+                "name": name,
+                "has_data": name in GU_MAP.values(),
+            }
+        })
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+    print(f"{output_path}: District {len(records)}건 저장")
+
 # ══════════════════════════════════════════════════════════════
 # 8. 실행
 # ══════════════════════════════════════════════════════════════
@@ -576,6 +612,7 @@ def main():
     export_grid_fixture(boundary_gdf, results, os.path.join(DATA_DIR, "grid_fixture.json"))
     export_legal_dong_fixture(boundary_gdf, results, os.path.join(DATA_DIR, "legal_dong_fixture.json"), start_pk=20)
     export_facility_fixture(dataframes, boundary_gdf, os.path.join(DATA_DIR, "facility_fixture.json"))
+    export_district_fixture(os.path.join(DATA_DIR, "district_fixture.json"))
 
     return results, boundary_gdf
 

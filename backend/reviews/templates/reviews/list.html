@@ -3,6 +3,15 @@
 <head><title>{{ grid.dong }} 후기</title></head>
 <body>
   <h2>{{ grid.dong }} 실거주 후기</h2>
+  <!-- 찜하기 버튼 -->
+  {% if request.user.is_authenticated %}
+    <button id="save-grid-btn" data-grid-id="{{ grid.id }}">
+      {% if is_saved %}♥ 찜한 동네{% else %}♡ 이 동네 찜하기{% endif %}
+    </button>
+  {% else %}
+    <a href="{% url 'accounts:login' %}?next={{ request.path }}">로그인하고 찜하기</a>
+  {% endif %}
+
 <!-- 영역별 만족도 -->
   <div id="rating-summary">
     <h3>영역별 만족도</h3>
@@ -55,6 +64,19 @@
           btn.textContent = `👍 ${data.like_count}`;
         });
     });
+  });
+
+  document.getElementById('save-grid-btn')?.addEventListener('click', (e) => {
+    const btn = e.target;
+    const gridId = btn.dataset.gridId;
+    fetch(`/accounts/grid/${gridId}/save/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+    })
+      .then(res => res.json())
+      .then(data => {
+        btn.textContent = data.saved ? '♥ 찜한 동네' : '♡ 이 동네 찜하기';
+      });
   });
 
   function getCookie(name) {

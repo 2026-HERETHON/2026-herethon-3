@@ -1,11 +1,11 @@
 /// ==========================================
-/// 1. 상단 만족도 별점 표현 구현 (가상 데이터 렌더링)
+/// 1. 상단 만족도 별점 표현 구현 (가상 데이터 렌더링, 실수 보정)
 /// ==========================================
 function handleStarRating() {
   const scoreData = {
     night: 3.5,
-    convenience: 4.0,
-    atmosphere: 4.1,
+    convenience: 4.2,
+    atmosphere: 4.8,
   };
 
   Object.keys(scoreData).forEach((key) => {
@@ -15,25 +15,36 @@ function handleStarRating() {
     );
     if (!container) return;
 
+    // 1. 빈 별 5개 생성
     let emptyStarsHTML = "";
     for (let i = 0; i < 5; i++) {
       emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" alt="빈별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
     }
 
+    // 2. 채워진 별 5개 생성
     let filledStarsHTML = "";
     for (let i = 0; i < 5; i++) {
       filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" alt="채워진별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
     }
 
-    const roundedScore = Math.floor(score * 2) / 2;
-    const filledStarsCount = Math.floor(roundedScore);
-    const hasHalfStar = roundedScore % 1 !== 0;
+    // 3. [★ 핵심] 오차 없는 정밀 픽셀 계산 공식 ★
+    const starWidth = 16; // 별 한 개의 너비 (px)
+    const gapWidth = 11; // 별 사이 간격 (px)
 
-    let totalWidth = filledStarsCount * 16 + filledStarsCount * 11;
-    if (hasHalfStar) {
-      totalWidth += 8 + 5.5;
-    } else if (filledStarsCount > 0) {
-      totalWidth -= 11;
+    const fullStars = Math.floor(score); // 꽉 찬 별의 개수 (예: 4.2점 -> 4개)
+    const partialStarRatio = score % 1; // 마지막 소수점 별의 비율 (예: 4.2점 -> 0.2)
+
+    let preciseWidth = 0;
+
+    if (fullStars > 0) {
+      // 꽉 찬 별의 너비 + 그 사이의 간격값 더하기
+      preciseWidth += fullStars * starWidth + (fullStars - 1) * gapWidth;
+    }
+
+    if (partialStarRatio > 0) {
+      // 만약 소수점 점수가 있다면, (이전 별과의 간격 11px) + (마지막 별 너비 16px * 비율)을 더해줍니다.
+      preciseWidth +=
+        (fullStars > 0 ? gapWidth : 0) + partialStarRatio * starWidth;
     }
 
     container.innerHTML = `
@@ -41,8 +52,10 @@ function handleStarRating() {
         <div class="rightSB-emptyStars" style="display: flex !important; gap: 11px !important; width: 124px !important; height: 16px !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 1 !important; margin: 0 !important; padding: 0 !important;">
           ${emptyStarsHTML}
         </div>
-        <div class="rightSB-filledStars" style="display: flex !important; gap: 11px !important; height: 16px !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 2 !important; overflow: hidden !important; white-space: nowrap !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; width: ${totalWidth}px !important;">
-          ${filledStarsHTML}
+        <div class="rightSB-filledStars" style="display: flex !important; gap: 11px !important; height: 16px !important; position: absolute !important; top: 0 !important; left: 0 !important; z-index: 2 !important; overflow: hidden !important; white-space: nowrap !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important; width: ${preciseWidth}px !important;">
+          <div style="display: flex !important; gap: 11px !important; width: 124px !important; height: 16px !important; flex-shrink: 0 !important; margin: 0 !important; padding: 0 !important;">
+            ${filledStarsHTML}
+          </div>
         </div>
       </div>
       <div class="rightSB-starRatingScore">
@@ -116,15 +129,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🎯 [여기 수정] 만약 로그아웃 블러 마스크가 켜져 있다면?
     // 버튼을 숨기지 말고, 기본 '후기 작성하기 / 이 동네 찜하기' 버튼 1쌍을 뒤에 투명하게 노출해 줍니다!
-    const isOverlayOn = document.querySelector(".rightSB-auth-overlay") !== null;
+    const isOverlayOn =
+      document.querySelector(".rightSB-auth-overlay") !== null;
     if (isOverlayOn) {
       reviewListBtnGroup?.classList.remove("rightSB-hide"); // 🔓 버튼 1쌍을 켜두어 마스크 뒤에 비치게 만듦!
-      return; 
+      return;
     }
 
     // 아래는 로그인 상태일 때 원래 도는 로직 (그대로 유지)
-    const activeTab = document.querySelector(".rightSB-tabContent.rightSB-activeContent");
-    if (!activeTab) return; 
+    const activeTab = document.querySelector(
+      ".rightSB-tabContent.rightSB-activeContent",
+    );
+    if (!activeTab) return;
 
     if (activeTab.id === "tabContentReview") {
       if (reviewFormSub && !reviewFormSub.classList.contains("rightSB-hide")) {
@@ -351,29 +367,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- [찜하기 기능] ---
   let isWished = false;
-  document.querySelectorAll(".wish-btn, .rightSB-regionHeartImg").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      isWished = !isWished;
-      
-      // 🎯 [수정] 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
-      const allHeartImgs = document.querySelectorAll(
-        ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg"
-      );
-      
-      allHeartImgs.forEach((img) => {
-        // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
-        img.src = isWished 
-          ? "./components/rightSideBar/rightSB-images/fullHeart.svg" 
-          : "./components/rightSideBar/rightSB-images/heart.svg";
+  document
+    .querySelectorAll(".wish-btn, .rightSB-regionHeartImg")
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        isWished = !isWished;
+
+        // 🎯 [수정] 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
+        const allHeartImgs = document.querySelectorAll(
+          ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg",
+        );
+
+        allHeartImgs.forEach((img) => {
+          // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
+          img.src = isWished
+            ? "./components/rightSideBar/rightSB-images/fullHeart.svg"
+            : "./components/rightSideBar/rightSB-images/heart.svg";
+        });
+
+        alert(
+          isWished
+            ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
+            : "💔 찜 목록에서 제외되었습니다.",
+        );
       });
-      
-      alert(
-        isWished
-          ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
-          : "💔 찜 목록에서 제외되었습니다.",
-      );
     });
-  });
 
   // --- [G] 등록하기 처리 ---
   formSubmitBtnGroup
@@ -505,17 +523,19 @@ document.addEventListener("DOMContentLoaded", () => {
       nickname: "별빛여행자",
       residence: "상계동 거주 중",
       date: "3일 전",
-      score: 2.5,
-      content: "밤에 귀가할 때 가로등이 많아서 안심돼요.",
+      score: 3.5,
+      content:
+        "밤에 귀가할 때 가로등이 많아서 안심돼요. 주변에 편의점, 병원도 가까워서 생활하기 편합니다.",
       likes: 12,
     },
     {
       id: 102,
-      nickname: "따뜻한 봄날",
+      nickname: "현실자취생",
       residence: "상계동 거주 중",
       date: "1주 전",
-      score: 4.0,
-      content: "조용한 주택가라 좋고 가로등도 밝아요.",
+      score: 2.0,
+      content:
+        "역이 가까워 이동하기는 정말 편해요.<br>다만 늦은 밤에는 골목보다는 큰길로 다니는 편입니다.",
       likes: 3,
     },
     {
@@ -890,9 +910,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ?.classList.toggle("sidebar-collapsed");
   });
 
-
   // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
-  const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn"); 
+  const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn");
 
   if (openLoginBtn) {
     openLoginBtn.addEventListener("click", (e) => {
@@ -903,11 +922,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 2. 외부 login.html 파일 가져오기
       fetch("./login/login.html")
-        .then(response => response.text())
-        .then(htmlData => {
+        .then((response) => response.text())
+        .then((htmlData) => {
           // 3. 팝업 상자 안에 소스 삽입
           contentBox.innerHTML = htmlData;
-          
+
           // 4. 숨겨진 팝업 노출 및 기본 로그인 크기로 초기 설정 보장
           contentBox.style.width = "518px";
           contentBox.style.height = "689px";
@@ -920,13 +939,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // 6. [X] 닫기 버튼 기능 연결
           const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach(btn => {
+          closeBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
               overlay.classList.add("popup-hide");
             });
           });
         })
-        .catch(err => console.error("팝업 로드 중 에러 발생:", err));
+        .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
     });
   }
 
@@ -940,10 +959,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-// components/rightSideBar/rightSideBar.js 내부 DOMContentLoaded 안쪽에 추가
+  // components/rightSideBar/rightSideBar.js 내부 DOMContentLoaded 안쪽에 추가
 
   // 🎯 우측 사이드바의 [점수 기준 보기] 버튼 타겟팅
-  const openScoreInfoBtn = document.querySelector(".rightSB-safetyScoreContainer button");
+  const openScoreInfoBtn = document.querySelector(
+    ".rightSB-safetyScoreContainer button",
+  );
 
   if (openScoreInfoBtn) {
     openScoreInfoBtn.addEventListener("click", (e) => {
@@ -954,14 +975,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 1. 외부 login.html 파일 가져오기 (점수 기준 보기가 포함되어 있음!)
       fetch("./login/login.html")
-        .then(response => {
+        .then((response) => {
           if (!response.ok) throw new Error("네트워크 응답에 문제가 있습니다.");
           return response.text();
         })
-        .then(htmlData => {
+        .then((htmlData) => {
           // 2. 팝업 상자 안에 소스 삽입
           contentBox.innerHTML = htmlData;
-          
+
           // 3. ⭐️ 점수 기준 보기 전용 규격(518px * 733px) 주입 및 노출
           contentBox.style.width = "518px";
           contentBox.style.height = "733px";
@@ -974,16 +995,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // 5. [X] 닫기 버튼 기능 결합
           const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach(btn => {
+          closeBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
               overlay.classList.add("popup-hide");
             });
           });
         })
-        .catch(err => console.error("점수 기준 팝업 로드 중 에러 발생:", err));
+        .catch((err) =>
+          console.error("점수 기준 팝업 로드 중 에러 발생:", err),
+        );
     });
   }
-
-
 });
-

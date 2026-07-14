@@ -1,0 +1,8 @@
+<h2>찜한 동네</h2>
+<ul>
+{% for saved in saved_grids %}
+    <li>{{ saved.grid.dong }} ({{ saved.grid.sigungu }}) — 안심점수 {{ saved.grid.safety_score }}</li>
+{% empty %}
+    <li>찜한 동네가 없어요.</li>
+{% endfor %}
+</ul>

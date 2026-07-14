@@ -8,5 +8,4 @@ urlpatterns =[
   path('grid/<int:grid_id>/create/', views.question_create, name='create'),
   path('question/<int:question_id>/', views.question_detail, name='detail'),
   path('question/<int:question_id>/answer/', views.answer_create, name='answer_create'),
-  path('answer/<int:answer_id>/comment/', views.comment_create, name='comment_create'),
 ]
