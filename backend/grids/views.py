@@ -1,13 +1,14 @@
 import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from .models import Grid, Facility
+from .models import Grid, Facility, District
 from django.views.decorators.csrf import csrf_exempt
 from shapely.geometry import Point, shape
 
 
+from .models import Grid, Facility, District
+
 def grid_list(request):
-    """세부 행정동 또는 법정동 전체 데이터를 JSON으로 반환. ?is_legal_dong=true/false로 필터링 가능"""
     grids = Grid.objects.all()
 
     is_legal_param = request.GET.get('is_legal_dong')
@@ -15,12 +16,18 @@ def grid_list(request):
         is_legal = is_legal_param.lower() == 'true'
         grids = grids.filter(is_legal_dong=is_legal)
 
+    gu_param = request.GET.get('gu')
+    if gu_param:
+        grids = grids.filter(gu=gu_param)
+
     data = []
     for grid in grids:
         data.append({
             "id": grid.id,
             "dong": grid.dong,
             "dong_group": grid.dong_group,
+            "sido": grid.sido,
+            "gu": grid.gu,
             "is_legal_dong": grid.is_legal_dong,
             "latitude": grid.latitude,
             "longitude": grid.longitude,
@@ -29,10 +36,18 @@ def grid_list(request):
             "light_count": grid.light_count,
             "bell_count": grid.bell_count,
             "police_count": grid.police_count,
+            "night_safety_grade": grid.night_safety_grade,
+            "crime_zone_grade": grid.crime_zone_grade,
             "boundary": json.loads(grid.boundary_geojson) if grid.boundary_geojson else None,
         })
 
     return JsonResponse({"grids": data}, json_dumps_params={'ensure_ascii': False})
+
+
+def district_list(request):
+    districts = District.objects.all().order_by('name')
+    data = [{"name": d.name, "has_data": d.has_data} for d in districts]
+    return JsonResponse({"districts": data}, json_dumps_params={'ensure_ascii': False})
 
 
 def grid_detail(request, dong):
@@ -47,6 +62,8 @@ def grid_detail(request, dong):
         "id": grid.id,
         "dong": grid.dong,
         "dong_group": grid.dong_group,
+        "sido": grid.sido,
+        "gu": grid.gu,
         "is_legal_dong": grid.is_legal_dong,
         "latitude": grid.latitude,
         "longitude": grid.longitude,
@@ -55,6 +72,8 @@ def grid_detail(request, dong):
         "light_count": grid.light_count,
         "bell_count": grid.bell_count,
         "police_count": grid.police_count,
+        "night_safety_grade": grid.night_safety_grade,
+        "crime_zone_grade": grid.crime_zone_grade,
         "boundary": json.loads(grid.boundary_geojson) if grid.boundary_geojson else None,
     }
 

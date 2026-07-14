@@ -50,9 +50,9 @@ BLUE_SHADES_SAFE_TO_RISKY = [
     (98, 163, 226),
     (133, 183, 235),
     (159, 195, 240),
-    (181, 212, 244),
-    (197, 224, 247),
-    (230, 241, 251),  # 등급 10 - 가장 위험 (옅은 파랑)
+    (153, 205, 229),
+    (185, 212, 223),
+    (218, 223, 225),  # 등급 10 - 가장 위험 (회색)
 ]
 OUR_COLOR_SCALE = {grade: color for grade, color in enumerate(BLUE_SHADES_SAFE_TO_RISKY, start=1)}
 
