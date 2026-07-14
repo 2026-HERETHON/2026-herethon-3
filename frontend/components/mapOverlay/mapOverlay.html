@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Overlay</title>
+    <link rel="stylesheet" href="mapOverlay.css" />
+  </head>
+  <body>
+    <!-- 테스트용 지도 배경 (조립 시 실제 지도로 대체됨) -->
+    <div class="mapOverlay-locationSelect">
+  <img src="./mapOverlay-images/location-pin.svg" class="mapOverlay-pin" alt="위치" />
+
+  <!-- 시/도 드롭다운 -->
+  <div class="mapOverlay-dropdown" data-level="sido">
+    <div class="mapOverlay-dropdownSelected">
+      <span class="mapOverlay-dropdownText">서울특별시</span>
+      <img src="./mapOverlay-images/dropdown.svg" class="mapOverlay-chevron" />
+    </div>
+    <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+  </div>
+
+  <!-- 구 드롭다운 -->
+  <div class="mapOverlay-dropdown" data-level="gu">
+    <div class="mapOverlay-dropdownSelected">
+      <span class="mapOverlay-dropdownText">노원구</span>
+      <img src="./mapOverlay-images/dropdown.svg" class="mapOverlay-chevron" />
+    </div>
+    <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+  </div>
+
+  <!-- 동 드롭다운 -->
+  <div class="mapOverlay-dropdown" data-level="dong">
+    <div class="mapOverlay-dropdownSelected">
+      <span class="mapOverlay-dropdownText">상계동</span>
+      <img src="./mapOverlay-images/dropdown.svg" class="mapOverlay-chevron" />
+    </div>
+    <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+  </div>
+</div>
+
+    <script src="./mapOverlay.js"></script>
+  </body>
+</html>

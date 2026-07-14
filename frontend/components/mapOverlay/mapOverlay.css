@@ -1,0 +1,104 @@
+.mapOverlay-locationSelect {
+  position: absolute;
+  top: 83px;
+  left: 373px;
+  height: 57px;
+  display: flex;
+  align-items: center;
+  padding: 0 32px 0 18px;
+  border-radius: 15px;
+  background: var(--GrayScale-White, #FFF);
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  /* width 제거 → 내용물에 맞게 */
+}
+
+.mapOverlay-pin {
+  margin-right: 18px;
+}
+
+/* 각 드롭다운 */
+.mapOverlay-dropdown {
+  position: relative;
+  margin-right: 26px;
+}
+.mapOverlay-dropdown:last-child {
+  margin-right: 0;
+}
+
+/* 텍스트 ↔ 화살표 간격: 30px */
+.mapOverlay-dropdownSelected {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  cursor: pointer;
+}
+
+.mapOverlay-dropdownText {
+  color: #000;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 150%;
+  letter-spacing: -0.32px;
+}
+
+/* 펼친 목록 (다음 단계에서 스타일링) */
+.mapOverlay-dropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+.mapOverlay-hide {
+  display: none;
+}
+
+/* 드롭다운 */
+
+.mapOverlay-dropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  overflow: hidden;        /* 양 끝 항목 라운드 밖 안 삐져나오게 */
+}
+
+.mapOverlay-dropdownItem {
+  display: flex;
+  align-items: center;
+  padding: 7px 55px 7px 40px;
+  color: #000;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 150%;
+  letter-spacing: -0.32px;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* 체크 아이콘: 왼쪽 padding 영역(40px)에 위치, 기본 숨김 */
+.mapOverlay-checkIcon {
+  position: absolute;
+  left: 14px;              /* 왼쪽 여백 안에 배치, 값 조정 가능 */
+  display: none;
+}
+
+/* 선택된 항목: 배경 파랑 + 체크 표시 */
+.mapOverlay-dropdownItem.selected {
+  background: var(--Color-Blue200, #C4ECFE);
+}
+.mapOverlay-dropdownItem.selected .mapOverlay-checkIcon {
+  display: block;
+}
+
+/* 호버 (회색) */
+.mapOverlay-dropdownItem:hover {
+  background: #F5F5F5;
+}
