@@ -379,6 +379,8 @@ def export_grid_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, output_pa
                     "light_count": int(sd["raw"]["light"]),
                     "bell_count": int(sd["raw"]["bell"]),
                     "police_count": int(sd["raw"]["police"]),
+                    "night_safety_grade": round(sd["raw"]["night_safety"] * 10, 2),
+                    "crime_zone_grade": round(sd["raw"]["crime_zone"] * 10, 2),
                     "created_at": now_str,
                     "updated_at": now_str,
                 }
@@ -471,6 +473,8 @@ def export_legal_dong_fixture(boundary_gdf: gpd.GeoDataFrame, results: dict, out
                 "light_count": int(raw["light"]),
                 "bell_count": int(raw["bell"]),
                 "police_count": int(raw["police"]),
+                "night_safety_grade": round(raw["night_safety"] * 10, 2),
+                "crime_zone_grade": round(raw["crime_zone"] * 10, 2),
                 "created_at": now_str,
                 "updated_at": now_str,
             }

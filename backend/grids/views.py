@@ -29,6 +29,8 @@ def grid_list(request):
             "light_count": grid.light_count,
             "bell_count": grid.bell_count,
             "police_count": grid.police_count,
+            "night_safety_grade": grid.night_safety_grade,
+            "crime_zone_grade": grid.crime_zone_grade,
             "boundary": json.loads(grid.boundary_geojson) if grid.boundary_geojson else None,
         })
 
@@ -55,6 +57,8 @@ def grid_detail(request, dong):
         "light_count": grid.light_count,
         "bell_count": grid.bell_count,
         "police_count": grid.police_count,
+        "night_safety_grade": grid.night_safety_grade,
+        "crime_zone_grade": grid.crime_zone_grade,
         "boundary": json.loads(grid.boundary_geojson) if grid.boundary_geojson else None,
     }
 

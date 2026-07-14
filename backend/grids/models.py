@@ -25,6 +25,8 @@ class Grid(models.Model):
     light_count = models.IntegerField(default=0)
     bell_count = models.IntegerField(default=0)
     police_count = models.IntegerField(default=0)
+    night_safety_grade = models.FloatField(default=0)   # 추가: 1~10 등급 (낮을수록 안전)
+    crime_zone_grade = models.FloatField(default=0)      # 추가: 1~10 등급 (낮을수록 안전)
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -14,8 +14,10 @@
       "light_count": 482,
       "bell_count": 5,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.13,
+      "crime_zone_grade": 1.63,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -33,8 +35,10 @@
       "light_count": 496,
       "bell_count": 1,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.5,
+      "crime_zone_grade": 2.4,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -52,8 +56,10 @@
       "light_count": 618,
       "bell_count": 0,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.23,
+      "crime_zone_grade": 1.88,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -71,8 +77,10 @@
       "light_count": 19,
       "bell_count": 6,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.92,
+      "crime_zone_grade": 1.95,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -90,8 +98,10 @@
       "light_count": 36,
       "bell_count": 2,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.71,
+      "crime_zone_grade": 1.9,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -109,8 +119,10 @@
       "light_count": 21,
       "bell_count": 3,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.3,
+      "crime_zone_grade": 1.76,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -128,8 +140,10 @@
       "light_count": 1013,
       "bell_count": 6,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.61,
+      "crime_zone_grade": 1.53,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -147,8 +161,10 @@
       "light_count": 91,
       "bell_count": 5,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.77,
+      "crime_zone_grade": 1.95,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -166,8 +182,10 @@
       "light_count": 676,
       "bell_count": 52,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 3.38,
+      "crime_zone_grade": 2.29,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -185,8 +203,10 @@
       "light_count": 657,
       "bell_count": 43,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.39,
+      "crime_zone_grade": 2.52,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -204,8 +224,10 @@
       "light_count": 666,
       "bell_count": 62,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 1.81,
+      "crime_zone_grade": 1.65,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -223,8 +245,10 @@
       "light_count": 728,
       "bell_count": 43,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.39,
+      "crime_zone_grade": 1.88,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -242,8 +266,10 @@
       "light_count": 525,
       "bell_count": 33,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 4.48,
+      "crime_zone_grade": 3.53,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -261,8 +287,10 @@
       "light_count": 253,
       "bell_count": 56,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 1.94,
+      "crime_zone_grade": 1.95,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -280,8 +308,10 @@
       "light_count": 532,
       "bell_count": 55,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.61,
+      "crime_zone_grade": 2.31,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -299,8 +329,10 @@
       "light_count": 666,
       "bell_count": 87,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.35,
+      "crime_zone_grade": 2.36,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -318,8 +350,10 @@
       "light_count": 919,
       "bell_count": 86,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 1.81,
+      "crime_zone_grade": 1.72,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -337,8 +371,10 @@
       "light_count": 727,
       "bell_count": 91,
       "police_count": 0,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.45,
+      "crime_zone_grade": 1.93,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   },
   {
@@ -356,8 +392,10 @@
       "light_count": 893,
       "bell_count": 96,
       "police_count": 1,
-      "created_at": "2026-07-10T04:06:25.430487+00:00",
-      "updated_at": "2026-07-10T04:06:25.430487+00:00"
+      "night_safety_grade": 2.0,
+      "crime_zone_grade": 1.88,
+      "created_at": "2026-07-14T08:33:56.448218+00:00",
+      "updated_at": "2026-07-14T08:33:56.448218+00:00"
     }
   }
 ]

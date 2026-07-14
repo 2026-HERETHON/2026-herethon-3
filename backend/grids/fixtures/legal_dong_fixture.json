@@ -14,8 +14,10 @@
       "light_count": 2776,
       "bell_count": 28,
       "police_count": 4,
-      "created_at": "2026-07-10T04:06:25.486727+00:00",
-      "updated_at": "2026-07-10T04:06:25.486727+00:00"
+      "night_safety_grade": 2.9,
+      "crime_zone_grade": 1.8,
+      "created_at": "2026-07-14T08:33:56.507196+00:00",
+      "updated_at": "2026-07-14T08:33:56.507196+00:00"
     }
   },
   {
@@ -33,8 +35,10 @@
       "light_count": 7242,
       "bell_count": 704,
       "police_count": 5,
-      "created_at": "2026-07-10T04:06:25.486727+00:00",
-      "updated_at": "2026-07-10T04:06:25.486727+00:00"
+      "night_safety_grade": 2.39,
+      "crime_zone_grade": 2.15,
+      "created_at": "2026-07-14T08:33:56.507196+00:00",
+      "updated_at": "2026-07-14T08:33:56.507196+00:00"
     }
   }
 ]
