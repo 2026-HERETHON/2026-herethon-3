@@ -18,6 +18,75 @@ let currentLegalDongName = null; // 지금 화면에 활성화돼 있는 법정�
 let currentLegalPolygon = null; // 법정동 폴리곤 1개
 let currentAdminOverlays = []; // 행정동 폴리곤+이름 라벨 묶음 [{ polygon, labelOverlay, grid }]
 let hoverRevertTimer = null; // 행정동 -> 법정동 복귀 디바운스 타이머
+let currentHiddenAdminLabel = null; // 인포윈도우 보여주려고 숨겨둔 행정동 이름 라벨(있으면 1개)
+
+// =====================================================================
+// 🎯 [행정동 클릭 시 중심 이동 보정] 표준 레이캐스팅 point-in-polygon 판정.
+// 동네 규모의 좁은 범위라 위경도를 그냥 평면 좌표처럼 취급해도 오차가 무시할
+// 수준이라 이렇게 간단히 구현해도 충분하다.
+// =====================================================================
+function isPointInPolygonPath(point, path) {
+    const x = point.getLng();
+    const y = point.getLat();
+    let inside = false;
+
+    for (let i = 0, j = path.length - 1; i < path.length; j = i++) {
+        const xi = path[i].getLng();
+        const yi = path[i].getLat();
+        const xj = path[j].getLng();
+        const yj = path[j].getLat();
+
+        const intersect =
+            yi > y !== yj > y &&
+            x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+        if (intersect) inside = !inside;
+    }
+
+    return inside;
+}
+
+// 🎯 지도를 클릭 좌표(clickLatLng) 쪽으로 옮기고 싶지만, 그 결과로 마우스 커서
+// 밑의 실제 좌표(= clickLatLng + 이동한 만큼)가 법정동 폴리곤을 벗어나면 안 된다.
+// oldCenter -> clickLatLng 방향으로 이동 비율 t(0~1)를 이진 탐색해서, 커서가
+// 폴리곤 안에 머무르는 한도 내에서 최대한 클릭 좌표 쪽으로 이동할 목표 지점을 구한다.
+function getClampedPanTarget(oldCenter, clickLatLng, legalPolygonPath) {
+    if (!legalPolygonPath || legalPolygonPath.length === 0) return clickLatLng;
+
+    const dLat = clickLatLng.getLat() - oldCenter.getLat();
+    const dLng = clickLatLng.getLng() - oldCenter.getLng();
+
+    // t만큼 이동했을 때, 마우스 커서 밑에 오게 되는 실제 좌표
+    // (커서는 화면상 고정, 지도만 (target - oldCenter)만큼 움직이므로
+    //  커서 밑 좌표는 clickLatLng + t*(clickLatLng - oldCenter)가 된다)
+    const cursorGeoAtT = (t) =>
+        new kakao.maps.LatLng(
+            clickLatLng.getLat() + t * dLat,
+            clickLatLng.getLng() + t * dLng,
+        );
+
+    // t=1(클릭 좌표로 완전히 이동)이 이미 안전하면 그대로 이동
+    if (isPointInPolygonPath(cursorGeoAtT(1), legalPolygonPath)) {
+        return clickLatLng;
+    }
+
+    // 이진 탐색: t=0(항상 안전 - 커서 밑 좌표가 clickLatLng 그 자체)부터
+    // t=1(위험) 사이에서, 커서가 폴리곤 안에 머무르는 최대 t를 찾는다.
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 14; i++) {
+        const mid = (lo + hi) / 2;
+        if (isPointInPolygonPath(cursorGeoAtT(mid), legalPolygonPath)) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+
+    return new kakao.maps.LatLng(
+        oldCenter.getLat() + lo * dLat,
+        oldCenter.getLng() + lo * dLng,
+    );
+}
 
 // [★ 4번 스펙] 안심 점수(0~100)에 따른 색상 매핑 함수
 function getColorBySafetyScore(score) {
@@ -142,6 +211,18 @@ function getPolygonCentroid(path) {
     return new kakao.maps.LatLng(centroidLat, centroidLng);
 }
 
+// =====================================================================
+// 🎯 [버그 수정] 페이지를 막 로딩하고 바로 검색하면(예: 첫 화면에서 "상계동" 검색),
+// map/infowindow 초기화와 legalDongGridCache/adminDongList 캐싱이 아직 안 끝난
+// 상태에서 window.showLegalDongOnMap()이 호출돼 조용히(console.warn만 찍고)
+// 아무 일도 안 하고 return 해버렸다. -> map 초기화 + 캐싱이 전부 끝났을 때만
+// resolve되는 프라미스를 만들어서, showLegalDongOnMap이 그걸 기다리게 한다.
+// =====================================================================
+let resolveMapReady;
+const mapReadyPromise = new Promise((resolve) => {
+    resolveMapReady = resolve;
+});
+
 export function initKakaoMap() {
     const container = document.getElementById("map");
     if (!container) {
@@ -166,8 +247,10 @@ export function initKakaoMap() {
             // 검색(leftPanel 검색창 / mapOverlay 드롭다운)으로 법정동을 선택했을 때만
             // window.showLegalDongOnMap()이 폴리곤을 그린다. 그래서 여기서는 폴리곤을
             // 화면에 그리지 않고, 나중에 바로 쓸 수 있도록 원본 데이터만 미리 받아둔다.
-            fetchLegalDongCache();
-            fetchAdminDongList();
+            // 두 캐싱이 전부 끝나야 mapReadyPromise가 resolve되어 검색이 안전해진다.
+            Promise.all([fetchLegalDongCache(), fetchAdminDongList()]).then(() => {
+                resolveMapReady();
+            });
         });
     } else {
         console.error("🚨 카카오맵 SDK가 로드되지 않았습니다.");
@@ -229,9 +312,11 @@ async function fetchAdminDongList() {
 function clearAdminOverlays() {
     currentAdminOverlays.forEach(({ polygon, labelOverlay }) => {
         polygon.setMap(null);
-        labelOverlay.setMap(null);
+        labelOverlay?.setMap(null);
     });
     currentAdminOverlays = [];
+    // 폴리곤/라벨을 통째로 지우는 거라, 숨겨뒀던 라벨을 따로 복원할 필요도 없어짐
+    currentHiddenAdminLabel = null;
 }
 
 function clearAllMapOverlays() {
@@ -312,7 +397,11 @@ function openLegalDongInfoWindow(grid, path) {
 // 법정동 폴리곤 + 법정동 안심점수 인포윈도우만 그리고, 그 폴리곤에
 // hover-in/out 이벤트를 걸어서 2-1/2-2 스펙을 준비한다.
 // =====================================================================
-window.showLegalDongOnMap = function (legalDongName) {
+window.showLegalDongOnMap = async function (legalDongName) {
+    // 🎯 map/infowindow 초기화 + 법정동·행정동 캐싱이 끝날 때까지 기다린다.
+    // (페이지 로딩 직후 바로 검색해도 안전하게 동작하도록)
+    await mapReadyPromise;
+
     clearAllMapOverlays();
 
     const grid = legalDongGridCache[legalDongName];
@@ -348,13 +437,13 @@ window.showLegalDongOnMap = function (legalDongName) {
     if (centroid) {
         const currentLevel = map.getLevel();
         if (currentLevel > 6) {
-            map.setLevel(6, {
-                animate: { duration: 350 },
-                anchor: centroid,
-            });
-            setTimeout(() => {
-                map.panTo(centroid);
-            }, 350);
+            // 🎯 [버그 수정] setLevel의 anchor 옵션은 "줌하는 동안 화면상 그 지점을
+            // 고정시키는" 용도라, 초기 화면(레벨 8, 서울 중심)처럼 목표 지점이
+            // 현재 화면에서 한참 벗어나 있을 때는 계산이 꼬여서 줌 후 panTo가 무시되고
+            // 정중앙에 안 오는 경우가 있었다. anchor에 기대는 대신 center를 먼저
+            // 확정시켜놓고 나서 레벨만 애니메이션으로 줄이도록 순서를 바꿨다.
+            map.setCenter(centroid);
+            map.setLevel(6, { animate: { duration: 350 } });
         } else {
             const bounds = map.getBounds();
             if (bounds.contain(centroid)) {
@@ -450,8 +539,17 @@ function showAdminDongGroup(legalDongName) {
 // 영역별 만족도·후기·QnA는 법정동 기준) 갱신
 // =====================================================================
 function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
+    // 🎯 [버그 수정] 예전엔 클릭한 행정동의 라벨만 지우고, 그 전에 다른 행정동을
+    // 클릭해서 숨겨뒀던 라벨은 복원을 안 해줘서 계속 사라진 채로 남아있었다
+    // (예: 삼성동 클릭 -> 이름 삭제, 대학동 클릭 -> 삼성동 이름이 안 돌아옴).
+    // 새 라벨을 숨기기 전에, 이전에 숨겨뒀던 라벨이 있으면 먼저 복원한다.
+    if (currentHiddenAdminLabel && currentHiddenAdminLabel !== labelOverlay) {
+        currentHiddenAdminLabel.setMap(map);
+    }
+
     // 클릭한 행정동의 이름 라벨은 지운다 (스펙: "폴리곤 구역 내 행정동 이름은 삭제")
     if (labelOverlay) labelOverlay.setMap(null);
+    currentHiddenAdminLabel = labelOverlay || null;
 
     const content = `
       <div class="kakaoMap-pointerContainer">
@@ -470,25 +568,28 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     infowindow.setPosition(latLng);
     infowindow.open(map);
 
-    // 인포 클릭시 지도 중심/레벨 이동 (기존 동작 그대로 유지)
+    // 🎯 [버그 수정] 클릭한 좌표로 지도 중심을 그대로 옮기면, 마우스는 화면상 같은
+    // 픽셀에 그대로 있는데 그 밑의 지도만 이동해버려서 마우스 커서가 가리키는 실제
+    // 좌표가 법정동 폴리곤 밖으로 밀려날 수 있었다(그래서 가만히 있어도 mouseout이
+    // 발생해 행정동 인포윈도우가 바로 사라짐). 완전히 안 옮기는 대신, 커서 밑 좌표가
+    // 법정동 폴리곤 안에 머무르는 한도까지만 클릭 좌표 쪽으로 이동시킨다.
     const currentLevel = map.getLevel();
     const targetLatLng = latLng;
 
     if (currentLevel > 6) {
-        map.setLevel(6, {
-            animate: { duration: 350 },
-            anchor: targetLatLng,
-        });
-        setTimeout(() => {
-            map.panTo(targetLatLng);
-        }, 350);
+        // (showLegalDongOnMap과 동일한 이유로 anchor 대신 center를 먼저 확정)
+        map.setCenter(targetLatLng);
+        map.setLevel(6, { animate: { duration: 350 } });
     } else {
-        const bounds = map.getBounds();
-        if (bounds.contain(targetLatLng)) {
-            map.panTo(targetLatLng);
-        } else {
-            map.setCenter(targetLatLng);
-        }
+        const legalPolygonPath = currentLegalPolygon
+            ? currentLegalPolygon.getPath()
+            : null;
+        const clampedTarget = getClampedPanTarget(
+            map.getCenter(),
+            targetLatLng,
+            legalPolygonPath,
+        );
+        map.panTo(clampedTarget);
     }
 
     const sidebar = document.querySelector(".rightSB-aside");
