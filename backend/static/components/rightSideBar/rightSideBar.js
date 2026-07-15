@@ -517,10 +517,14 @@ window.updateSidebarTitle = function (
       // <span class="rightSB-regionText">와 <img class="rightSB-regionHeartImg">
       // 자식 노드가 통째로 지워져서 찜하기 하트 아이콘이 사라졌었다.
       // 이름 텍스트는 반드시 자식 span(.rightSB-regionText)에만 넣어야 한다.
-      // 🎯 [워딩 수정] region 라벨은 항상 "{법정동} 일대"로 표시 (행정동을 봐도
-      // 법정동 기준 큰 지역명은 그대로 유지)
+      // 🎯 [워딩 수정] 법정동 폴리곤(또는 검색) 상태일 땐 "{법정동} 일대",
+      // 행정동 폴리곤을 클릭했을 땐 그 행정동 이름 그대로("일대" 안 붙임) 표시
       const regionTextEl = document.querySelector(".rightSB-regionText");
-      if (regionTextEl) regionTextEl.textContent = `${legalDongName} 일대`; // 지역 - 법정동
+      if (regionTextEl) {
+        regionTextEl.textContent = isAdminDongDetail
+          ? detailDongName
+          : `${legalDongName} 일대`;
+      }
 
       const scoreNumberEl = document.querySelector(".rightSB-score"); // 안심점수
       if (scoreNumberEl && fields.safety_score !== undefined) {
@@ -577,7 +581,11 @@ window.updateSidebarTitle = function (
       console.error("🚨 API 통신 에러:", err);
       // 에러 시에도 동작은 하도록 방어 코드
       const regionTextEl = document.querySelector(".rightSB-regionText");
-      if (regionTextEl) regionTextEl.textContent = `${legalDongName} 일대`;
+      if (regionTextEl) {
+        regionTextEl.textContent = isAdminDongDetail
+          ? detailDongName
+          : `${legalDongName} 일대`;
+      }
 
       const sidebar = document.getElementById("rightSideBar-container");
       if (sidebar) sidebar.classList.remove("sidebar-collapsed");
