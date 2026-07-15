@@ -2,7 +2,7 @@
 
 function handleLoginSuccess(tokenFromServer) {
   localStorage.setItem("loginToken", tokenFromServer);
-  location.href = "../index.html";
+  location.href = "/";
 }
 
 function handleLogout() {
