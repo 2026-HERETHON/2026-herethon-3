@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="./components/mapOverlay/mapOverlay.css" />
     <link rel="stylesheet" href="./components/kakaoMap/kakaoMap.css" />
   </head>
-  <body>
+  <body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}">
     <!--nav-->
     <nav>
       <div id="navbar-container">

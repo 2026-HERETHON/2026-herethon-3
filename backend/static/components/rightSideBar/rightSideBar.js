@@ -582,12 +582,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // 로그인 상태 체크 및 탭 제어 기능
   // ==========================================
   function checkAuthAndToggleTabs() {
-    // 🔓 실제 연동용: localStorage에 토큰이 있으면 true(로그인), 없으면 false(로그아웃)
-    // const isTokenExist = localStorage.getItem("token")
-
-    // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
-    // const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
-    const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
+    // 🎯 [진짜 연동] home.html의 <body data-authenticated="...">에 Django가
+    // request.user.is_authenticated를 그대로 내려주므로, 그 값을 읽는다.
+    // (예전엔 여기 하드코딩된 테스트 스위치가 있었는데, 실제 로그인 상태와
+    // 무관하게 값이 고정돼 있어서 로그인해도 잠금 화면이 안 사라졌었음)
+    const isTokenExist = document.body.dataset.authenticated === "true";
 
     const contentContainer = document.querySelector(".rightSB-overlayWrapper");
     if (!contentContainer) return;

@@ -235,15 +235,15 @@ function bindSignupSubmit() {
     e.preventDefault();
     hideAuthError("signup-error");
 
+    // 🎯 [단순화] 이메일/비밀번호 확인 입력칸은 뺐음 — 서버(SignUpForm)도
+    // 이메일은 선택값으로, password2는 password1을 그대로 복사해서 처리함.
     const nickname = document.getElementById("signup-nickname")?.value.trim();
     const username = document.getElementById("signup-username")?.value.trim();
-    const email = document.getElementById("signup-email")?.value.trim();
     const password1 = document.getElementById("signup-password1")?.value;
-    const password2 = document.getElementById("signup-password2")?.value;
     const gender = document.getElementById("signup-gender")?.value;
     const agreePrivacy = document.getElementById("check-agree")?.checked;
 
-    if (!nickname || !username || !email || !password1 || !password2) {
+    if (!nickname || !username || !password1) {
       showAuthError("signup-error", "필수 항목을 모두 입력해주세요.");
       return;
     }
@@ -258,10 +258,6 @@ function bindSignupSubmit() {
       );
       return;
     }
-    if (password1 !== password2) {
-      showAuthError("signup-error", "비밀번호가 서로 일치하지 않아요.");
-      return;
-    }
 
     fetch("/accounts/signup/", {
       method: "POST",
@@ -273,9 +269,7 @@ function bindSignupSubmit() {
       body: new URLSearchParams({
         nickname,
         username,
-        email,
         password1,
-        password2,
         gender,
         agree_privacy: "on",
       }),
