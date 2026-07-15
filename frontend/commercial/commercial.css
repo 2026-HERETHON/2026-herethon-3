@@ -11,7 +11,7 @@ body {
   color: #333;
 }
 
-/* 네비바가 없으므로 화면 전체(100vh)를 채우도록 설정함 */
+
 .commercial-container {
   display: flex;
   width: 100%;
@@ -21,7 +21,7 @@ body {
 /* 왼쪽 사이드바 스타일링함 */
 .sidebar {
   width: 341px;
-  padding: 91px 20px 30px 20px; 
+  padding: 33px 20px 30px 20px; 
   box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.10);
   box-sizing: border-box;
 }
@@ -67,7 +67,7 @@ body {
 .content-area {
   flex: 1;
   /* 상단 102px, 우측 80px, 하단 60px, 좌측은 피그마 수치대로 여백 설정함 */
-  padding: 102px 80px 60px 54px;
+  padding: 20px 80px 60px 54px;
   background-color: #fafbfc;
   overflow-y: auto;
 }
