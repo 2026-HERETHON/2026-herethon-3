@@ -1,16 +1,5 @@
 // login/login.js
 
-function handleLoginSuccess(tokenFromServer) {
-  localStorage.setItem("loginToken", tokenFromServer);
-  location.href = "/";
-}
-
-function handleLogout() {
-  localStorage.removeItem("loginToken");
-  alert("로그아웃 되었습니다.");
-  location.reload();
-}
-
 // ==========================================
 // 🔓 [1] 로그인 / 회원가입 팝업 초기화 및 토글 기능
 // ==========================================
@@ -96,6 +85,7 @@ function initAuthEvents() {
   // ==========================================
   if (signupSec) {
     const genderButtons = signupSec.querySelectorAll(".login-genderBox");
+    const genderHiddenInput = document.getElementById("signup-gender");
 
     genderButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -116,9 +106,20 @@ function initAuthEvents() {
         } else if (genderText === "남성") {
           currentBtn.classList.add("is-selected", "is-male");
         }
+
+        // 🎯 [진짜 연동용] 실제 전송값(F/M)은 hidden input에 채워둔다.
+        if (genderHiddenInput) {
+          if (genderText === "여성") genderHiddenInput.value = "F";
+          else if (genderText === "남성") genderHiddenInput.value = "M";
+        }
       });
     });
   }
+
+  // 🎯 [진짜 연동용] 로그인/회원가입 제출 버튼을 실제 accounts 앱과 연결한다.
+  // (팝업이 열릴 때마다 innerHTML이 통째로 새로 그려지므로 매번 다시 바인딩해야 함)
+  bindLoginSubmit();
+  bindSignupSubmit();
 }
 
 // ==========================================
@@ -140,4 +141,159 @@ function initScoreInfoEvent() {
   if (scoreSec) scoreSec.style.display = "block";
 
   authCard.classList.remove("is-signup");
+}
+
+// ==========================================
+// 🔐 [3] 실제 로그인 / 회원가입 연동 (Django accounts 앱)
+// 💡 예전엔 가짜 토큰을 localStorage에 저장하는 mock이었는데, 이제 진짜
+// /accounts/login/, /accounts/signup/ 으로 POST해서 실제 세션 쿠키로 로그인한다.
+// ==========================================
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+function showAuthError(elId, message) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = message;
+  el.style.display = "block";
+}
+
+function hideAuthError(elId) {
+  const el = document.getElementById(elId);
+  if (el) el.style.display = "none";
+}
+
+// Django가 폼 에러와 함께 같은 페이지를 다시 렌더링(200)했을 때, 에러 텍스트를 뽑아온다.
+// (JSON이 아니라 실제 렌더링된 Django Template 응답에서 에러 문구만 읽어오는 것)
+function extractDjangoFormError(htmlText) {
+  const doc = new DOMParser().parseFromString(htmlText, "text/html");
+  const errorEls = doc.querySelectorAll(
+    ".errorlist li, p[style*='color:red']",
+  );
+  if (errorEls.length > 0) {
+    return Array.from(errorEls)
+      .map((el) => el.textContent)
+      .join(" / ");
+  }
+  return "입력하신 정보를 다시 확인해주세요.";
+}
+
+function bindLoginSubmit() {
+  const btn = document.querySelector(".login-loginBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    hideAuthError("login-error");
+
+    const username = document.getElementById("login-username")?.value.trim();
+    const password = document.getElementById("login-password")?.value;
+
+    if (!username || !password) {
+      showAuthError("login-error", "아이디와 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+
+    fetch("/accounts/login/", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: new URLSearchParams({ username, password }),
+    })
+      .then((res) => {
+        // 🎯 로그인 성공: Django가 302로 홈(or ?next=)으로 리다이렉트하고, fetch가
+        // 그 리다이렉트를 그대로 따라가므로 최종 res.url이 /accounts/login/이 아니게 된다.
+        // 실패: 같은 로그인 폼을 에러와 함께 200으로 재렌더링.
+        if (res.redirected || !res.url.includes("/accounts/login/")) {
+          window.location.reload(); // 세션 쿠키가 잡혔으니 새로고침해서 nav도 실제 상태로 갱신
+          return null;
+        }
+        return res.text();
+      })
+      .then((htmlText) => {
+        if (htmlText == null) return; // 이미 리로드 처리됨
+        showAuthError("login-error", extractDjangoFormError(htmlText));
+      })
+      .catch((err) => {
+        console.error("🚨 로그인 처리 중 오류:", err);
+        showAuthError("login-error", "로그인 처리 중 오류가 발생했어요.");
+      });
+  });
+}
+
+function bindSignupSubmit() {
+  const btn = document.querySelector(".login-signupBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    hideAuthError("signup-error");
+
+    const nickname = document.getElementById("signup-nickname")?.value.trim();
+    const username = document.getElementById("signup-username")?.value.trim();
+    const email = document.getElementById("signup-email")?.value.trim();
+    const password1 = document.getElementById("signup-password1")?.value;
+    const password2 = document.getElementById("signup-password2")?.value;
+    const gender = document.getElementById("signup-gender")?.value;
+    const agreePrivacy = document.getElementById("check-agree")?.checked;
+
+    if (!nickname || !username || !email || !password1 || !password2) {
+      showAuthError("signup-error", "필수 항목을 모두 입력해주세요.");
+      return;
+    }
+    if (!gender) {
+      showAuthError("signup-error", "성별을 선택해주세요.");
+      return;
+    }
+    if (!agreePrivacy) {
+      showAuthError(
+        "signup-error",
+        "개인정보 수집·이용에 동의해야 회원가입이 가능해요.",
+      );
+      return;
+    }
+    if (password1 !== password2) {
+      showAuthError("signup-error", "비밀번호가 서로 일치하지 않아요.");
+      return;
+    }
+
+    fetch("/accounts/signup/", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: new URLSearchParams({
+        nickname,
+        username,
+        email,
+        password1,
+        password2,
+        gender,
+        agree_privacy: "on",
+      }),
+    })
+      .then((res) => {
+        if (res.redirected || !res.url.includes("/accounts/signup/")) {
+          window.location.reload();
+          return null;
+        }
+        return res.text();
+      })
+      .then((htmlText) => {
+        if (htmlText == null) return;
+        showAuthError("signup-error", extractDjangoFormError(htmlText));
+      })
+      .catch((err) => {
+        console.error("🚨 회원가입 처리 중 오류:", err);
+        showAuthError("signup-error", "회원가입 처리 중 오류가 발생했어요.");
+      });
+  });
 }

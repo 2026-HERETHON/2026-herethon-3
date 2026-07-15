@@ -33,6 +33,17 @@
           </div>
           <div class="navbar-underline"></div>
         </div>
+        {% if request.user.is_authenticated %}
+        <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
+          <a href="mypage/mypage.html" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
+            <div style="display:flex; gap: 9px; align-items:center;">
+              <img src="main-images/account.svg" alt="마이페이지" />
+              <span class="navbar-mypage" style="cursor: pointer;">{{ request.user.nickname }}</span>
+            </div>
+          </a>
+          <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
+        </div>
+        {% else %}
         <a
           href="javascript:void(0);"
           class="navbar-ahref"
@@ -47,6 +58,7 @@
             로그인
           </div>
         </a>
+        {% endif %}
       </div>
     </nav>
 
