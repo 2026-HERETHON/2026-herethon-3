@@ -70,16 +70,19 @@
           <div id="leftPanel-container">
             <div class="leftPanel-wrapper">
 
-               <div class="leftPanel-searchBar">
-                <img
-                  src="./components/leftPanel/leftPanel-images/search.svg"
-                  class="leftPanel-searchIcon"
-                />
-                <input
-                  type="text"
-                  placeholder="장소를 입력해주세요"
-                  class="leftPanel-searchInput"
-                />
+               <div class="leftPanel-searchWrapper">
+                <div class="leftPanel-searchBar">
+                  <img
+                    src="./components/leftPanel/leftPanel-images/search.svg"
+                    class="leftPanel-searchIcon"
+                  />
+                  <input
+                    type="text"
+                    placeholder="장소를 입력해주세요"
+                    class="leftPanel-searchInput"
+                  />
+                </div>
+                <ul class="leftPanel-searchResults leftPanel-hide"></ul>
               </div>
               <!-- 안전 정보 필터 -->
               <div class="leftPanel-filterBox">
@@ -279,7 +282,7 @@
             <!-- 시/도 드롭다운 -->
             <div class="mapOverlay-dropdown" data-level="sido">
               <div class="mapOverlay-dropdownSelected">
-                <span class="mapOverlay-dropdownText">서울특별시</span>
+                <span class="mapOverlay-dropdownText">-</span>
                 <img
                   src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
                   class="mapOverlay-chevron"
@@ -291,7 +294,7 @@
             <!-- 구 드롭다운 -->
             <div class="mapOverlay-dropdown" data-level="gu">
               <div class="mapOverlay-dropdownSelected">
-                <span class="mapOverlay-dropdownText">노원구</span>
+                <span class="mapOverlay-dropdownText">-</span>
                 <img
                   src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
                   class="mapOverlay-chevron"
@@ -303,7 +306,7 @@
             <!-- 동 드롭다운 -->
             <div class="mapOverlay-dropdown" data-level="dong">
               <div class="mapOverlay-dropdownSelected">
-                <span class="mapOverlay-dropdownText">상계동</span>
+                <span class="mapOverlay-dropdownText">-</span>
                 <img
                   src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
                   class="mapOverlay-chevron"
