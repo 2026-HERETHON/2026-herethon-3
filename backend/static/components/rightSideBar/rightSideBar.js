@@ -146,7 +146,7 @@ function bindReviewLikeDelegation() {
 
     // 실제 /reviews/<review_id>/like/ 로 POST해서 서버가 돌려주는
     // 진짜 liked/like_count 값으로 갱신한다.
-    fetch(`http://127.0.0.1:8000/reviews/${reviewId}/like/`, {
+    fetch(`/reviews/${reviewId}/like/`, {
       method: "POST",
       credentials: "same-origin", // 로그인 세션 쿠키를 같이 보내야 인증됨
       headers: {
@@ -196,7 +196,7 @@ function bindReviewLikeDelegation() {
 function refreshReviewSection(legalDongId, legalDongName) {
   if (!legalDongId) return Promise.resolve();
 
-  const reviewPageUrl = `http://127.0.0.1:8000/reviews/grid/${legalDongId}/`;
+  const reviewPageUrl = `/reviews/grid/${legalDongId}/`;
 
   return fetch(reviewPageUrl)
     .then((response) => {
@@ -217,6 +217,14 @@ function refreshReviewSection(legalDongId, legalDongName) {
       const nightScore = parseFloat(summaryEl?.dataset.night) || 0;
       const convenienceScore = parseFloat(summaryEl?.dataset.amenity) || 0;
       const atmosphereScore = parseFloat(summaryEl?.dataset.mood) || 0;
+
+      // 🎯 [워딩 수정] "영역별 만족도" -> "{법정동} 일대 영역별 만족도"
+      const satisfactionTitleEl = document.querySelector(
+        ".rightSB-satisfactionTitle",
+      );
+      if (satisfactionTitleEl && legalDongName) {
+        satisfactionTitleEl.textContent = `${legalDongName} 일대 영역별 만족도`;
+      }
 
       console.log("🔥 list.html에서 받은 진짜 만족도 점수:", {
         nightScore,
@@ -255,12 +263,18 @@ function refreshReviewSection(legalDongId, legalDongName) {
       // 💡 [시연용 센스!] DB에 진짜 데이터가 없어서 404가 날 때는 완전히 0점으로 비우는 대신,
       // 시연 화면이 이쁘게 나오도록 자연스러운 기본 별점을 세팅해 줍니다.
       handleStarRating(3.8, 4.2, 4.0);
+      const satisfactionTitleEl = document.querySelector(
+        ".rightSB-satisfactionTitle",
+      );
+      if (satisfactionTitleEl && legalDongName) {
+        satisfactionTitleEl.textContent = `${legalDongName} 일대 영역별 만족도`;
+      }
       // 후기 fetch 자체가 실패한 경우이므로 카드/개수도 빈 상태로 맞춰줌
       const localContainer = document.getElementById(
         "rightSB-reviewCardContainer",
       );
       if (localContainer) {
-        localContainer.innerHTML = `<div style="text-align:center; color:#7b7578; padding:4px 0;">첫 번째 후기를 남겨보세요!</div>`;
+        localContainer.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; text-align:center; color:#7b7578;">첫 번째 후기를 남겨보세요!</div>`;
       }
       const reviewCountEl = document.querySelector(
         ".rightSB-reviewSelected span",
@@ -302,7 +316,7 @@ function openQuestionDetail(questionId) {
   const ansContainer = document.getElementById("qnaAnswerContainer");
   const ansCountEl = document.getElementById("qnaDetailAnsCount");
 
-  fetch(`http://127.0.0.1:8000/qna/question/${questionId}/`)
+  fetch(`/qna/question/${questionId}/`)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`질문 상세 fetch 실패 (상태코드 ${res.status})`);
@@ -372,7 +386,7 @@ function bindAnswerSubmit() {
 
     btn.disabled = true;
 
-    fetch(`http://127.0.0.1:8000/qna/question/${questionId}/answer/`, {
+    fetch(`/qna/question/${questionId}/answer/`, {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -417,7 +431,7 @@ function bindAnswerSubmit() {
 function refreshQnaSection(legalDongId) {
   if (!legalDongId) return Promise.resolve();
 
-  const qnaPageUrl = `http://127.0.0.1:8000/qna/grid/${legalDongId}/`;
+  const qnaPageUrl = `/qna/grid/${legalDongId}/`;
 
   return fetch(qnaPageUrl)
     .then((response) => {
@@ -474,12 +488,19 @@ window.updateSidebarTitle = function (
   currentSidebarState = { detailDongName, legalDongName, legalDongId };
 
   // ====================================================
-  // 🎯 [수정] 사이드바에 뜨는 안심점수/차트는 "법정동" 기준이어야 함
-  // 기존 코드는 detailDongName(행정동, 예: 상계1동) + is_legal_dong=false 로 조회해서
-  // 클릭한 세부 행정동의 개별 수치가 노출되는 버그가 있었음.
-  // -> legalDongName(법정동, 예: 상계동) + is_legal_dong=true 로 조회하도록 변경.
+  // 🎯 [2-1번 스펙] 사이드바 상단 안심점수/그래프는 이제 "어떤 폴리곤을 클릭했는가"에
+  // 따라 달라진다.
+  // - 검색(법정동 선택)이나 법정동 폴리곤 자체를 볼 때: detailDongName === legalDongName
+  //   -> 법정동(is_legal_dong=true) 기준으로 조회
+  // - 법정동 안에서 hover-in 후 특정 행정동 폴리곤을 클릭했을 때: detailDongName(행정동)이
+  //   legalDongName(법정동)과 다름 -> 그 행정동(is_legal_dong=false) 기준으로 조회
+  // (영역별 만족도/후기/QnA는 아래 refreshReviewSection/refreshQnaSection에서
+  //  legalDongId 기준으로 그대로 유지된다)
   // ====================================================
-  const detailUrl = `http://127.0.0.1:8000/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
+  const isAdminDongDetail = detailDongName !== legalDongName;
+  const detailUrl = isAdminDongDetail
+    ? `/grids/${encodeURIComponent(detailDongName)}/?is_legal_dong=false`
+    : `/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
 
   fetch(detailUrl)
     .then((res) => {
@@ -492,8 +513,14 @@ window.updateSidebarTitle = function (
       // ====================================================
       // 🎯 1. 제목 및 안심 점수 텍스트 갱신
       // ====================================================
-      const regionEl = document.querySelector(".rightSB-region");
-      if (regionEl) regionEl.textContent = legalDongName; // 지역 - 법정동
+      // 🎯 [버그 수정] .rightSB-region 자체에 textContent를 넣으면 그 안의
+      // <span class="rightSB-regionText">와 <img class="rightSB-regionHeartImg">
+      // 자식 노드가 통째로 지워져서 찜하기 하트 아이콘이 사라졌었다.
+      // 이름 텍스트는 반드시 자식 span(.rightSB-regionText)에만 넣어야 한다.
+      // 🎯 [워딩 수정] region 라벨은 항상 "{법정동} 일대"로 표시 (행정동을 봐도
+      // 법정동 기준 큰 지역명은 그대로 유지)
+      const regionTextEl = document.querySelector(".rightSB-regionText");
+      if (regionTextEl) regionTextEl.textContent = `${legalDongName} 일대`; // 지역 - 법정동
 
       const scoreNumberEl = document.querySelector(".rightSB-score"); // 안심점수
       if (scoreNumberEl && fields.safety_score !== undefined) {
@@ -549,8 +576,8 @@ window.updateSidebarTitle = function (
     .catch((err) => {
       console.error("🚨 API 통신 에러:", err);
       // 에러 시에도 동작은 하도록 방어 코드
-      const regionEl = document.querySelector(".rightSB-region");
-      if (regionEl) regionEl.textContent = legalDongName;
+      const regionTextEl = document.querySelector(".rightSB-regionText");
+      if (regionTextEl) regionTextEl.textContent = `${legalDongName} 일대`;
 
       const sidebar = document.getElementById("rightSideBar-container");
       if (sidebar) sidebar.classList.remove("sidebar-collapsed");
@@ -932,7 +959,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const legalDongId = currentSidebarState.legalDongId;
         if (!legalDongId) return;
 
-        fetch(`http://127.0.0.1:8000/accounts/grid/${legalDongId}/save/`, {
+        fetch(`/accounts/grid/${legalDongId}/save/`, {
           method: "POST",
           credentials: "same-origin",
           headers: {
@@ -1029,7 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
           rating_mood: scores.atmosphere.toFixed(1),
         });
 
-        fetch(`http://127.0.0.1:8000/reviews/grid/${legalDongId}/create/`, {
+        fetch(`/reviews/grid/${legalDongId}/create/`, {
           method: "POST",
           credentials: "same-origin", // 로그인 세션 쿠키 포함해서 보내야 인증됨
           headers: {
@@ -1108,7 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
           question_content: text,
         });
 
-        fetch(`http://127.0.0.1:8000/qna/grid/${legalDongId}/create/`, {
+        fetch(`/qna/grid/${legalDongId}/create/`, {
           method: "POST",
           credentials: "same-origin",
           headers: {

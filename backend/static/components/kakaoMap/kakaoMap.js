@@ -4,8 +4,20 @@ let customOverlay = null;
 let infowindow = null;
 let isFirstBoundsSet = false; //최초실행 중앙 맞추기
 
-// 💡 [추가] 법정동 매핑 캐시 테이블 (예: { "상계동": 12 })
+// 💡 법정동 매핑 캐시 테이블 (예: { "상계동": 12 })
 let legalDongCache = {};
+
+// 🎯 [스펙 변경] 검색 전에는 폴리곤을 하나도 그리지 않으므로, 실제 폴리곤을 그릴 때
+// 바로 쓸 수 있도록 법정동/행정동 원본 데이터(경계 geojson + 안심점수 등)를
+// 백그라운드에서 미리 캐싱해둔다.
+let legalDongGridCache = {}; // { "상계동": {전체 fields...} } - 법정동(is_legal_dong=true) 전용
+let adminDongList = []; // is_legal_dong=false 전체 목록 (dong_group으로 소속 법정동 찾음)
+
+// 🎯 지도 위에 현재 그려져 있는 오버레이 상태 관리
+let currentLegalDongName = null; // 지금 화면에 활성화돼 있는 법정동 이름
+let currentLegalPolygon = null; // 법정동 폴리곤 1개
+let currentAdminOverlays = []; // 행정동 폴리곤+이름 라벨 묶음 [{ polygon, labelOverlay, grid }]
+let hoverRevertTimer = null; // 행정동 -> 법정동 복귀 디바운스 타이머
 
 // [★ 4번 스펙] 안심 점수(0~100)에 따른 색상 매핑 함수
 function getColorBySafetyScore(score) {
@@ -84,6 +96,52 @@ function geoJsonToKakaoPath(boundaryGeojsonStr) {
     }
 }
 
+// 🎯 폴리곤 path(꼭짓점 배열)로 실제 도형 중심(centroid)을 계산.
+// DB의 grid.latitude/longitude(대표 좌표, 폴리곤 모양과는 무관할 수 있음) 대신
+// 이 함수의 결과를 쓰면 인포윈도우/이름 라벨이 폴리곤 도형 정중앙에 뜬다.
+function getPolygonCentroid(path) {
+    if (!path || path.length === 0) return null;
+
+    // 꼭짓점이 1~2개뿐이면 넓이 공식이 무의미하니 단순 평균으로 대체
+    if (path.length < 3) {
+        const avgLat = path.reduce((sum, p) => sum + p.getLat(), 0) / path.length;
+        const avgLng = path.reduce((sum, p) => sum + p.getLng(), 0) / path.length;
+        return new kakao.maps.LatLng(avgLat, avgLng);
+    }
+
+    let twiceArea = 0;
+    let cx = 0;
+    let cy = 0;
+
+    for (let i = 0; i < path.length; i++) {
+        const p0 = path[i];
+        const p1 = path[(i + 1) % path.length]; // 마지막 점 다음은 첫 점으로 순환
+
+        const x0 = p0.getLng();
+        const y0 = p0.getLat();
+        const x1 = p1.getLng();
+        const y1 = p1.getLat();
+
+        const cross = x0 * y1 - x1 * y0;
+        twiceArea += cross;
+        cx += (x0 + x1) * cross;
+        cy += (y0 + y1) * cross;
+    }
+
+    if (twiceArea === 0) {
+        // 면적이 0으로 계산되는 축퇴 도형(일직선 등) 방어 코드 -> 단순 평균으로 대체
+        const avgLat = path.reduce((sum, p) => sum + p.getLat(), 0) / path.length;
+        const avgLng = path.reduce((sum, p) => sum + p.getLng(), 0) / path.length;
+        return new kakao.maps.LatLng(avgLat, avgLng);
+    }
+
+    const area = twiceArea / 2;
+    const centroidLng = cx / (6 * area);
+    const centroidLat = cy / (6 * area);
+
+    return new kakao.maps.LatLng(centroidLat, centroidLng);
+}
+
 export function initKakaoMap() {
     const container = document.getElementById("map");
     if (!container) {
@@ -94,8 +152,8 @@ export function initKakaoMap() {
     if (typeof kakao !== "undefined" && kakao.maps) {
         kakao.maps.load(function () {
             const options = {
-                center: new kakao.maps.LatLng(37.5519138, 126.9918511), //서울 중심
-                level: 7,
+                center: new kakao.maps.LatLng(37.54057898213189, 126.93283364051676), //서울 중심
+                level: 8,
             };
 
             map = new kakao.maps.Map(container, options);
@@ -104,20 +162,23 @@ export function initKakaoMap() {
             customOverlay = new kakao.maps.CustomOverlay({});
             infowindow = new kakao.maps.InfoWindow({ removable: true });
 
-            fetchLegalDongCache().then(() => {
-                loadBackendGeoJSON();
-            });
+            // 🎯 [1번 스펙] 기본 폴리곤은 처음에(그리고 확대/축소해도) 아예 뜨지 않는다.
+            // 검색(leftPanel 검색창 / mapOverlay 드롭다운)으로 법정동을 선택했을 때만
+            // window.showLegalDongOnMap()이 폴리곤을 그린다. 그래서 여기서는 폴리곤을
+            // 화면에 그리지 않고, 나중에 바로 쓸 수 있도록 원본 데이터만 미리 받아둔다.
+            fetchLegalDongCache();
+            fetchAdminDongList();
         });
     } else {
         console.error("🚨 카카오맵 SDK가 로드되지 않았습니다.");
     }
 }
 
-// 💡 [추가] 법정동 리스트를 미리 받아와서 { 법정동이름: ID } 맵을 캐싱해두는 함수
+// 💡 법정동 목록을 미리 받아와서 { 법정동이름: ID } 맵 + 전체 필드(경계/안심점수 등)를 캐싱해두는 함수
 async function fetchLegalDongCache() {
     try {
         const res = await fetch(
-            "http://127.0.0.1:8000/grids/?is_legal_dong=true",
+            "/grids/?is_legal_dong=true",
         );
         if (!res.ok) return;
         const data = await res.json();
@@ -129,6 +190,10 @@ async function fetchLegalDongCache() {
             if (fields.dong_group && gridId) {
                 legalDongCache[fields.dong_group] = gridId; // 예: "상계동" -> 12번 PK 매핑
             }
+            if (fields.dong) {
+                // 🎯 법정동 폴리곤을 그릴 때 바로 쓸 수 있도록 전체 필드(경계/안심점수/좌표)를 캐싱
+                legalDongGridCache[fields.dong] = { id: gridId, ...fields };
+            }
         });
         console.log("🎯 법정동 ID 캐시 테이블 구축 완료:", legalDongCache);
     } catch (err) {
@@ -136,218 +201,310 @@ async function fetchLegalDongCache() {
     }
 }
 
-function loadBackendGeoJSON() {
-    const geojsonPath = "http://127.0.0.1:8000/grids/?is_legal_dong=false";
+// 💡 [추가] 세부 행정동 전체 목록을 미리 받아와서 캐싱해두는 함수.
+// 법정동 폴리곤에 마우스를 올렸을 때(hover-in) dong_group이 일치하는
+// 행정동들만 골라서 바로 그릴 수 있도록 미리 준비해둔다.
+async function fetchAdminDongList() {
+    try {
+        const res = await fetch("/grids/?is_legal_dong=false");
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : data.grids;
 
-    fetch(geojsonPath)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(
-                    `GeoJSON 로드 실패 (상태 코드: ${response.status})`,
-                );
-            }
-            return response.json();
-        })
-        .then((responseData) => {
-            // 실제 API 응답은 배열이 아니라 { grids: [...] } 형태로 감싸져 있음
-            const gridList = Array.isArray(responseData)
-                ? responseData
-                : responseData.grids;
-
-            console.log("🔍 API 응답 원본 (첫번째 항목):", gridList?.[0]);
-            console.log(
-                "🔍 전체 개수:",
-                Array.isArray(gridList) ? gridList.length : "배열 아님!",
-            );
-
-            if (Array.isArray(gridList) && gridList.length > 0) {
-                renderGridData(gridList);
-                console.log(
-                    `안심 점수 맵 실시간 연동 완료 (${gridList.length}개 동)`,
-                );
-            } else {
-                console.warn(
-                    "⚠️ gridList가 배열이 아니거나 비어있습니다:",
-                    responseData,
-                );
-            }
-        })
-        .catch((error) => {
-            console.error("🚨 GeoJSON 렌더링 에러가 발생했습니다:", error);
+        adminDongList = list.map((item) => {
+            const fields = item.fields ? item.fields : item;
+            const gridId = item.pk || item.id;
+            return { id: gridId, ...fields };
         });
-}
-
-// kakaoMap.js 내부의 renderGridData 함수 하단 부분을 찾아서 아래처럼 교체해 줍니다.
-
-function renderGridData(gridList) {
-    const bounds = new kakao.maps.LatLngBounds();
-    let hasValidPath = false;
-    let successCount = 0;
-    let failCount = 0;
-
-    gridList.forEach((gridData, idx) => {
-        const fields = gridData.fields ? gridData.fields : gridData;
-
-        if (!fields) {
-            console.warn(`⚠️ [${idx}] fields가 없습니다:`, gridData);
-            return;
-        }
-
-        if (idx === 0) {
-            console.log(
-                "🔍 첫 번째 항목의 실제 필드 키들:",
-                Object.keys(fields),
-            );
-        }
-
-        const areaName = fields.dong || "알 수 없는 지역";
-        const safetyScore =
-            fields.safety_score !== undefined
-                ? parseFloat(fields.safety_score)
-                : 50;
-
-        const path = geoJsonToKakaoPath(
-            fields.boundary ?? fields.boundary_geojson,
-        );
-        if (path.length === 0) {
-            failCount++;
-            console.warn(
-                `⚠️ [${idx}] ${areaName}: 경로 파싱 실패 (path 길이 0)`,
-            );
-            return;
-        }
-
-        successCount++;
-        hasValidPath = true;
-        path.forEach((latlng) => bounds.extend(latlng));
-
-        displayArea({
-            name: areaName,
-            score: safetyScore,
-            path: path,
-            raw: gridData,
-        });
-    });
-
-    console.log(`📊 렌더링 결과: 성공 ${successCount}개 / 실패 ${failCount}개`);
-
-    // 💡 [★완벽 대수정] 최초 실행 시 딱 한 번만 중앙을 맞추도록 방어막을 씌웁니다!
-    if (hasValidPath && map && !isFirstBoundsSet) {
-        map.setBounds(bounds);
-        isFirstBoundsSet = true; // 🌟 실행 완료 시 스위치를 True로 켜서 다음부터는 실행을 막습니다.
-        console.log("✅ 최초 1회 전체 화면 영역(Bounds) 설정 완료!");
+        console.log(`🎯 행정동 전체 목록 캐싱 완료 (${adminDongList.length}개)`);
+    } catch (err) {
+        console.error("🚨 행정동 목록 캐싱 실패:", err);
     }
 }
 
-function displayArea(area) {
-    const polygon = new kakao.maps.Polygon({
-        map: map,
-        path: area.path,
-        strokeWeight: 2,
-        strokeColor: "#0C447C",
-        strokeOpacity: 0.6,
-        fillColor: getColorBySafetyScore(area.score),
-        fillOpacity: 0.45,
+// =====================================================================
+// 🎯 [지도 오버레이 정리] 검색이 바뀌거나 화면을 초기화할 때 기존에 그려둔
+// 법정동/행정동 폴리곤과 라벨, 인포윈도우를 전부 지운다.
+// =====================================================================
+function clearAdminOverlays() {
+    currentAdminOverlays.forEach(({ polygon, labelOverlay }) => {
+        polygon.setMap(null);
+        labelOverlay.setMap(null);
     });
+    currentAdminOverlays = [];
+}
 
-    kakao.maps.event.addListener(polygon, "mouseover", function (mouseEvent) {
-        polygon.setOptions({ fillOpacity: 0.7 });
-        /*customOverlay.setContent(`
-      <div style="padding:5px 10px; background:#fff; border:2px solid ${getColorBySafetyScore(area.score)}; font-weight:bold; border-radius:4px; font-size:12px; box-shadow: 0px 2px 4px rgba(0,0,0,0.15);">
-        ${area.name} (${area.score}점)
-      </div>
-    `);
-    customOverlay.setPosition(mouseEvent.latLng);
-    customOverlay.setMap(map);*/ //호버 시 나오는 글씨
-    });
+function clearAllMapOverlays() {
+    cancelHoverRevert();
+    if (currentLegalPolygon) {
+        currentLegalPolygon.setMap(null);
+        currentLegalPolygon = null;
+    }
+    clearAdminOverlays();
+    if (infowindow) infowindow.close();
+    currentLegalDongName = null;
+}
 
-    kakao.maps.event.addListener(polygon, "mousemove", function (mouseEvent) {
-        customOverlay.setPosition(mouseEvent.latLng);
-    });
+function cancelHoverRevert() {
+    if (hoverRevertTimer) {
+        clearTimeout(hoverRevertTimer);
+        hoverRevertTimer = null;
+    }
+}
 
-    kakao.maps.event.addListener(polygon, "mouseout", function () {
-        polygon.setOptions({ fillOpacity: 0.45 });
-        customOverlay.setMap(null);
-    });
+// 행정동 폴리곤에서 마우스가 완전히 빠져나갔을 때(인접한 다른 행정동 폴리곤으로
+// 옮겨간 게 아니라 진짜로 영역 밖으로 나갔을 때만) 법정동 뷰로 되돌리기 위해
+// 약간의 지연을 두고 되돌린다. 다른 행정동 폴리곤에 바로 마우스가 올라가면
+// mouseover 핸들러가 cancelHoverRevert()를 호출해서 이 되돌리기를 취소시킨다.
+function scheduleHoverRevert(legalDongName) {
+    cancelHoverRevert();
+    hoverRevertTimer = setTimeout(() => {
+        revertToLegalDongView(legalDongName);
+    }, 150);
+}
 
-    kakao.maps.event.addListener(polygon, "click", function (mouseEvent) {
-        customOverlay.setMap(null);
+// =====================================================================
+// 🎯 [2-2번 스펙] 행정동 폴리곤 아웃 -> 법정동 폴리곤 + 법정동 안심점수로 복귀
+// =====================================================================
+function revertToLegalDongView(legalDongName) {
+    clearAdminOverlays();
 
-        const content = `
+    const grid = legalDongGridCache[legalDongName];
+    if (!grid || !currentLegalPolygon) return;
+
+    currentLegalPolygon.setMap(map);
+    const path = geoJsonToKakaoPath(grid.boundary ?? grid.boundary_geojson);
+    openLegalDongInfoWindow(grid, path);
+}
+
+// 🎯 path를 넘기면 폴리곤 도형의 실제 중심(centroid)에, path가 없거나 계산 실패 시엔
+// grid.latitude/longitude(DB 대표 좌표)로 폴백해서 인포윈도우를 띄운다.
+function openLegalDongInfoWindow(grid, path) {
+    const centroid = getPolygonCentroid(path);
+    const position =
+        centroid ??
+        (grid.latitude != null && grid.longitude != null
+            ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
+            : null);
+    if (!position) return;
+
+    const content = `
       <div class="kakaoMap-pointerContainer">
         <div style="margin-left:16px;">
-            <div class="kakaoMap-pointerRegion">${area.name}</div>
+            <div class="kakaoMap-pointerRegion">${grid.dong}</div>
             <div class="kakaoMap-pointerScoreTitle">안심점수</div>
             <div style="display:flex; align-items:flex-end;">
-                <div class="kakaoMap-pointerScore">${area.score}</div>
+                <div class="kakaoMap-pointerScore">${grid.safety_score}</div>
                 <span>/100</span>
             </div>
         </div>
       </div>
     `;
 
-        infowindow.setContent(content);
-        infowindow.setPosition(mouseEvent.latLng);
-        infowindow.open(map);
+    infowindow.setContent(content);
+    infowindow.setPosition(position);
+    infowindow.open(map);
+}
 
-        //인포 클릭시 지도 중심/레벨 이동
+// =====================================================================
+// 🎯 [1번 스펙] 검색으로 법정동이 선택됐을 때 호출된다.
+// (leftPanel.js 검색 결과 클릭 / mapOverlay.js 드롭다운 선택에서 호출)
+// 법정동 폴리곤 + 법정동 안심점수 인포윈도우만 그리고, 그 폴리곤에
+// hover-in/out 이벤트를 걸어서 2-1/2-2 스펙을 준비한다.
+// =====================================================================
+window.showLegalDongOnMap = function (legalDongName) {
+    clearAllMapOverlays();
+
+    const grid = legalDongGridCache[legalDongName];
+    if (!grid) {
+        console.warn(`⚠️ 법정동 캐시에서 "${legalDongName}"을(를) 찾지 못했습니다.`);
+        return;
+    }
+
+    const path = geoJsonToKakaoPath(grid.boundary ?? grid.boundary_geojson);
+    if (path.length === 0) return;
+
+    currentLegalDongName = legalDongName;
+
+    currentLegalPolygon = new kakao.maps.Polygon({
+        map: map,
+        path: path,
+        strokeWeight: 2,
+        strokeColor: "#0C447C",
+        strokeOpacity: 0.6,
+        fillColor: getColorBySafetyScore(grid.safety_score),
+        fillOpacity: 0.45,
+    });
+
+    // 🎯 [검색 시 화면 중심 = 폴리곤 실제 중심] DB에 박제된 grid.latitude/longitude가
+    // 아니라, 방금 그린 폴리곤 도형의 centroid로 지도 중심을 이동시킨다.
+    // (leftPanel.js/mapOverlay.js는 더 이상 자체적으로 이동시키지 않고 여기서만 처리)
+    const centroid =
+        getPolygonCentroid(path) ??
+        (grid.latitude != null && grid.longitude != null
+            ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
+            : null);
+
+    if (centroid) {
         const currentLevel = map.getLevel();
-        const targetLatLng = mouseEvent.latLng;
-
         if (currentLevel > 6) {
-            // 💡 [★핵심 치트키] 6레벨보다 클 때(멀리 처다보고 있을 때)
-            // 레벨 변경과 중심 좌표 이동을 '동시'에 부드러운 애니메이션으로 처리하도록 명령합니다.
             map.setLevel(6, {
-                animate: {
-                    duration: 350, // 0.35초 동안 레벨6 조절과 중심 이동을 부드럽게 엮음
-                },
-                anchor: targetLatLng, // 클릭한 위치를 축으로 삼아 줌인 처리
+                animate: { duration: 350 },
+                anchor: centroid,
             });
-
-            // 중심축이 미세하게 엇나가는 것을 방지하기 위해 줌인이 끝나는 타이밍에 좌표를 완전히 고정합니다.
             setTimeout(() => {
-                map.panTo(targetLatLng);
+                map.panTo(centroid);
             }, 350);
         } else {
-            // 💡 이미 6레벨 이하로 들어와 있을 때는 줌 레벨을 건드리지 않고 클릭한 곳으로 스르륵 부드럽게 이동
             const bounds = map.getBounds();
-            if (bounds.contain(targetLatLng)) {
-                map.panTo(targetLatLng);
+            if (bounds.contain(centroid)) {
+                map.panTo(centroid);
             } else {
-                map.setCenter(targetLatLng);
+                map.setCenter(centroid);
             }
         }
+    }
 
-        // ==========================================
-        // 💡 [사이드바 열기 트리거]
-        // 프로젝트 HTML에 선언된 사이드바의 ID나 클래스를 선택합니다.
-        // (여기서는 예시로 id="sidebar"를 타격합니다. 본인 구조에 맞게 ID를 맞춰주세요!)
-        // ==========================================
-        const sidebar = document.querySelector(".rightSB-aside");
-        if (sidebar) {
-            sidebar.classList.add("open"); // open 클래스를 추가하여 사이드바를 노출시킵니다!
-        }
+    openLegalDongInfoWindow(grid, path);
 
-        // ====================================================
-        // 클릭한 행정동의 부모 '법정동 이름' (fields.dong_group)을 전달
-        // ====================================================
-        const fields = area.raw
-            ? area.raw.fields
-                ? area.raw.fields
-                : area.raw
-            : area;
-        const detailDongName = area.name;
-        const legalDongName = fields.dong_group || area.name; // 백업용으로 기본 이름 사용
-        const legalDongId =
-            legalDongCache[legalDongName] || area.raw.id || area.raw.pk;
-
-        if (window.updateSidebarTitle) {
-            // 💡 3가지 인자를 들고 사이드바 함수를 호출합니다!
-            window.updateSidebarTitle(
-                detailDongName,
-                legalDongName,
-                legalDongId,
-            );
-        }
+    // 🎯 [2-1번 스펙] 법정동 폴리곤 인(hover-in) -> 행정동 분류로 전환
+    kakao.maps.event.addListener(currentLegalPolygon, "mouseover", function () {
+        cancelHoverRevert();
+        showAdminDongGroup(legalDongName);
     });
+
+    // 🎯 [2-2번 스펙] 법정동 폴리곤 아웃(hover-out) -> 다시 법정동 뷰로 복귀
+    kakao.maps.event.addListener(currentLegalPolygon, "mouseout", function () {
+        scheduleHoverRevert(legalDongName);
+    });
+};
+
+// =====================================================================
+// 🎯 [2-1번 스펙] 법정동 폴리곤에 마우스가 올라갔을 때, 그 법정동(dong_group)에
+// 속한 행정동들만 걸러서 폴리곤 + 이름 라벨을 그린다.
+// =====================================================================
+function showAdminDongGroup(legalDongName) {
+    if (currentAdminOverlays.length > 0) return; // 이미 표시 중이면 중복 실행 방지
+
+    if (infowindow) infowindow.close();
+    if (currentLegalPolygon) currentLegalPolygon.setMap(null);
+
+    const matches = adminDongList.filter(
+        (grid) => grid.dong_group === legalDongName,
+    );
+
+    matches.forEach((grid) => {
+        const path = geoJsonToKakaoPath(grid.boundary ?? grid.boundary_geojson);
+        if (path.length === 0) return;
+
+        const polygon = new kakao.maps.Polygon({
+            map: map,
+            path: path,
+            strokeWeight: 2,
+            strokeColor: "#0C447C",
+            strokeOpacity: 0.6,
+            fillColor: getColorBySafetyScore(grid.safety_score),
+            fillOpacity: 0.45,
+        });
+
+        // 🎯 폴리곤 구역 안에 행정동 이름 표시 (폴리곤 도형의 실제 중심에, 계산 실패 시 DB 좌표로 폴백)
+        let labelOverlay = null;
+        const labelPosition =
+            getPolygonCentroid(path) ??
+            (grid.latitude != null && grid.longitude != null
+                ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
+                : null);
+        if (labelPosition) {
+            labelOverlay = new kakao.maps.CustomOverlay({
+                map: map,
+                position: labelPosition,
+                content: `<div class="kakaoMap-adminDongLabel">${grid.dong}</div>`,
+                yAnchor: 0.5,
+            });
+        }
+
+        kakao.maps.event.addListener(polygon, "mouseover", function () {
+            cancelHoverRevert();
+            polygon.setOptions({ fillOpacity: 0.7 });
+        });
+
+        kakao.maps.event.addListener(polygon, "mouseout", function () {
+            polygon.setOptions({ fillOpacity: 0.45 });
+            // 법정동 영역을 완전히 벗어났을 때만(인접 행정동으로 옮겨간 게 아니라면)
+            // 법정동 뷰로 되돌아가도록 디바운스를 건다.
+            scheduleHoverRevert(legalDongName);
+        });
+
+        kakao.maps.event.addListener(polygon, "click", function (mouseEvent) {
+            cancelHoverRevert();
+            openAdminDongDetail(grid, legalDongName, mouseEvent.latLng, labelOverlay);
+        });
+
+        currentAdminOverlays.push({ polygon, labelOverlay, grid });
+    });
+}
+
+// =====================================================================
+// 🎯 [2-1번 스펙] 행정동 폴리곤 클릭 -> 행정동 안심점수 인포윈도우 +
+// 폴리곤 구역 내 이름 라벨 삭제 + 우측 사이드바(행정동 점수/그래프, 단
+// 영역별 만족도·후기·QnA는 법정동 기준) 갱신
+// =====================================================================
+function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
+    // 클릭한 행정동의 이름 라벨은 지운다 (스펙: "폴리곤 구역 내 행정동 이름은 삭제")
+    if (labelOverlay) labelOverlay.setMap(null);
+
+    const content = `
+      <div class="kakaoMap-pointerContainer">
+        <div style="margin-left:16px;">
+            <div class="kakaoMap-pointerRegion">${grid.dong}</div>
+            <div class="kakaoMap-pointerScoreTitle">안심점수</div>
+            <div style="display:flex; align-items:flex-end;">
+                <div class="kakaoMap-pointerScore">${grid.safety_score}</div>
+                <span>/100</span>
+            </div>
+        </div>
+      </div>
+    `;
+
+    infowindow.setContent(content);
+    infowindow.setPosition(latLng);
+    infowindow.open(map);
+
+    // 인포 클릭시 지도 중심/레벨 이동 (기존 동작 그대로 유지)
+    const currentLevel = map.getLevel();
+    const targetLatLng = latLng;
+
+    if (currentLevel > 6) {
+        map.setLevel(6, {
+            animate: { duration: 350 },
+            anchor: targetLatLng,
+        });
+        setTimeout(() => {
+            map.panTo(targetLatLng);
+        }, 350);
+    } else {
+        const bounds = map.getBounds();
+        if (bounds.contain(targetLatLng)) {
+            map.panTo(targetLatLng);
+        } else {
+            map.setCenter(targetLatLng);
+        }
+    }
+
+    const sidebar = document.querySelector(".rightSB-aside");
+    if (sidebar) {
+        sidebar.classList.add("open");
+    }
+
+    // ====================================================
+    // 🎯 행정동(detailDongName) + 그 부모 법정동(legalDongName) 둘 다 전달.
+    // updateSidebarTitle 쪽에서 detailDongName !== legalDongName이면
+    // "행정동 안심점수/그래프"로 판단해서 행정동 기준으로 조회한다.
+    // (영역별 만족도/후기/QnA는 legalDongId 기준 그대로 유지)
+    // ====================================================
+    const legalDongId = legalDongCache[legalDongName] || grid.id;
+
+    if (window.updateSidebarTitle) {
+        window.updateSidebarTitle(grid.dong, legalDongName, legalDongId);
+    }
 }

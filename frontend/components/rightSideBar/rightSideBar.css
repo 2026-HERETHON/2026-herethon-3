@@ -418,7 +418,12 @@
 }
 
 .rightSB-tabContent.rightSB-activeContent {
-  display: block;
+  /* 🎯 [빈 후기 중앙 정렬용] display:block이면 자식들이 내용 높이만큼만 차지해서
+     .rightSB-tabContentWrapper가 남는 공간을 안 채운다. flex column + height:100%로
+     바꿔서 아래 .rightSB-reviewListSubPage 등이 남은 공간을 끝까지 채우게 함. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .rightSB-hide {
@@ -434,6 +439,21 @@
   overflow-y: auto; /* 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
   overflow-x: hidden;
   box-sizing: border-box;
+  /* 🎯 [빈 후기 중앙 정렬용] .rightSB-reviewContainer(flex column, 고정 404px)
+     안에서 .rightSB-reviewNav가 쓰고 남은 공간을 전부 차지하도록 함.
+     (min-height:0은 flex 안에서 overflow-y:auto가 제대로 동작하게 하는 필수 설정) */
+  flex: 1;
+  min-height: 0;
+}
+
+/* 🎯 [빈 후기 중앙 정렬용] 후기 리스트 영역이 탭 콘텐츠의 전체 높이를 채우도록 함.
+   실제 카드가 있을 때는 내용이 이 높이를 넘기면 그냥 평소처럼 스크롤됨. */
+.rightSB-reviewListSubPage {
+  height: 100%;
+}
+
+#rightSB-reviewCardContainer {
+  height: 100%;
 }
 
 .rightSB-tabContentWrapper::-webkit-scrollbar {

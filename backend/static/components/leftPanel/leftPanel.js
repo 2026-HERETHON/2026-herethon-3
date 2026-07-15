@@ -29,7 +29,7 @@ async function fetchLeftPanelLegalDongList() {
   if (leftPanelLegalDongLoaded) return leftPanelLegalDongList;
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/grids/?is_legal_dong=true");
+    const res = await fetch("/grids/?is_legal_dong=true");
     if (!res.ok) return leftPanelLegalDongList;
 
     const data = await res.json();
@@ -102,33 +102,10 @@ function selectLeftPanelSearchResult(grid) {
   }
   leftPanelSearchResults?.classList.add("leftPanel-hide");
 
-  // ===== 1. 지도 이동 =====
-  // (kakaoMap.js 폴리곤 클릭 시 줌/이동 로직과 동일하게 맞춤)
-  const kakaoMap = window.map;
-  if (
-    kakaoMap &&
-    typeof kakao !== "undefined" &&
-    grid.latitude != null &&
-    grid.longitude != null
-  ) {
-    const targetLatLng = new kakao.maps.LatLng(grid.latitude, grid.longitude);
-    const currentLevel = kakaoMap.getLevel();
-
-    if (currentLevel > 6) {
-      kakaoMap.setLevel(6, {
-        animate: { duration: 350 },
-        anchor: targetLatLng,
-      });
-      setTimeout(() => kakaoMap.panTo(targetLatLng), 350);
-    } else {
-      const bounds = kakaoMap.getBounds();
-      if (bounds.contain(targetLatLng)) {
-        kakaoMap.panTo(targetLatLng);
-      } else {
-        kakaoMap.setCenter(targetLatLng);
-      }
-    }
-  }
+  // 🎯 [지도 이동] 예전엔 여기서 grid.latitude/longitude(DB 대표 좌표)로 직접
+  // 이동시켰는데, 이제는 window.showLegalDongOnMap()이 폴리곤을 그리면서
+  // 그 도형의 실제 중심(centroid)으로 이동까지 처리해준다. 그래서 여기서는
+  // 더 이상 따로 이동시키지 않는다 (아래 ===== 3. ===== 참고).
 
   // ===== 2. 우측 사이드바 오픈 =====
   const sidebar = document.querySelector(".rightSB-aside");
@@ -139,6 +116,16 @@ function selectLeftPanelSearchResult(grid) {
   if (window.updateSidebarTitle) {
     // 법정동 검색이므로 detailDongName/legalDongName 모두 같은 동 이름 사용
     window.updateSidebarTitle(grid.dong, grid.dong, grid.id);
+  }
+
+  // ===== 3. [1번 스펙] 검색으로 선택된 법정동 폴리곤 + 안심점수 인포윈도우 표시 =====
+  if (window.showLegalDongOnMap) {
+    window.showLegalDongOnMap(grid.dong);
+  }
+
+  // ===== 4. [0번 스펙] leftPanel 검색 결과를 mapOverlay 드롭다운(시/도-구-동)에도 반영 =====
+  if (window.syncMapOverlaySelection) {
+    window.syncMapOverlaySelection(grid.sido, grid.gu, grid.dong);
   }
 }
 

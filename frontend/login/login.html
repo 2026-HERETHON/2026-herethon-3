@@ -2,7 +2,7 @@
   <!--로그인-->
   <div class="auth-section login-section">
     <div class="login-closeBtn">
-      <img src="./login/login-images/close.svg" />
+      <img src="./login/login-images/close.svg" alt="창 닫기" class="login-closeBtnImg"/>
     </div>
     <div class="login-contentWrapper">
       <div class="login-loginTitleWrapper">
@@ -17,7 +17,12 @@
           <div class="login-inputTitle">아이디</div>
           <div class="login-inputBox">
             <img src="./login/login-images/account.svg" alt="아이디" />
-            <input type="text" id="login-username" name="username" placeholder="아이디를 입력해주세요" />
+            <input
+              type="text"
+              id="login-username"
+              name="username"
+              placeholder="아이디를 입력해주세요"
+            />
           </div>
         </div>
 
@@ -26,7 +31,12 @@
           <div class="login-inputBox">
             <div class="login-align">
               <img src="./login/login-images/password.svg" alt="비밀번호" />
-              <input type="password" id="login-password" name="password" placeholder="비밀번호를 입력해주세요" />
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                placeholder="비밀번호를 입력해주세요"
+              />
             </div>
             <img
               class="login-seeImg"
@@ -41,7 +51,12 @@
       <div
         class="login-errorMsg"
         id="login-error"
-        style="display:none; color:#ff4d4f; font-size:13px; margin-top:-14px;"
+        style="
+          display: none;
+          color: #ff4d4f;
+          font-size: 13px;
+          margin-top: -14px;
+        "
       ></div>
 
       <div style="display: flex; gap: 27px; flex-direction: column">
@@ -61,7 +76,7 @@
   <!--회원가입-->
   <div class="auth-section signup-section">
     <div class="login-closeBtn">
-      <img src="./login/login-images/close.svg" />
+      <img src="./login/login-images/close.svg" class="login-closeBtnImg"/>
     </div>
     <div>
       <div class="login-loginTitleWrapper">
@@ -75,7 +90,12 @@
               <div class="login-inputTitle">닉네임</div>
               <div class="login-inputBox">
                 <img src="./login/login-images/account.svg" alt="닉네임" />
-                <input type="text" id="signup-nickname" name="nickname" placeholder="닉네임을 입력해주세요" />
+                <input
+                  type="text"
+                  id="signup-nickname"
+                  name="nickname"
+                  placeholder="닉네임을 입력해주세요"
+                />
               </div>
             </div>
 
@@ -83,7 +103,12 @@
               <div class="login-inputTitle">아이디</div>
               <div class="login-inputBox">
                 <img src="./login/login-images/account.svg" alt="아이디" />
-                <input type="text" id="signup-username" name="username" placeholder="아이디를 입력해주세요" />
+                <input
+                  type="text"
+                  id="signup-username"
+                  name="username"
+                  placeholder="아이디를 입력해주세요"
+                />
               </div>
             </div>
 
@@ -178,14 +203,20 @@
       <div
         class="login-errorMsg"
         id="signup-error"
-        style="display:none; color:#ff4d4f; font-size:13px; margin-top:-8px; margin-bottom:8px;"
+        style="
+          display: none;
+          color: #ff4d4f;
+          font-size: 13px;
+          margin-top: -8px;
+          margin-bottom: 8px;
+        "
       ></div>
 
-      <div style="display: flex; gap: 27px; flex-direction: column">
-        <button class="login-signupBtn">회원가입</button>
+      <div style="display: flex; gap: 16px; flex-direction: column">
+        <button class="login-signupBtn">가입하기</button>
         <div class="login-joinRecommend">
           이미 계정이 있으신가요?
-          <span id="go-to-login">로그인</span>
+          <span class="go-to-login">로그인</span>
         </div>
       </div>
     </div>
@@ -194,7 +225,8 @@
   <!--개인정보 처리 방침-->
   <div class="auth-section info-section">
     <div class="login-closeBtn">
-      <img src="./login/login-images/close.svg" />
+      <img src="./login/login-images/backBtn.svg" alt="뒤로가기" class="login-backBtnImg"/>
+      <img src="./login/login-images/close.svg" alt="창 닫기" class="login-closeBtnImg"/>
     </div>
     <div class="login-loginTitleWrapper">
       <div class="login-loginTitle">개인정보 처리 방침</div>
@@ -234,11 +266,39 @@
     </div>
   </div>
 
+  <!--회원가입 성공-->
+  <div class="auth-section signUpSuccess-section">
+    <div class="login-closeBtn">
+      <img src="./login/login-images/close.svg" alt="창 닫기" class="login-closeBtnImg"/>
+    </div>
+    <div class="login-contentWrapper">
+      <img src="./login/login-images/logoIcon.svg" class="login-signupSuccessLogo"/>
+      <div class="login-loginTitleWrapper" style="margin-bottom: 102px;">
+        <div class="login-loginTitle">회원가입이<br><span style="color:#1077FF;">완료</span>되었습니다!</div>
+        <div class="login-loginTitleDetail" >
+          지금 로그인하고 안심콕을 이용해 보세요.
+        </div>
+      </div>
+      <div class="login-infoInputWrapper">
+
+      <div style="display: flex; gap: 14px; flex-direction: column">
+        <!-- 🎯 회원가입 시점에 서버가 이미 로그인까지 시켜주므로(accounts.signup_view의
+             login(request, user)), 이 버튼은 "로그인 폼 다시 보여주기"가 아니라
+             그냥 새로고침해서 로그인된 nav 상태로 반영되게 한다. -->
+        <button type="button" class="login-loginBtn signup-success-continueBtn">로그인하러 가기</button>
+        <div class="login-joinRecommend signup-success-skipBtn" style="cursor: pointer;">
+          나중에 하기
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
   <!--점수 기준 보기-->
   <div class="auth-section scoreInfo-section">
-    <div class="login-closeBtn">
-      <img src="./login/login-images/close.svg" />
-    </div>
+      <div class="login-closeBtn">
+        <img src="./login/login-images/close.svg" alt="창 닫기" class="login-closeBtnImg"/>
+      </div>
 
     <div class="login-contentWrapper">
       <div class="login-loginTitleWrapper">
@@ -290,47 +350,4 @@
               <div>파출소</div>
             </div>
           </div>
-        </div>
-
-        <div class="login-scoreLine"></div>
-        <div style="display: flex; gap: 18px; align-items: flex-start">
-          <img src="./login//login-images/calendar.svg" alt="일정" />
-          <div style="display: flex; flex-direction: column; gap: 6px">
-            <div class="BodyL-Bold">최신 데이터 업데이트</div>
-            <div class="BodyL" style="color: var(--GrayScale-800, #5b5658)">
-              2026.07.10
-            </div>
-          </div>
-        </div>
-        <div class="login-scoreLine"></div>
-        <div style="display: flex; gap: 19px; align-items: flex-start">
-          <div
-            class="icon-text-box"
-            style="
-              position: relative;
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
-            <img
-              class="login-infoNoticeImg"
-              src="./login/login-images/circle.svg"
-              alt="안내"
-            />
-
-            <span
-              class="BodyM"
-              style="position: absolute; font-size: 12px; color: #1077ff"
-              >i</span
-            >
-          </div>
-          <div class="BodyS" style="color: var(--GrayScale-600, #7b7578)">
-            본 점수는 공공데이터를 기반으로 산출된 참고 지표이며,<br />
-            실제 체감 안전과 차이가 있을 수 있습니다.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+ 

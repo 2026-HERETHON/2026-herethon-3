@@ -10,19 +10,21 @@ function initAuthEvents() {
   if (!authCard || !popupContent) return;
 
   const goToSignupBtn = document.getElementById("go-to-signup");
-  const goToLoginBtn = document.getElementById("go-to-login");
+  const goToLoginBtn = document.querySelectorAll(".go-to-login");
 
   // 각 섹션들 수집
   const loginSec = authCard.querySelector(".login-section");
   const signupSec = authCard.querySelector(".signup-section");
   const infoSec = authCard.querySelector(".info-section");
   const scoreSec = authCard.querySelector(".scoreInfo-section");
+  const successSec = authCard.querySelector(".signUpSuccess-section")
 
   // 🎯 강제 초기화: 로그인 화면만 켜고 '점수 창'을 포함한 나머지는 무조건 숨김!
   if (loginSec) loginSec.style.display = "block";
   if (signupSec) signupSec.style.display = "none";
   if (infoSec) infoSec.style.display = "none";
   if (scoreSec) scoreSec.style.display = "none";
+  if (successSec) successSec.style.display = "none";
 
   authCard.classList.remove("is-signup");
 
@@ -38,21 +40,31 @@ function initAuthEvents() {
       if (infoSec) infoSec.style.display = "none";
       if (scoreSec) scoreSec.style.display = "none";
       if (signupSec) signupSec.style.display = "block";
+      if (successSec) successSec.style.display = "none";
     });
   }
 
-  // 로그인하러 가기 클릭 (창 축소)
-  if (goToLoginBtn) {
-    goToLoginBtn.replaceWith(goToLoginBtn.cloneNode(true));
-    document.getElementById("go-to-login").addEventListener("click", () => {
-      authCard.classList.remove("is-signup");
-      popupContent.style.width = "518px";
-      popupContent.style.height = "689px";
+  // 로그인하러 가기 클릭 (창 축소) - 클래스로 여러 개 처리
+  const goToLoginBtns = authCard.querySelectorAll(".go-to-login");
 
-      if (signupSec) signupSec.style.display = "none";
-      if (infoSec) infoSec.style.display = "none";
-      if (scoreSec) scoreSec.style.display = "none";
-      if (loginSec) loginSec.style.display = "block";
+  if (goToLoginBtns.length > 0) {
+    goToLoginBtns.forEach((btn) => {
+      // 1. 이벤트 중복 등록 방지를 위해 엘리먼트 복제 후 교체
+      const clonedBtn = btn.cloneNode(true);
+      btn.replaceWith(clonedBtn);
+
+      // 2. 복제된 버튼에 클릭 이벤트 연결
+      clonedBtn.addEventListener("click", () => {
+        authCard.classList.remove("is-signup");
+        popupContent.style.width = "518px";
+        popupContent.style.height = "689px";
+
+        if (signupSec) signupSec.style.display = "none";
+        if (infoSec) infoSec.style.display = "none";
+        if (scoreSec) scoreSec.style.display = "none";
+        if (loginSec) loginSec.style.display = "block";
+        if (successSec) successSec.style.display = "none";
+      });
     });
   }
 
@@ -60,8 +72,42 @@ function initAuthEvents() {
   const showInfoBtn = signupSec?.querySelector(".login-personalInfoDetails");
   if (showInfoBtn) {
     showInfoBtn.addEventListener("click", () => {
-      if (signupSec) signupSec.style.display = "none"; // 🎯 오타(style.style) 제거 완료!
+      if (signupSec) signupSec.style.display = "none";
       if (infoSec) infoSec.style.display = "block";
+    });
+  }
+
+  // 🎯 [수정] '가입하기' 클릭 시 무조건 성공 창을 띄우면, 서버가 실제로 거절해도
+  // (닉네임 중복 등) 성공 화면이 떠버린다. 그래서 여기서 미리 띄우지 않고,
+  // bindSignupSubmit()이 서버 응답을 확인한 뒤 진짜 성공했을 때만 띄우도록 옮김.
+
+  // 회원가입 성공 창의 버튼들
+  // 🎯 [수정] 회원가입 = 로그인이 아니다 (accounts/views.py의 signup_view가
+  // 더 이상 자동 로그인을 시키지 않음). 그래서 여기서 새로고침하지 않고,
+  // 로그인 폼을 보여줘서 방금 만든 계정으로 직접 로그인하게 한다.
+  const continueBtn = successSec?.querySelector(".signup-success-continueBtn");
+  if (continueBtn) {
+    continueBtn.addEventListener("click", () => {
+      // 🎯 [버그 수정] is-signup 클래스를 안 지워서, login-section이 display:block이
+      // 돼도 .login-card.is-signup .login-section{opacity:0} 규칙 때문에 안 보이고
+      // 빈 화면만 떴었다. "회원가입하러 가기" 버튼을 누를 때 붙는 클래스라서,
+      // 로그인 폼으로 돌아가는 다른 버튼(goToLoginBtns)들과 똑같이 지워줘야 한다.
+      authCard.classList.remove("is-signup");
+      popupContent.style.width = "518px";
+      popupContent.style.height = "689px";
+
+      if (successSec) successSec.style.display = "none";
+      if (signupSec) signupSec.style.display = "none";
+      if (infoSec) infoSec.style.display = "none";
+      if (scoreSec) scoreSec.style.display = "none";
+      if (loginSec) loginSec.style.display = "block";
+    });
+  }
+
+  const skipBtn = successSec?.querySelector(".signup-success-skipBtn");
+  if (skipBtn) {
+    skipBtn.addEventListener("click", () => {
+      document.getElementById("loginPopupOverlay")?.classList.add("popup-hide");
     });
   }
 
@@ -133,19 +179,20 @@ function initScoreInfoEvent() {
   const signupSec = authCard.querySelector(".signup-section");
   const infoSec = authCard.querySelector(".info-section");
   const scoreSec = authCard.querySelector(".scoreInfo-section");
+  const successSec = authCard.querySelector(".signUpSuccess-section");
 
   // 🎯 점수 기준창을 켰을 때는 로그인, 회원가입, 개인정보를 확실하게 숨김
   if (loginSec) loginSec.style.display = "none";
   if (signupSec) signupSec.style.display = "none";
   if (infoSec) infoSec.style.display = "none";
   if (scoreSec) scoreSec.style.display = "block";
+  if (successSec) successSec.style.display = "none";
 
   authCard.classList.remove("is-signup");
 }
 
 // ==========================================
 // 🔐 [3] 실제 로그인 / 회원가입 연동 (Django accounts 앱)
-// 💡 예전엔 가짜 토큰을 localStorage에 저장하는 mock이었는데, 이제 진짜
 // /accounts/login/, /accounts/signup/ 으로 POST해서 실제 세션 쿠키로 로그인한다.
 // ==========================================
 function getCookie(name) {
@@ -276,18 +323,8 @@ function bindSignupSubmit() {
     })
       .then((res) => {
         if (res.redirected || !res.url.includes("/accounts/signup/")) {
-          window.location.reload();
-          return null;
-        }
-        return res.text();
-      })
-      .then((htmlText) => {
-        if (htmlText == null) return;
-        showAuthError("signup-error", extractDjangoFormError(htmlText));
-      })
-      .catch((err) => {
-        console.error("🚨 회원가입 처리 중 오류:", err);
-        showAuthError("signup-error", "회원가입 처리 중 오류가 발생했어요.");
-      });
-  });
-}
+          // 🎯 [진짜 성공 시에만] 서버가 회원가입을 마쳤을 때만 여기로 온다
+          // (자동 로그인은 하지 않음). 예전엔 여기서 바로 새로고침했는데,
+          // 이제 "회원가입 완료" 팝업(signUpSuccess-section)을 먼저 보여주고,
+          // "로그인하러 가기"를 눌러야 로그인 폼에서 직접 로그인하게 한다.
+          const authCard = document.getElementById("auth-card"

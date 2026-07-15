@@ -172,19 +172,41 @@ document.addEventListener("DOMContentLoaded", () => {
           if (typeof initAuthEvents === "function") {
             initAuthEvents();
           } else {
-            console.error("🚨 login.js의 initAuthEvents 함수를 로드하지 못했습니다.");
+            console.error(
+              "🚨 login.js의 initAuthEvents 함수를 로드하지 못했습니다.",
+            );
           }
 
           // [X] 모달 내부 닫기 버튼 기능 결합
-          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
+          const closeBtns = contentBox.querySelectorAll(".login-closeBtnImg");
           closeBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
               overlay.classList.add("popup-hide");
             });
           });
+
+          // 모달 내부 뒤로가기 버튼 기능
+          const backBtn = contentBox.querySelector(".login-backBtnImg");
+          if (backBtn) {
+            backBtn.addEventListener("click", () => {
+              const authCard = document.getElementById("auth-card");
+              if (!authCard) return;
+
+              const signupSec = authCard.querySelector(".signup-section");
+              const infoSec = authCard.querySelector(".info-section");
+
+              // 1. 개인정보 방침은 숨기고, 회원가입 화면을 다시 켭니다.
+              if (infoSec) infoSec.style.display = "none";
+              if (signupSec) signupSec.style.display = "block";
+
+              // 2. 팝업 규격을 회원가입 창 크기로 다시 복원합니다.
+              contentBox.style.width = "1142px";
+              contentBox.style.height = "743px";
+            });
+          }
         })
         .catch((err) =>
-          console.error("🚨 메인 내비바 팝업 로드 중 에러 발생:", err)
+          console.error("🚨 메인 내비바 팝업 로드 중 에러 발생:", err),
         );
     });
   }
