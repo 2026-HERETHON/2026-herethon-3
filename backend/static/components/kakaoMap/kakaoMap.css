@@ -102,3 +102,18 @@ img[src*="bt_close.gif"] {
   line-height: 150%; /* 24px */
   letter-spacing: -0.32px;
 }
+
+/* 🎯 [2-1번 스펙] 법정동 hover-in 시, 행정동 폴리곤 구역 안에 뜨는 이름 라벨 */
+.kakaoMap-adminDongLabel {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
+
+  color: #1a1a1a;
+  font-family: Pretendard;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
