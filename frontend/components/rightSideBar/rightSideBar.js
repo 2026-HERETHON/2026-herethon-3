@@ -1,4 +1,5 @@
 // --- [K] 그래프 차트 렌더링 및 업데이트 ---
+
 let myRadarChart = null;
 
 // 💡 [공용] 마지막으로 클릭한 동네 정보를 기억해둠.
@@ -1231,6 +1232,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // =====================================================================
   // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서
+
+  const locBtn = document.querySelector(".mapOverlay-locationBtn");
+console.log("현재위치 버튼 찾음?:", locBtn); // null이면 셀렉터가 틀린 것
+
+locBtn?.addEventListener("click", () => {
+  console.log("버튼 클릭됨!");
+
+  if (!navigator.geolocation) {
+    alert("이 브라우저에서는 위치 기능을 사용할 수 없어요.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      const map = window.map; // kakaoMap.js에서 window.map으로 노출됨
+      if (!map) {
+        console.error("지도 인스턴스를 아직 찾을 수 없습니다.");
+        alert("지도가 아직 준비되지 않았어요. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+
+      const moveLatLng = new kakao.maps.LatLng(lat, lng);
+      map.panTo(moveLatLng);
+
+      // 현재 위치 마커 표시 (원치 않으면 이 블록 삭제)
+      new kakao.maps.Marker({
+        position: moveLatLng,
+        map: map,
+      });
+    },
+    (err) => {
+      console.error("위치 정보를 가져오지 못했습니다:", err);
+      alert("위치 정보를 가져오지 못했어요. 위치 권한을 확인해주세요.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    },
+  );
+});
   // .rightSB-aside "바깥" 형제로 빠져나와 있어서(패널이 한 번도 안 열린 상태에서도
   // 항상 보이도록), 패널이 열리고/접힐 때 옆에 붙어서 같이 이동하려면 별도로
   // 위치를 맞춰줘야 한다.
