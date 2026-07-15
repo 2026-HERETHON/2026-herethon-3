@@ -83,7 +83,7 @@ function renderList(level) {
     }
 
     li.innerHTML = `
-      <img src="./mapOverlay-images/check-dropdown.png" class="mapOverlay-checkIcon" />
+      <img src="./components/mapOverlay/mapOverlay-images/check-dropdown.png" class="mapOverlay-checkIcon" />
       <span>${name}</span>
     `;
 
