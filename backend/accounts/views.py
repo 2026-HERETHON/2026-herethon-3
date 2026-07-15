@@ -24,7 +24,11 @@ def signup_view(request):  # AUTH-001
             user = form.save(commit=False)
             user.privacy_agreed_at = timezone.now()
             user.save()
-            login(request, user)
+            # 🎯 [프론트 요청 반영] 예전엔 여기서 회원가입 직후 바로 login()으로
+            # 세션을 만들어서 자동 로그인시켰는데, 프론트의 "회원가입 완료" 팝업
+            # 흐름상 회원가입 = 로그인이 아니라, "로그인하러 가기" 버튼을 눌러
+            # 로그인 폼에서 직접 로그인해야 로그인 상태가 되도록 바꿈.
+            # (그래서 회원가입 성공 직후에도 request.user.is_authenticated는 False.)
             return redirect('home')
         return render(request, 'accounts/signup.html', {'form': form})
 

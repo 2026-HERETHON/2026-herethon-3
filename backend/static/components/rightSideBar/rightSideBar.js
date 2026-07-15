@@ -260,7 +260,7 @@ function refreshReviewSection(legalDongId, legalDongName) {
         "rightSB-reviewCardContainer",
       );
       if (localContainer) {
-        localContainer.innerHTML = `<div style="text-align:center; color:#7b7578; padding:4px 0;">첫 번째 후기를 남겨보세요!</div>`;
+        localContainer.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; text-align:center; color:#7b7578;">첫 번째 후기를 남겨보세요!</div>`;
       }
       const reviewCountEl = document.querySelector(
         ".rightSB-reviewSelected span",
@@ -492,8 +492,12 @@ window.updateSidebarTitle = function (
       // ====================================================
       // 🎯 1. 제목 및 안심 점수 텍스트 갱신
       // ====================================================
-      const regionEl = document.querySelector(".rightSB-region");
-      if (regionEl) regionEl.textContent = legalDongName; // 지역 - 법정동
+      // 🎯 [버그 수정] .rightSB-region 자체에 textContent를 넣으면 그 안의
+      // <span class="rightSB-regionText">와 <img class="rightSB-regionHeartImg">
+      // 자식 노드가 통째로 지워져서 찜하기 하트 아이콘이 사라졌었다.
+      // 이름 텍스트는 반드시 자식 span(.rightSB-regionText)에만 넣어야 한다.
+      const regionTextEl = document.querySelector(".rightSB-regionText");
+      if (regionTextEl) regionTextEl.textContent = legalDongName; // 지역 - 법정동
 
       const scoreNumberEl = document.querySelector(".rightSB-score"); // 안심점수
       if (scoreNumberEl && fields.safety_score !== undefined) {
@@ -549,8 +553,8 @@ window.updateSidebarTitle = function (
     .catch((err) => {
       console.error("🚨 API 통신 에러:", err);
       // 에러 시에도 동작은 하도록 방어 코드
-      const regionEl = document.querySelector(".rightSB-region");
-      if (regionEl) regionEl.textContent = legalDongName;
+      const regionTextEl = document.querySelector(".rightSB-regionText");
+      if (regionTextEl) regionTextEl.textContent = legalDongName;
 
       const sidebar = document.getElementById("rightSideBar-container");
       if (sidebar) sidebar.classList.remove("sidebar-collapsed");
