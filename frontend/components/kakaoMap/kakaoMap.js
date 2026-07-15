@@ -116,7 +116,7 @@ export function initKakaoMap() {
 // 💡 [추가] 법정동 리스트를 미리 받아와서 { 법정동이름: ID } 맵을 캐싱해두는 함수
 async function fetchLegalDongCache() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/grids/?is_legal_dong=true");
+    const res = await fetch("/grids/?is_legal_dong=true");
     if (!res.ok) return;
     const data = await res.json();
     const list = Array.isArray(data) ? data : data.grids;
@@ -135,7 +135,7 @@ async function fetchLegalDongCache() {
 }
 
 function loadBackendGeoJSON() {
-  const geojsonPath = "http://127.0.0.1:8000/grids/?is_legal_dong=false";
+  const geojsonPath = "/grids/?is_legal_dong=false";
 
   fetch(geojsonPath)
     .then((response) => {

@@ -117,7 +117,7 @@ export function initKakaoMap() {
 async function fetchLegalDongCache() {
     try {
         const res = await fetch(
-            "http://127.0.0.1:8000/grids/?is_legal_dong=true",
+            "/grids/?is_legal_dong=true",
         );
         if (!res.ok) return;
         const data = await res.json();
@@ -137,7 +137,7 @@ async function fetchLegalDongCache() {
 }
 
 function loadBackendGeoJSON() {
-    const geojsonPath = "http://127.0.0.1:8000/grids/?is_legal_dong=false";
+    const geojsonPath = "/grids/?is_legal_dong=false";
 
     fetch(geojsonPath)
         .then((response) => {

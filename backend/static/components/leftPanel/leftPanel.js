@@ -29,7 +29,7 @@ async function fetchLeftPanelLegalDongList() {
   if (leftPanelLegalDongLoaded) return leftPanelLegalDongList;
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/grids/?is_legal_dong=true");
+    const res = await fetch("/grids/?is_legal_dong=true");
     if (!res.ok) return leftPanelLegalDongList;
 
     const data = await res.json();

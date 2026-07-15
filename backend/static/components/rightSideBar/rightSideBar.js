@@ -146,7 +146,7 @@ function bindReviewLikeDelegation() {
 
     // 실제 /reviews/<review_id>/like/ 로 POST해서 서버가 돌려주는
     // 진짜 liked/like_count 값으로 갱신한다.
-    fetch(`http://127.0.0.1:8000/reviews/${reviewId}/like/`, {
+    fetch(`/reviews/${reviewId}/like/`, {
       method: "POST",
       credentials: "same-origin", // 로그인 세션 쿠키를 같이 보내야 인증됨
       headers: {
@@ -196,7 +196,7 @@ function bindReviewLikeDelegation() {
 function refreshReviewSection(legalDongId, legalDongName) {
   if (!legalDongId) return Promise.resolve();
 
-  const reviewPageUrl = `http://127.0.0.1:8000/reviews/grid/${legalDongId}/`;
+  const reviewPageUrl = `/reviews/grid/${legalDongId}/`;
 
   return fetch(reviewPageUrl)
     .then((response) => {
@@ -302,7 +302,7 @@ function openQuestionDetail(questionId) {
   const ansContainer = document.getElementById("qnaAnswerContainer");
   const ansCountEl = document.getElementById("qnaDetailAnsCount");
 
-  fetch(`http://127.0.0.1:8000/qna/question/${questionId}/`)
+  fetch(`/qna/question/${questionId}/`)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`질문 상세 fetch 실패 (상태코드 ${res.status})`);
@@ -372,7 +372,7 @@ function bindAnswerSubmit() {
 
     btn.disabled = true;
 
-    fetch(`http://127.0.0.1:8000/qna/question/${questionId}/answer/`, {
+    fetch(`/qna/question/${questionId}/answer/`, {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -417,7 +417,7 @@ function bindAnswerSubmit() {
 function refreshQnaSection(legalDongId) {
   if (!legalDongId) return Promise.resolve();
 
-  const qnaPageUrl = `http://127.0.0.1:8000/qna/grid/${legalDongId}/`;
+  const qnaPageUrl = `/qna/grid/${legalDongId}/`;
 
   return fetch(qnaPageUrl)
     .then((response) => {
@@ -479,7 +479,7 @@ window.updateSidebarTitle = function (
   // 클릭한 세부 행정동의 개별 수치가 노출되는 버그가 있었음.
   // -> legalDongName(법정동, 예: 상계동) + is_legal_dong=true 로 조회하도록 변경.
   // ====================================================
-  const detailUrl = `http://127.0.0.1:8000/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
+  const detailUrl = `/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
 
   fetch(detailUrl)
     .then((res) => {
@@ -932,7 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const legalDongId = currentSidebarState.legalDongId;
         if (!legalDongId) return;
 
-        fetch(`http://127.0.0.1:8000/accounts/grid/${legalDongId}/save/`, {
+        fetch(`/accounts/grid/${legalDongId}/save/`, {
           method: "POST",
           credentials: "same-origin",
           headers: {
@@ -1029,7 +1029,7 @@ document.addEventListener("DOMContentLoaded", () => {
           rating_mood: scores.atmosphere.toFixed(1),
         });
 
-        fetch(`http://127.0.0.1:8000/reviews/grid/${legalDongId}/create/`, {
+        fetch(`/reviews/grid/${legalDongId}/create/`, {
           method: "POST",
           credentials: "same-origin", // 로그인 세션 쿠키 포함해서 보내야 인증됨
           headers: {
@@ -1108,7 +1108,7 @@ document.addEventListener("DOMContentLoaded", () => {
           question_content: text,
         });
 
-        fetch(`http://127.0.0.1:8000/qna/grid/${legalDongId}/create/`, {
+        fetch(`/qna/grid/${legalDongId}/create/`, {
           method: "POST",
           credentials: "same-origin",
           headers: {

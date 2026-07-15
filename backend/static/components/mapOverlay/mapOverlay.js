@@ -64,7 +64,7 @@ const dropdowns = {
 async function loadMapOverlayRegionData() {
   // 1) 서울 25개 구 참고 목록 (District 모델 - has_data와 무관하게 전체 25개 노출)
   try {
-    const res = await fetch("http://127.0.0.1:8000/grids/districts/");
+    const res = await fetch("/grids/districts/");
     if (res.ok) {
       const data = await res.json();
       (data.districts || []).forEach((d) => {
@@ -80,7 +80,7 @@ async function loadMapOverlayRegionData() {
 
   // 2) 실제 법정동 목록 + 상세 데이터(안심점수, 시설 개수, 좌표)
   try {
-    const res = await fetch("http://127.0.0.1:8000/grids/?is_legal_dong=true");
+    const res = await fetch("/grids/?is_legal_dong=true");
     if (res.ok) {
       const data = await res.json();
       const rawList = Array.isArray(data) ? data : data.grids || [];
