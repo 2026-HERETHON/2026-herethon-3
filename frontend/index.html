@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="./components/rightSideBar/rightSideBar.css" />
     <link rel="stylesheet" href="./components/leftPanel/leftPanel.css" />
     <link rel="stylesheet" href="./login/login.css" />
+    <link rel="stylesheet" href="./components/mapOverlay/mapOverlay.css" />
     <link rel="stylesheet" href="./components/kakaoMap/kakaoMap.css" />
   </head>
   <body>
@@ -221,8 +222,111 @@
         <main>
           <div id="mainMap-conatiner">
             <div id="map"></div>
+            <!-- ===== 지도 오버레이 시작 (mainMap-conatiner 안에 넣기) ===== -->
+            <!-- 상단 위치 선택 -->
+              <div class="mapOverlay-locationSelect">
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/location-pin.svg"
+                  class="mapOverlay-pin"
+                  alt="위치"
+              />
+
+            <!-- 시/도 드롭다운 -->
+            <div class="mapOverlay-dropdown" data-level="sido">
+              <div class="mapOverlay-dropdownSelected">
+                <span class="mapOverlay-dropdownText">서울특별시</span>
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
+                  class="mapOverlay-chevron"
+                />
+              </div>
+              <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+            </div>
+
+            <!-- 구 드롭다운 -->
+            <div class="mapOverlay-dropdown" data-level="gu">
+              <div class="mapOverlay-dropdownSelected">
+                <span class="mapOverlay-dropdownText">노원구</span>
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
+                  class="mapOverlay-chevron"
+                />
+              </div>
+              <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+            </div>
+
+            <!-- 동 드롭다운 -->
+            <div class="mapOverlay-dropdown" data-level="dong">
+              <div class="mapOverlay-dropdownSelected">
+                <span class="mapOverlay-dropdownText">상계동</span>
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
+                  class="mapOverlay-chevron"
+                />
+              </div>
+              <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+            </div>
           </div>
-        </main>
+
+          <!-- 하단 지도 정보 보기 -->
+          <div class="mapOverlay-infoBox">
+            <div class="mapOverlay-infoHeader">
+              <span>지도 정보 보기</span>
+              <img
+                src="./components/mapOverlay/mapOverlay-images/chevron-up.svg"
+                class="mapOverlay-infoToggle"
+              />
+            </div>
+            <div class="mapOverlay-infoList">
+              <div class="mapOverlay-infoItem">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/cctv.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">CCTV</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="cctv">127개</span>
+              </div>
+
+              <div class="mapOverlay-infoItem">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/streetlight.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">가로등</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="streetlight">430개</span>
+              </div>
+
+              <div class="mapOverlay-infoItem mapOverlay-infoItemWide">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/police.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">파출소/지구대</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="police">3곳</span>
+              </div>
+
+              <div class="mapOverlay-infoItem">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/alarm.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">비상벨</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="alarm">8개</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 우상단 현재 위치 버튼 -->
+          <div class="mapOverlay-locationBtn">
+            <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
+          </div>
+          <!-- ===== 지도 오버레이 끝 ===== -->
+                    </div>
+                  </main>
 
         <!--우측 사이드바-->
         <aside class="rightSB-aside">
@@ -637,6 +741,7 @@
     <script src="./login/login.js"></script>
     <script src="./components/rightSideBar/rightSideBar.js"></script>
     <script src="./components/leftPanel/leftPanel.js"></script>
+    <script src="./components/mapOverlay/mapOverlay.js"></script>
     <script type="module" src="./main.js"></script>
   </body>
 </html>

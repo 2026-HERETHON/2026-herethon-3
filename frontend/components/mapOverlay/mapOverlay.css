@@ -1,8 +1,15 @@
+.mapOverlay-locationSelect,
+.mapOverlay-infoBox,
+.mapOverlay-locationBtn {
+  pointer-events: auto;    /* 이 요소는 클릭 받기 */
+}
+
 .mapOverlay-locationSelect {
   position: absolute;
-  top: 83px;
+  top: 28px;
   left: 373px;
   height: 57px;
+  z-index: 1000; 
   display: flex;
   align-items: center;
   padding: 0 32px 0 18px;
@@ -124,8 +131,9 @@
 /* 지도정보 보기 */
 .mapOverlay-infoBox {
   position: absolute;
-  bottom: 37px;
+  bottom: 80px;
   left: 368px;
+  z-index: 1000;
   min-width: 622px;            /* 펼친 너비로 고정 (Figma 580 기준) */
   display: inline-flex;
   flex-direction: column;
@@ -235,10 +243,11 @@
 
 .mapOverlay-locationBtn {
   position: absolute;
-  top: 83px;
+  top: 28px;
   right: 551px;            /* 위치, 실제 보면서 조정 */
   width: 54px;
   height: 54px;
+  z-index: 1000; 
   padding: 13px 14px 13px 13px;
   border-radius: 27px;     /* 54의 절반 = 완전한 원 */
   background: var(--GrayScale-White, #fff);
@@ -262,3 +271,4 @@
 .mapOverlay-locationBtn:active {
   background: #d9d9d9;     /* 클릭 시 배경색 */
 }
+

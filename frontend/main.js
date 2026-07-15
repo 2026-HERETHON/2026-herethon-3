@@ -15,10 +15,14 @@ NavSelected.forEach((menu) => {
     const currentMenu = e.target.closest(".navbar-menu");
     if (!currentMenu) return;
 
+    // 🔽 제휴 서비스는 별도 페이지(commercial.html)로 이동
+    if (currentMenu.classList.contains("navbar-commercial")) {
+      window.location.href = "./commercial/commercial.html";
+      return;
+    }
+
     // 1. 네비게이션 스타일 토글
     NavSelected.forEach((m) => m.classList.remove("beBold"));
-    currentMenu.classList.add("beBold");
-
     // 2. 밑줄 이동
     updateUnderline(currentMenu);
 
