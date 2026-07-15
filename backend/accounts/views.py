@@ -20,20 +20,42 @@ def signup_view(request):  # AUTH-001
 
     if request.method == 'POST':
         form = SignUpForm(request.POST, request.FILES)
+        grid_id = request.POST.get('grid_id')
+
         if form.is_valid():
+            if not grid_id:
+                form.add_error(None, '거주지를 선택해주세요.')
+                return render(request, 'accounts/signup.html', {
+                    'form': form,
+                    'grids': Grid.objects.filter(is_legal_dong=True),
+                })
+
+            grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
+
             user = form.save(commit=False)
             user.privacy_agreed_at = timezone.now()
+            user.verified_grid = grid
+            user.is_verified = False
+            user.verified_at = None
             user.save()
+
             # 🎯 [프론트 요청 반영] 예전엔 여기서 회원가입 직후 바로 login()으로
             # 세션을 만들어서 자동 로그인시켰는데, 프론트의 "회원가입 완료" 팝업
             # 흐름상 회원가입 = 로그인이 아니라, "로그인하러 가기" 버튼을 눌러
             # 로그인 폼에서 직접 로그인해야 로그인 상태가 되도록 바꿈.
             # (그래서 회원가입 성공 직후에도 request.user.is_authenticated는 False.)
             return redirect('home')
-        return render(request, 'accounts/signup.html', {'form': form})
+
+        return render(request, 'accounts/signup.html', {
+            'form': form,
+            'grids': Grid.objects.filter(is_legal_dong=True),
+        })
 
     form = SignUpForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'accounts/signup.html', {
+        'form': form,
+        'grids': Grid.objects.filter(is_legal_dong=True),
+    })
 
 
 def login_view(request):  # AUTH-002
