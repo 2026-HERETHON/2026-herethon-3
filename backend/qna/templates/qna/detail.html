@@ -1,17 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head><title>질문 상세</title></head>
-<body>
+<body
+  data-question-id="{{ question.id }}"
+  data-nickname="{{ question.user.nickname }}"
+  data-question="{{ question.question_content }}"
+  data-answer-count="{{ answers.count }}"
+>
   <h2>{{ question.user.nickname }}님의 질문</h2>
-  <p>{{ question.question_content }}</p>
+  <p id="qna-question-content">{{ question.question_content }}</p>
 
   <h3>답변 ({{ answers.count }})</h3>
-  {% for answer in answers %}
-    <div style="margin-left:20px; border-left:2px solid #ccc; padding-left:10px;">
-      <strong>{{ answer.user.nickname }}</strong>
-      <p>{{ answer.answer_content }}</p>
-    </div>
-  {% endfor %}
+  <!-- 🎯 [프론트 연동용] 답변 하나하나에 data-* 속성을 달아서 프론트가
+       구조(직속 자식 strong+p)로 추측하지 않고 바로 읽어갈 수 있게 함 -->
+  <div id="qna-answer-list">
+    {% for answer in answers %}
+      <div
+        class="qna-answer-item"
+        data-nickname="{{ answer.user.nickname }}"
+        data-content="{{ answer.answer_content }}"
+        style="margin-left:20px; border-left:2px solid #ccc; padding-left:10px;"
+      >
+        <strong>{{ answer.user.nickname }}</strong>
+        <p>{{ answer.answer_content }}</p>
+      </div>
+    {% endfor %}
+  </div>
 
   <h3>답변 작성</h3>
   {% if request.user.is_authenticated %}

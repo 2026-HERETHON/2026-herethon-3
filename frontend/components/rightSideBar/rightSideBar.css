@@ -1463,7 +1463,6 @@
   bottom: 37px;
   width: 412px;
   height: calc(100% - 27px - 37px);
-  min-height: 382px;
   z-index: 100;
 
   box-sizing: border-box;

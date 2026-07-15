@@ -9,10 +9,16 @@ let legalDongCache = {};
 
 // [★ 4번 스펙] 안심 점수(0~100)에 따른 색상 매핑 함수
 function getColorBySafetyScore(score) {
-  if (score >= 80) return "#0C447C";
-  if (score >= 60) return "#378ADD";
-  if (score >= 40) return "#82B3E4";
-  return "#FF6B6B";
+  if (score >= 90) return "rgb(12, 68, 124)";
+  if (score >= 80) return "rgb(24, 95, 165)";
+  if (score >= 70) return "rgb(36, 116, 195)";
+  if (score >= 60) return "rgb(55, 138, 221)";
+  if (score >= 50) return "rgb(98, 163, 226)";
+  if (score >= 40) return "rgb(133, 183, 235)";
+  if (score >= 30) return "rgb(159, 195, 240)";
+  if (score >= 20) return "rgb(153, 205, 229)";
+  if (score >= 10) return "rgb(185, 212, 223)";
+  return "rgb(218, 223, 225)";
 }
 
 // 💡 디버그 로그가 추가된 파서

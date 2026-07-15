@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><title>{{ grid.dong }} 후기</title></head>
-<body>
+<body data-grid-id="{{ grid.id }}" data-is-saved="{% if is_saved %}true{% else %}false{% endif %}">
   <h2>{{ grid.dong }} 실거주 후기</h2>
   <!-- 찜하기 버튼 -->
   {% if request.user.is_authenticated %}
@@ -13,7 +13,14 @@
   {% endif %}
 
 <!-- 영역별 만족도 -->
-  <div id="rating-summary">
+<!-- 🎯 [프론트 연동용] data-* 속성으로도 값을 내려줘서, 프론트가 텍스트를
+     정규식으로 파싱하지 않고 곧바로 읽어갈 수 있게 함 -->
+  <div
+    id="rating-summary"
+    data-night="{{ rating_summary.rating_night }}"
+    data-amenity="{{ rating_summary.rating_amenity }}"
+    data-mood="{{ rating_summary.rating_mood }}"
+  >
     <h3>영역별 만족도</h3>
     <ul>
       <li>밤길 체감 안전도: {{ rating_summary.rating_night }} / 5.0</li>
@@ -26,24 +33,39 @@
     <a href="?sort=likes">공감순</a>
   </div>
 
-  {% if is_empty %}
-    <p>아직 등록된 후기가 없어요.</p>
-  {% else %}
-    {% for review in reviews %}
-      <div>
-        <strong>{{ review.user.nickname }}</strong>
-        <span>평균 {{ review.average_rating }}점</span>
-        <p>{{ review.review_content }}</p>
-        <button
-          class="like-btn"
+  <!-- 🎯 [프론트 연동용] 후기 목록: 실제 화면에 보이는 요소(strong/p/button)는
+       그대로 두고, 각 후기 div에 data-* 속성을 추가해서 프론트가 필드별로
+       바로 읽어갈 수 있게 함 (닉네임/좋아요 텍스트를 텍스트 파싱하지 않아도 됨) -->
+  <div id="rightSB-reviewCardContainer" data-count="{{ reviews.count }}">
+    {% if is_empty %}
+      <p>아직 등록된 후기가 없어요.</p>
+    {% else %}
+      {% for review in reviews %}
+        <div
+          class="review-data-item"
           data-review-id="{{ review.id }}"
+          data-nickname="{{ review.user.nickname }}"
+          data-residence="{{ grid.dong }} 거주 중"
+          data-date="{{ review.created_at|timesince }} 전"
+          data-score="{{ review.average_rating }}"
+          data-likes="{{ review.like_count }}"
           data-liked="{% if review.id in liked_review_ids %}true{% else %}false{% endif %}"
+          data-content="{{ review.review_content }}"
         >
-          👍 {{ review.like_count }}
-        </button>
-      </div>
-    {% endfor %}
-  {% endif %}
+          <strong>{{ review.user.nickname }}</strong>
+          <span>평균 {{ review.average_rating }}점</span>
+          <p>{{ review.review_content }}</p>
+          <button
+            class="like-btn"
+            data-review-id="{{ review.id }}"
+            data-liked="{% if review.id in liked_review_ids %}true{% else %}false{% endif %}"
+          >
+            👍 {{ review.like_count }}
+          </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
 
   {% if request.user.is_authenticated %}
     <a href="{% url 'reviews:create' grid.id %}">후기 작성하기</a>

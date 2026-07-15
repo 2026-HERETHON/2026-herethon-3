@@ -734,8 +734,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // const isTokenExist = localStorage.getItem("token")
 
     // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
-    const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
-    // const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
+    // const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
+    const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
 
     const contentContainer = document.querySelector(".rightSB-overlayWrapper");
     if (!contentContainer) return;

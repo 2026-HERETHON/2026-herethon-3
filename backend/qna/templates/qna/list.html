@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head><title>{{ grid.dong }} Q&A</title></head>
-<body>
+<body data-grid-id="{{ grid.id }}">
   <h2>{{ grid.dong }} Q&A</h2>
 
-  {% if is_empty %}
-    <p>아직 등록된 질문이 없어요.</p>
-  {% else %}
-    {% for question in questions %}
-      <div>
-        <a href="{% url 'qna:detail' question.id %}">
-          <strong>{{ question.user.nickname }}</strong> - {{ question.question_content }}
-        </a>
-        <span>({{ question.answers.count }}개 답변)</span>
-      </div>
-    {% endfor %}
-  {% endif %}
+  <!-- 🎯 [프론트 연동용] 화면에 보이는 요소(a/strong/span)는 그대로 두고,
+       각 질문 div에 data-* 속성을 추가해서 프론트가 텍스트를 정규식으로
+       쪼개지 않고 바로 필드별로 읽어갈 수 있게 함 -->
+  <div id="rightSB-qnaCardContainer" data-count="{{ questions.count }}">
+    {% if is_empty %}
+      <p>아직 등록된 질문이 없어요.</p>
+    {% else %}
+      {% for question in questions %}
+        <div
+          class="qna-data-item"
+          data-question-id="{{ question.id }}"
+          data-nickname="{{ question.user.nickname }}"
+          data-question="{{ question.question_content }}"
+          data-answer-count="{{ question.answers.count }}"
+        >
+          <a href="{% url 'qna:detail' question.id %}">
+            <strong>{{ question.user.nickname }}</strong> - {{ question.question_content }}
+          </a>
+          <span>({{ question.answers.count }}개 답변)</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
 
   {% if request.user.is_authenticated %}
     <a href="{% url 'qna:create' grid.id %}">질문 등록하기</a>
