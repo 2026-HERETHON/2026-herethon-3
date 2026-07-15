@@ -15,6 +15,7 @@ class SignUpForm(UserCreationForm):
         label='개인정보 수집 및 이용에 동의합니다. (필수)',
         error_messages={'required': '개인정보 수집·이용에 동의해야 회원가입이 가능해요.'}
     )
+    grid_id = forms.IntegerField(required=True)
 
     class Meta:
         model = User

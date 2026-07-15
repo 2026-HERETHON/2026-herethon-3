@@ -20,16 +20,37 @@ def signup_view(request):  # AUTH-001
 
     if request.method == 'POST':
         form = SignUpForm(request.POST, request.FILES)
+        grid_id = request.POST.get('grid_id')
+
         if form.is_valid():
+            if not grid_id:
+                form.add_error(None, '거주지를 선택해주세요.')
+                return render(request, 'accounts/signup.html', {
+                    'form': form,
+                    'grids': Grid.objects.filter(is_legal_dong=True),
+                })
+
+            grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
+
             user = form.save(commit=False)
             user.privacy_agreed_at = timezone.now()
+            user.verified_grid = grid
+            user.is_verified = False
+            user.verified_at = None
             user.save()
-            login(request, user)
+
             return redirect('home')
-        return render(request, 'accounts/signup.html', {'form': form})
+
+        return render(request, 'accounts/signup.html', {
+            'form': form,
+            'grids': Grid.objects.filter(is_legal_dong=True),
+        })
 
     form = SignUpForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'accounts/signup.html', {
+        'form': form,
+        'grids': Grid.objects.filter(is_legal_dong=True),
+    })
 
 
 def login_view(request):  # AUTH-002
