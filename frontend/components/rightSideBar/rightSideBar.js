@@ -7,6 +7,9 @@ let currentSidebarState = {
   detailDongName: null,
   legalDongName: null,
   legalDongId: null,
+  // 🎯 [답변 작성 연동용] 지금 상세보기로 열려있는 질문의 id를 기억해뒀다가
+  // 답변 등록 버튼을 눌렀을 때 어느 질문에 답변을 다는 건지 알 수 있게 함.
+  currentQuestionId: null,
 };
 
 // 💡 [공용] Django CSRF 토큰을 쿠키에서 꺼내는 헬퍼 (list.html의 getCookie와 동일한 로직)
@@ -115,150 +118,73 @@ function renderSafetyChart(fields) {
   });
 }
 
-// --- [I] 후기 리스트 동적 렌더링 모듈 ---
-// 💡 top-level(전역 스코프)에 둬야 window.updateSidebarTitle에서도 호출 가능함.
-// (예전엔 DOMContentLoaded 콜백 안에 있어서 밖에서 부르면 ReferenceError가 났음)
-function renderReviews(reviews) {
+// --- [I] 후기 카드 좋아요 버튼: 이벤트 위임(delegation) 바인딩 ---
+// 💡 [진짜 MTV로 전환] 예전엔 reviews/list.html에서 data-* 값만 뽑아 JS가
+// 카드 HTML을 다시 조립했는데, 이건 사실상 JSON API를 HTML로 포장한 것과
+// 다를 게 없다는 지적을 받아 구조를 바꿨다. 이제 reviews/list.html 자체가
+// 사이드바에 실제로 보이는 스타일(class="rightSB-reviewCard" 등) 그대로
+// 서버에서 렌더링되고, JS는 그 결과물(#rightSB-reviewCardContainer의 HTML)을
+// 그대로 옮겨 붙이기만 한다. 카드가 서버 렌더링으로 통째로 갈아끼워지므로
+// 카드마다 매번 새로 리스너를 붙이는 대신, 컨테이너에 한 번만 이벤트 위임을
+// 걸어두고 클릭이 버블링돼 올라오면 그때 실제 버튼을 찾는다.
+function bindReviewLikeDelegation() {
   const container = document.getElementById("rightSB-reviewCardContainer");
-  if (!container) return;
-  container.innerHTML = "";
+  if (!container || container.dataset.likeBound === "true") return;
+  container.dataset.likeBound = "true";
 
-  // 🎯 탭 라벨의 "실거주 후기 (N)" 개수도 실제 후기 수에 맞춰 갱신
-  const reviewCountEl = document.querySelector(".rightSB-reviewSelected span");
-  if (reviewCountEl) reviewCountEl.textContent = `(${reviews.length})`;
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest(".rightSB-cardLikeBtn");
+    if (!btn) return;
+    // 이벤트 버블링 방지 (카드를 클릭했을 때 다른 서브페이지로 튀는 현상 막기)
+    e.stopPropagation();
 
-  // 데이터가 하나도 없을 때 예외 처리
-  if (reviews.length === 0) {
-    container.innerHTML = `<div style="text-align:center; color:#7b7578; padding:4px 0;">첫 번째 후기를 남겨보세요!</div>`;
-    return;
-  }
+    const reviewId = btn.dataset.reviewId;
+    if (!reviewId) return;
 
-  reviews.forEach((review) => {
-    let emptyStarsHTML = "";
-    let filledStarsHTML = "";
-    for (let i = 0; i < 5; i++) {
-      emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" class="rightSB-cardStarIcon" />`;
-      filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" class="rightSB-cardStarIcon" />`;
-    }
-    const roundedScore = Math.round(review.score * 2) / 2;
-    const filledStarsCount = Math.floor(roundedScore);
-    const hasHalfStar = roundedScore % 1 !== 0;
+    const countSpan = btn.querySelector(".rightSB-likeCount");
+    const imgIcon = btn.querySelector(".rightSB-likeImg");
 
-    let totalWidth = filledStarsCount * 11 + filledStarsCount * 4;
-    if (hasHalfStar) {
-      totalWidth += 5.5;
-    } else if (filledStarsCount > 0) {
-      totalWidth -= 4;
-    }
-
-    // list.html에서 이미 "이 유저가 좋아요를 눌렀는지"(data-liked)까지 긁어왔으므로
-    // 새로고침해도 좋아요 상태가 false로 리셋되지 않도록 초기 상태에 반영한다.
-    const initialLiked = !!review.liked;
-    const likeIcon = initialLiked ? "filledThumbsUp" : "thumbsUp";
-    const likeStyle = initialLiked
-      ? `border-radius:20px; border:1px solid var(--Color-Blue900, #1077FF); background:var(--Color-Blue200, #C4ECFE); color:var(--Color-Blue900, #1077FF);`
-      : "";
-
-    const cardHTML = `
-      <div class="rightSB-reviewCard" data-id="${review.id}">
-        <div class="rightSB-cardUserLine">
-          <div class="rightSB-cardUserInfo">
-            <div class="rightSB-cardAvatar"></div>
-            <div>
-              <span class="rightSB-cardNickname">${review.nickname}</span>
-              <span class="rightSB-cardPeriod">${review.residence}</span>
-            </div>
-          </div>
-          <span class="rightSB-cardDate">${review.date}</span>
-        </div>
-
-        <div class="rightSB-reviewTextWrapper">
-          <div>
-            <div class="rightSB-cardRatingLine">
-              <div class="rightSB-cardStarsDisplay">
-                <div class="rightSB-cardEmptyStars">
-                  ${emptyStarsHTML}
-                </div>
-                <div class="rightSB-cardFilledStars" style="width: ${totalWidth}px;">
-                  ${filledStarsHTML}
-                </div>
-              </div>
-              <span class="rightSB-cardScore">${review.score.toFixed(1)}</span>
-            </div>
-            <div class="rightSB-cardText">${review.content}</div>
-          </div>
-
-          <button
-            class="rightSB-cardLikeBtn"
-            data-review-id="${review.id}"
-            data-liked="${initialLiked}"
-            data-base-likes="${review.likes}"
-            style="${likeStyle}"
-          >
-            <img src="./components/rightSideBar/rightSB-images/${likeIcon}.svg" class="rightSB-likeImg" style="width:11px; height:10px;" />
-            <span class="rightSB-likeCount">${review.likes}</span>
-          </button>
-        </div>
-      </div>
-    `;
-    container.insertAdjacentHTML("beforeend", cardHTML);
-  });
-  // 생성된 모든 후기 카드의 좋아요 버튼에 개별 클릭 이벤트 바인딩하기
-  // 🎯 이제 로컬에서 숫자만 +1/-1 하는 게 아니라, 실제 /reviews/<review_id>/like/ 로
-  // POST해서 서버가 돌려주는 진짜 liked/like_count 값으로 갱신한다.
-  const likeButtons = container.querySelectorAll(".rightSB-cardLikeBtn");
-
-  likeButtons.forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      // 이벤트 버블링 방지 (카드를 클릭했을 때 다른 서브페이지로 튀는 현상 막기)
-      e.stopPropagation();
-
-      const reviewId = btn.dataset.reviewId;
-      if (!reviewId) return;
-
-      const countSpan = btn.querySelector(".rightSB-likeCount");
-      const imgIcon = btn.querySelector(".rightSB-likeImg");
-
-      fetch(`http://127.0.0.1:8000/reviews/${reviewId}/like/`, {
-        method: "POST",
-        credentials: "same-origin", // 로그인 세션 쿠키를 같이 보내야 인증됨
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
+    // 실제 /reviews/<review_id>/like/ 로 POST해서 서버가 돌려주는
+    // 진짜 liked/like_count 값으로 갱신한다.
+    fetch(`/reviews/${reviewId}/like/`, {
+      method: "POST",
+      credentials: "same-origin", // 로그인 세션 쿠키를 같이 보내야 인증됨
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`좋아요 처리 실패 (상태코드 ${res.status})`);
+        }
+        return res.json(); // {"liked": true/false, "like_count": int}
       })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(`좋아요 처리 실패 (상태코드 ${res.status})`);
-          }
-          return res.json(); // {"liked": true/false, "like_count": int}
-        })
-        .then((data) => {
-          btn.setAttribute("data-liked", data.liked ? "true" : "false");
-          if (countSpan) countSpan.textContent = data.like_count;
-          if (imgIcon) {
-            imgIcon.src = data.liked
-              ? "./components/rightSideBar/rightSB-images/filledThumbsUp.svg"
-              : "./components/rightSideBar/rightSB-images/thumbsUp.svg";
-          }
+      .then((data) => {
+        btn.setAttribute("data-liked", data.liked ? "true" : "false");
+        if (countSpan) countSpan.textContent = data.like_count;
+        if (imgIcon) {
+          imgIcon.src = data.liked
+            ? "./components/rightSideBar/rightSB-images/filledThumbsUp.svg"
+            : "./components/rightSideBar/rightSB-images/thumbsUp.svg";
+        }
 
-          if (data.liked) {
-            // 🎨 좋아요 활성화 디자인
-            btn.style.borderRadius = "20px";
-            btn.style.border = "1px solid var(--Color-Blue900, #1077FF)";
-            btn.style.background = "var(--Color-Blue200, #C4ECFE)";
-            btn.style.color = "var(--Color-Blue900, #1077FF)";
-          } else {
-            // 🎨 좋아요 해제 디자인 (원래대로)
-            btn.style.border = "none";
-            btn.style.background = "var(--GrayScale-100, #f0edee)";
-            btn.style.color = "var(--GrayScale-800, #5b5658)";
-          }
-        })
-        .catch((err) => {
-          console.error("🚨 좋아요 처리 중 오류:", err);
-          alert("좋아요 처리에 실패했어요. 로그인 상태를 확인해주세요.");
-        });
-    });
+        if (data.liked) {
+          // 🎨 좋아요 활성화 디자인
+          btn.style.borderRadius = "20px";
+          btn.style.border = "1px solid var(--Color-Blue900, #1077FF)";
+          btn.style.background = "var(--Color-Blue200, #C4ECFE)";
+          btn.style.color = "var(--Color-Blue900, #1077FF)";
+        } else {
+          // 🎨 좋아요 해제 디자인 (원래대로)
+          btn.style.border = "none";
+          btn.style.background = "var(--GrayScale-100, #f0edee)";
+          btn.style.color = "var(--GrayScale-800, #5b5658)";
+        }
+      })
+      .catch((err) => {
+        console.error("🚨 좋아요 처리 중 오류:", err);
+        alert("좋아요 처리에 실패했어요. 로그인 상태를 확인해주세요.");
+      });
   });
 }
 
@@ -270,7 +196,7 @@ function renderReviews(reviews) {
 function refreshReviewSection(legalDongId, legalDongName) {
   if (!legalDongId) return Promise.resolve();
 
-  const reviewPageUrl = `http://127.0.0.1:8000/reviews/grid/${legalDongId}/`;
+  const reviewPageUrl = `/reviews/grid/${legalDongId}/`;
 
   return fetch(reviewPageUrl)
     .then((response) => {
@@ -284,22 +210,23 @@ function refreshReviewSection(legalDongId, legalDongName) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // list.html 실제 구조: #rating-summary ul > li 3개
-      // (밤길 체감 안전도 / 편의시설 만족도 / 동네 분위기 순서 고정)
-      const summaryItems = doc.querySelectorAll("#rating-summary li");
+      // 🎯 영역별 만족도 3개 숫자(집계 통계)만 data-*로 읽어서 별점 위젯을 그린다.
+      // (카드 목록과 달리 이건 사용자 콘텐츠가 아니라 평균값 3개뿐이라, 차트/게이지를
+      // 그리려고 숫자를 읽는 건 일반 MTV+JS 프론트에서도 흔한 패턴이라 문제없다.)
+      const summaryEl = doc.getElementById("rating-summary");
+      const nightScore = parseFloat(summaryEl?.dataset.night) || 0;
+      const convenienceScore = parseFloat(summaryEl?.dataset.amenity) || 0;
+      const atmosphereScore = parseFloat(summaryEl?.dataset.mood) || 0;
 
-      const extractScore = (el) => {
-        if (!el) return 0;
-        // "밤길 체감 안전도: 4.2 / 5.0" 같은 텍스트에서 첫 숫자만 추출
-        const match = el.textContent.match(/([\d.]+)\s*\/\s*5(?:\.0)?/);
-        return match ? parseFloat(match[1]) : 0;
-      };
+      // 🎯 [워딩 수정] "영역별 만족도" -> "{법정동} 일대 영역별 만족도"
+      const satisfactionTitleEl = document.querySelector(
+        ".rightSB-satisfactionTitle",
+      );
+      if (satisfactionTitleEl && legalDongName) {
+        satisfactionTitleEl.textContent = `${legalDongName} 일대 영역별 만족도`;
+      }
 
-      const nightScore = extractScore(summaryItems[0]);
-      const convenienceScore = extractScore(summaryItems[1]);
-      const atmosphereScore = extractScore(summaryItems[2]);
-
-      console.log("🔥 list.html에서 뜯어낸 진짜 만족도 점수:", {
+      console.log("🔥 list.html에서 받은 진짜 만족도 점수:", {
         nightScore,
         convenienceScore,
         atmosphereScore,
@@ -307,49 +234,26 @@ function refreshReviewSection(legalDongId, legalDongName) {
       handleStarRating(nightScore, convenienceScore, atmosphereScore);
 
       // =====================================================================
-      // 🎯 [★ 후기 카드 리스트도 같은 응답에서 같이 뜯어오기]
-      // list.html의 개별 후기는 클래스가 없어서, "좋아요 버튼(.like-btn)을
-      // 담고 있는 body 바로 아래 div"를 후기 카드로 간주해서 골라낸다.
-      // (rating-summary div, 정렬 링크 div에는 .like-btn이 없어서 자동으로 걸러짐)
-      // list.html엔 "거주기간/작성일" 필드가 없어서 그 두 값은 프론트에서
-      // 임의로 채운다 (백엔드에 필드가 추가되면 그대로 교체하면 됨).
+      // 🎯 [진짜 MTV] 후기 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
+      // Django가 렌더링한 #rightSB-reviewCardContainer의 HTML을 그대로 옮겨 붙인다.
       // =====================================================================
-      const reviewDivs = Array.from(
-        doc.querySelectorAll("body > div"),
-      ).filter((div) => div.querySelector(".like-btn"));
-
-      const parsedReviews = reviewDivs.map((div) => {
-        const likeBtn = div.querySelector(".like-btn");
-        const nickname =
-          div.querySelector("strong")?.textContent?.trim() || "익명";
-        const content = div.querySelector("p")?.textContent?.trim() || "";
-
-        const avgText = div.querySelector("span")?.textContent || ""; // "평균 4.2점"
-        const scoreMatch = avgText.match(/([\d.]+)/);
-        const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
-
-        const likeText = likeBtn?.textContent || ""; // "👍 12"
-        const likeMatch = likeText.match(/(\d+)/);
-        const likes = likeMatch ? parseInt(likeMatch[1], 10) : 0;
-
-        return {
-          id: likeBtn?.dataset.reviewId,
-          liked: likeBtn?.dataset.liked === "true", // 로그인 유저가 이미 누른 좋아요인지
-          nickname,
-          residence: `${legalDongName} 거주 중`, // list.html에 없는 필드라 임시로 채움
-          date: "", // list.html에 작성일이 없어서 비워둠
-          score,
-          content,
-          likes,
-        };
-      });
-
-      console.log(
-        `🔥 list.html에서 뜯어낸 진짜 후기 ${parsedReviews.length}건:`,
-        parsedReviews,
+      const serverContainer = doc.getElementById("rightSB-reviewCardContainer");
+      const localContainer = document.getElementById(
+        "rightSB-reviewCardContainer",
       );
-      renderReviews(parsedReviews);
-      return parsedReviews;
+      if (localContainer && serverContainer) {
+        localContainer.innerHTML = serverContainer.innerHTML;
+      }
+      bindReviewLikeDelegation();
+
+      const reviewCount = parseInt(serverContainer?.dataset.count, 10) || 0;
+      const reviewCountEl = document.querySelector(
+        ".rightSB-reviewSelected span",
+      );
+      if (reviewCountEl) reviewCountEl.textContent = `(${reviewCount})`;
+
+      console.log(`🔥 서버가 렌더링한 후기 ${reviewCount}건을 그대로 옮겨 붙임`);
+      return reviewCount;
     })
     .catch((err) => {
       console.warn(
@@ -359,58 +263,60 @@ function refreshReviewSection(legalDongId, legalDongName) {
       // 💡 [시연용 센스!] DB에 진짜 데이터가 없어서 404가 날 때는 완전히 0점으로 비우는 대신,
       // 시연 화면이 이쁘게 나오도록 자연스러운 기본 별점을 세팅해 줍니다.
       handleStarRating(3.8, 4.2, 4.0);
+      const satisfactionTitleEl = document.querySelector(
+        ".rightSB-satisfactionTitle",
+      );
+      if (satisfactionTitleEl && legalDongName) {
+        satisfactionTitleEl.textContent = `${legalDongName} 일대 영역별 만족도`;
+      }
       // 후기 fetch 자체가 실패한 경우이므로 카드/개수도 빈 상태로 맞춰줌
-      renderReviews([]);
+      const localContainer = document.getElementById(
+        "rightSB-reviewCardContainer",
+      );
+      if (localContainer) {
+        localContainer.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; text-align:center; color:#7b7578;">첫 번째 후기를 남겨보세요!</div>`;
+      }
+      const reviewCountEl = document.querySelector(
+        ".rightSB-reviewSelected span",
+      );
+      if (reviewCountEl) reviewCountEl.textContent = `(0)`;
     });
 }
 
 // =====================================================================
-// 🎯 [Q&A] 리스트 렌더링 + 상세(질문/답변) 렌더링 + 백엔드 연동
-// renderReviews와 동일하게 top-level에 둬서 window.updateSidebarTitle에서도
-// 호출 가능하게 함.
+// 🎯 [Q&A] 카드 클릭(상세 열기) 이벤트 위임 바인딩
+// 후기 좋아요 버튼과 동일한 이유로, 카드 마크업 자체는 이제 서버가
+// 렌더링하므로 컨테이너에 한 번만 위임 리스너를 걸어둔다.
 // =====================================================================
-function renderQnas(qnas) {
+function bindQnaCardDelegation() {
   const container = document.getElementById("rightSB-qnaCardContainer");
-  if (!container) return;
+  if (!container || container.dataset.clickBound === "true") return;
+  container.dataset.clickBound = "true";
 
-  //초기화
-  container.innerHTML = "";
-
-  // 🎯 탭 라벨의 "Q&A (N)" 개수도 실제 질문 수에 맞춰 갱신
-  const qnaCountEl = document.querySelector(".rightSB-QnASelected span");
-  if (qnaCountEl) qnaCountEl.textContent = `(${qnas.length})`;
-
-  // 질문이 없을 때 처리
-  if (qnas.length === 0) {
-    container.innerHTML = `<div style="text-align:center; color:#7b7578; padding:24px 0;">등록된 질문이 없습니다. 첫 질문을 던져보세요!</div>`;
-    return;
-  }
-
-  qnas.forEach((qna) => {
-    const qnaHTML = `
-      <div class="rightSB-qnaCard" data-id="${qna.id}">
-        <div class="rightSB-qnaLeft"><div class="rightSB-qnaAvatar">Q</div><span class="rightSB-qnaQuestion">${qna.question}</span></div>
-        <div class="rightSB-qnaRight"><span class="rightSB-qnaAnswerText">답변 ${qna.answerCount}</span></div>
-      </div>`;
-    container.insertAdjacentHTML("beforeend", qnaHTML);
-  });
-
-  container.querySelectorAll(".rightSB-qnaCard").forEach((card) => {
-    card.addEventListener("click", () => {
-      const qnaId = card.getAttribute("data-id");
-      openQuestionDetail(qnaId);
-    });
+  container.addEventListener("click", (e) => {
+    const card = e.target.closest(".rightSB-qnaCard");
+    if (!card) return;
+    const qnaId = card.getAttribute("data-id");
+    openQuestionDetail(qnaId);
   });
 }
 
 // 질문 상세 + 답변 목록을 /qna/question/<id>/ 응답에서 뜯어와 채워줌
+//
+// 💡 [진짜 MTV로 전환] 답변도 예전엔 data-nickname/data-content 값만 뽑아
+// JS가 .rightSB-answerCard HTML을 다시 조립했는데, 이제는 qna/detail.html이
+// 그 마크업 자체를 서버에서 렌더링하고 JS는 그 결과물을 그대로 옮겨 붙인다.
 function openQuestionDetail(questionId) {
   if (!questionId) return;
 
+  // 🎯 답변 등록 버튼이 "지금 어느 질문에 답할지" 알 수 있도록 기억해둠
+  currentSidebarState.currentQuestionId = questionId;
+
   const titleEl = document.getElementById("qnaDetailTitle");
   const ansContainer = document.getElementById("qnaAnswerContainer");
+  const ansCountEl = document.getElementById("qnaDetailAnsCount");
 
-  fetch(`http://127.0.0.1:8000/qna/question/${questionId}/`)
+  fetch(`/qna/question/${questionId}/`)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`질문 상세 fetch 실패 (상태코드 ${res.status})`);
@@ -421,51 +327,21 @@ function openQuestionDetail(questionId) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // detail.html 구조: <h2>...</h2><p>{{ question.question_content }}</p>
-      // → body 바로 아래 첫 <p>가 질문 본문
+      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 쓴다.
       const questionText =
-        doc.querySelector("body > p")?.textContent?.trim() || "";
+        doc.getElementById("qna-question-content")?.textContent || "";
       if (titleEl) titleEl.textContent = questionText;
 
-      // 답변 div는 클래스가 없어서, "직속 자식으로 strong + p를 둘 다 가진 div"를
-      // 답변 카드로 간주해서 골라낸다. (질문 목록의 div와 겹치지 않는 구조적 특징)
-      const answerDivs = Array.from(doc.querySelectorAll("div")).filter(
-        (div) =>
-          div.querySelector(":scope > strong") &&
-          div.querySelector(":scope > p"),
-      );
-
-      const parsedAnswers = answerDivs.map((div) => ({
-        nickname: div.querySelector("strong")?.textContent?.trim() || "익명",
-        residence: "", // detail.html에 없는 필드라 비워둠
-        date: "", // detail.html에 없는 필드라 비워둠
-        content: div.querySelector("p")?.textContent?.trim() || "",
-      }));
-
-      if (ansContainer) {
-        ansContainer.innerHTML = "";
-        if (parsedAnswers.length === 0) {
-          ansContainer.innerHTML = `<div style="text-align:center; color:#7b7578; padding:12px 0;">아직 답변이 없어요.</div>`;
-        }
-        parsedAnswers.forEach((ans) => {
-          const ansHTML = `
-            <div class="rightSB-answerCard">
-              <div class="rightSB-ansUserLine">
-                <div class="rightSB-ansUserInfo">
-                  <div class="rightSB-ansAvatar"></div>
-                  <div>
-                    <span class="rightSB-ansNickname">${ans.nickname}</span>
-                    <span class="rightSB-ansPeriod">${ans.residence}</span>
-                  </div>
-                </div>
-                <span class="rightSB-ansDate">${ans.date}</span>
-              </div>
-              <div class="rightSB-ansText">${ans.content}</div>
-            </div>
-          `;
-          ansContainer.insertAdjacentHTML("beforeend", ansHTML);
-        });
+      // 🎯 [진짜 MTV] 답변 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
+      // Django가 렌더링한 #qnaAnswerContainer의 HTML을 그대로 옮겨 붙인다.
+      const serverAnswerContainer = doc.getElementById("qnaAnswerContainer");
+      if (ansContainer && serverAnswerContainer) {
+        ansContainer.innerHTML = serverAnswerContainer.innerHTML;
       }
+
+      const answerCount =
+        parseInt(serverAnswerContainer?.dataset.count, 10) || 0;
+      if (ansCountEl) ansCountEl.textContent = `답변 ${answerCount}`;
     })
     .catch((err) => {
       console.error("🚨 질문 상세 불러오기 실패:", err);
@@ -484,11 +360,78 @@ function openQuestionDetail(questionId) {
   window.__updateBottomButtons?.();
 }
 
+// =====================================================================
+// 🎯 [Q&A] 답변 작성 - 사이드바 입력창 → /qna/question/<id>/answer/ 실제 POST
+//
+// 💡 이 버튼/입력창은 페이지 전체가 다시 그려지지 않는 고정 마크업이라
+// DOMContentLoaded에서 한 번만 바인딩하면 됨 (카드처럼 innerHTML로
+// 통째로 교체되는 요소가 아니라서 이벤트 위임이 필요 없음).
+//
+// ⚠️ 백엔드(qna/views.py answer_create)는 폼 유효성 검사에 실패해도
+// 에러를 보여주지 않고 무조건 qna:detail로 리다이렉트하도록 만들어져
+// 있어서(명세서 그대로), 프론트에서는 "성공"과 "조용히 씹힘"을 구분할
+// 방법이 없다. 그래서 여기서도 요청이 끝나면 입력칸을 비우고 답변
+// 목록을 새로고침만 하고, 별도의 성공/실패 메시지는 표시하지 않는다.
+// =====================================================================
+function bindAnswerSubmit() {
+  const btn = document.querySelector(".rightSB-answerSubmitBtn");
+  const input = document.querySelector(".rightSB-answerInput");
+  if (!btn || !input || btn.dataset.clickBound === "true") return;
+  btn.dataset.clickBound = "true";
+
+  const submitAnswer = () => {
+    const questionId = currentSidebarState.currentQuestionId;
+    const content = input.value.trim();
+    if (!questionId || !content) return;
+
+    btn.disabled = true;
+
+    fetch(`/qna/question/${questionId}/answer/`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: new URLSearchParams({ answer_content: content }),
+    })
+      .then((res) => {
+        // 🎯 answer_create는 @login_required라서, 로그인 세션이 없으면
+        // qna:detail이 아니라 로그인 페이지로 리다이렉트된다 — 이 경우만
+        // 유일하게 프론트에서 구분 가능한 "실패"라서 alert로 알려준다.
+        if (res.url.includes("/accounts/login/")) {
+          alert("로그인이 필요해요. 다시 로그인해주세요.");
+          return;
+        }
+        input.value = "";
+        // 방금 등록한(혹은 조용히 실패한) 답변까지 반영된 최신 상세를 다시 그림
+        openQuestionDetail(questionId);
+        alert("답변이 등록되었습니다.");
+      })
+      .catch((err) => {
+        console.error("🚨 답변 등록 중 오류:", err);
+        alert("답변 등록 중 오류가 발생했어요.");
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
+  };
+
+  btn.addEventListener("click", submitAnswer);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitAnswer();
+  });
+}
+
 // 🎯 [공용] Q&A 목록 새로고침 (refreshReviewSection의 Q&A 버전)
+//
+// 💡 [진짜 MTV로 전환] 예전엔 .qna-data-item에서 값만 뽑아 JS가
+// .rightSB-qnaCard HTML을 다시 조립했는데, 이제는 qna/list.html이
+// 그 마크업 자체를 서버에서 렌더링하고 JS는 그 결과물을 그대로 옮겨 붙인다.
 function refreshQnaSection(legalDongId) {
   if (!legalDongId) return Promise.resolve();
 
-  const qnaPageUrl = `http://127.0.0.1:8000/qna/grid/${legalDongId}/`;
+  const qnaPageUrl = `/qna/grid/${legalDongId}/`;
 
   return fetch(qnaPageUrl)
     .then((response) => {
@@ -501,44 +444,36 @@ function refreshQnaSection(legalDongId) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // qna/list.html 실제 구조:
-      // <div><a href=".../qna/question/<id>/"><strong>닉네임</strong> - 질문내용</a><span>(N개 답변)</span></div>
-      const questionDivs = Array.from(
-        doc.querySelectorAll("body > div"),
-      ).filter((div) => div.querySelector('a[href*="/qna/question/"]'));
-
-      const parsedQnas = questionDivs.map((div) => {
-        const link = div.querySelector('a[href*="/qna/question/"]');
-        const idMatch = (link?.getAttribute("href") || "").match(
-          /\/qna\/question\/(\d+)/,
-        );
-        const id = idMatch ? idMatch[1] : null;
-
-        const nickname = link?.querySelector("strong")?.textContent?.trim() || "익명";
-        // "<strong>닉네임</strong> - 질문내용" 전체 텍스트에서 닉네임/구분자를 떼어냄
-        const fullText = link?.textContent?.trim() || "";
-        const question = fullText
-          .replace(nickname, "")
-          .replace(/^\s*-\s*/, "")
-          .trim();
-
-        const answerText = div.querySelector("span")?.textContent || ""; // "(2개 답변)"
-        const countMatch = answerText.match(/(\d+)/);
-        const answerCount = countMatch ? parseInt(countMatch[1], 10) : 0;
-
-        return { id, question, answerCount };
-      });
-
-      console.log(
-        `🔥 qna/list.html에서 뜯어낸 진짜 질문 ${parsedQnas.length}건:`,
-        parsedQnas,
+      // =====================================================================
+      // 🎯 [진짜 MTV] Q&A 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
+      // Django가 렌더링한 #rightSB-qnaCardContainer의 HTML을 그대로 옮겨 붙인다.
+      // =====================================================================
+      const serverContainer = doc.getElementById("rightSB-qnaCardContainer");
+      const localContainer = document.getElementById(
+        "rightSB-qnaCardContainer",
       );
-      renderQnas(parsedQnas);
-      return parsedQnas;
+      if (localContainer && serverContainer) {
+        localContainer.innerHTML = serverContainer.innerHTML;
+      }
+      bindQnaCardDelegation();
+
+      const qnaCount = parseInt(serverContainer?.dataset.count, 10) || 0;
+      const qnaCountEl = document.querySelector(".rightSB-QnASelected span");
+      if (qnaCountEl) qnaCountEl.textContent = `(${qnaCount})`;
+
+      console.log(`🔥 서버가 렌더링한 Q&A ${qnaCount}건을 그대로 옮겨 붙임`);
+      return qnaCount;
     })
     .catch((err) => {
       console.warn("⚠️ Q&A 데이터를 불러오지 못했습니다.", err);
-      renderQnas([]);
+      const localContainer = document.getElementById(
+        "rightSB-qnaCardContainer",
+      );
+      if (localContainer) {
+        localContainer.innerHTML = `<div style="text-align:center; color:#7b7578; padding:24px 0;">등록된 질문이 없습니다. 첫 질문을 던져보세요!</div>`;
+      }
+      const qnaCountEl = document.querySelector(".rightSB-QnASelected span");
+      if (qnaCountEl) qnaCountEl.textContent = `(0)`;
     });
 }
 
@@ -553,12 +488,19 @@ window.updateSidebarTitle = function (
   currentSidebarState = { detailDongName, legalDongName, legalDongId };
 
   // ====================================================
-  // 🎯 [수정] 사이드바에 뜨는 안심점수/차트는 "법정동" 기준이어야 함
-  // 기존 코드는 detailDongName(행정동, 예: 상계1동) + is_legal_dong=false 로 조회해서
-  // 클릭한 세부 행정동의 개별 수치가 노출되는 버그가 있었음.
-  // -> legalDongName(법정동, 예: 상계동) + is_legal_dong=true 로 조회하도록 변경.
+  // 🎯 [2-1번 스펙] 사이드바 상단 안심점수/그래프는 이제 "어떤 폴리곤을 클릭했는가"에
+  // 따라 달라진다.
+  // - 검색(법정동 선택)이나 법정동 폴리곤 자체를 볼 때: detailDongName === legalDongName
+  //   -> 법정동(is_legal_dong=true) 기준으로 조회
+  // - 법정동 안에서 hover-in 후 특정 행정동 폴리곤을 클릭했을 때: detailDongName(행정동)이
+  //   legalDongName(법정동)과 다름 -> 그 행정동(is_legal_dong=false) 기준으로 조회
+  // (영역별 만족도/후기/QnA는 아래 refreshReviewSection/refreshQnaSection에서
+  //  legalDongId 기준으로 그대로 유지된다)
   // ====================================================
-  const detailUrl = `http://127.0.0.1:8000/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
+  const isAdminDongDetail = detailDongName !== legalDongName;
+  const detailUrl = isAdminDongDetail
+    ? `/grids/${encodeURIComponent(detailDongName)}/?is_legal_dong=false`
+    : `/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
 
   fetch(detailUrl)
     .then((res) => {
@@ -571,8 +513,18 @@ window.updateSidebarTitle = function (
       // ====================================================
       // 🎯 1. 제목 및 안심 점수 텍스트 갱신
       // ====================================================
-      const regionEl = document.querySelector(".rightSB-regionText");
-      if (regionEl) regionEl.textContent = legalDongName; // 지역 - 법정동
+      // 🎯 [버그 수정] .rightSB-region 자체에 textContent를 넣으면 그 안의
+      // <span class="rightSB-regionText">와 <img class="rightSB-regionHeartImg">
+      // 자식 노드가 통째로 지워져서 찜하기 하트 아이콘이 사라졌었다.
+      // 이름 텍스트는 반드시 자식 span(.rightSB-regionText)에만 넣어야 한다.
+      // 🎯 [워딩 수정] 법정동 폴리곤(또는 검색) 상태일 땐 "{법정동} 일대",
+      // 행정동 폴리곤을 클릭했을 땐 그 행정동 이름 그대로("일대" 안 붙임) 표시
+      const regionTextEl = document.querySelector(".rightSB-regionText");
+      if (regionTextEl) {
+        regionTextEl.textContent = isAdminDongDetail
+          ? detailDongName
+          : `${legalDongName} 일대`;
+      }
 
       const scoreNumberEl = document.querySelector(".rightSB-score"); // 안심점수
       if (scoreNumberEl && fields.safety_score !== undefined) {
@@ -628,8 +580,12 @@ window.updateSidebarTitle = function (
     .catch((err) => {
       console.error("🚨 API 통신 에러:", err);
       // 에러 시에도 동작은 하도록 방어 코드
-      const regionEl = document.querySelector(".rightSB-regionText");
-      if (regionEl) regionEl.textContent = legalDongName;
+      const regionTextEl = document.querySelector(".rightSB-regionText");
+      if (regionTextEl) {
+        regionTextEl.textContent = isAdminDongDetail
+          ? detailDongName
+          : `${legalDongName} 일대`;
+      }
 
       const sidebar = document.getElementById("rightSideBar-container");
       if (sidebar) sidebar.classList.remove("sidebar-collapsed");
@@ -730,12 +686,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // 로그인 상태 체크 및 탭 제어 기능
   // ==========================================
   function checkAuthAndToggleTabs() {
-    // 🔓 실제 연동용: localStorage에 토큰이 있으면 true(로그인), 없으면 false(로그아웃)
-    // const isTokenExist = localStorage.getItem("token")
-
-    // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
-    // const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
-    const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
+    // 🎯 [진짜 연동] home.html의 <body data-authenticated="...">에 Django가
+    // request.user.is_authenticated를 그대로 내려주므로, 그 값을 읽는다.
+    // (예전엔 여기 하드코딩된 테스트 스위치가 있었는데, 실제 로그인 상태와
+    // 무관하게 값이 고정돼 있어서 로그인해도 잠금 화면이 안 사라졌었음)
+    const isTokenExist = document.body.dataset.authenticated === "true";
 
     const contentContainer = document.querySelector(".rightSB-overlayWrapper");
     if (!contentContainer) return;
@@ -801,6 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
   handleStarRating();
   checkAuthAndToggleTabs();
   updateBottomButtons();
+  bindAnswerSubmit();
 
   // --- [C] 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
   function updateIndicator(target) {
@@ -1000,30 +956,56 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("click", backToMainList);
 
   // --- [찜하기 기능] ---
-  let isWished = false;
+  // 🎯 [진짜 MTV] 예전엔 로컬 변수(isWished)만 토글하는 가짜 기능이라 실제로
+  // 아무 데도 저장되지 않았다. 마이페이지의 '찜한 동네' 탭이 실제 SavedGrid
+  // 데이터를 보여주므로, 이 버튼도 진짜 /accounts/grid/<id>/save/ 에
+  // POST해서 저장해야 마이페이지에 반영된다.
   document
     .querySelectorAll(".wish-btn, .rightSB-regionHeartImg")
     .forEach((btn) => {
       btn.addEventListener("click", () => {
-        isWished = !isWished;
+        const legalDongId = currentSidebarState.legalDongId;
+        if (!legalDongId) return;
 
-        // 🎯 [수정] 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
-        const allHeartImgs = document.querySelectorAll(
-          ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg",
-        );
+        fetch(`/accounts/grid/${legalDongId}/save/`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+        })
+          .then((res) => {
+            if (res.url.includes("/accounts/login/")) {
+              alert("로그인이 필요해요.");
+              return null;
+            }
+            return res.json();
+          })
+          .then((data) => {
+            if (!data) return;
+            const isWished = data.saved;
 
-        allHeartImgs.forEach((img) => {
-          // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
-          img.src = isWished
-            ? "./components/rightSideBar/rightSB-images/fullHeart.svg"
-            : "./components/rightSideBar/rightSB-images/heart.svg";
-        });
+            // 🎯 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
+            const allHeartImgs = document.querySelectorAll(
+              ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg",
+            );
 
-        alert(
-          isWished
-            ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
-            : "💔 찜 목록에서 제외되었습니다.",
-        );
+            allHeartImgs.forEach((img) => {
+              // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
+              img.src = isWished
+                ? "./components/rightSideBar/rightSB-images/fullHeart.svg"
+                : "./components/rightSideBar/rightSB-images/heart.svg";
+            });
+
+            alert(
+              isWished
+                ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
+                : "💔 찜 목록에서 제외되었습니다.",
+            );
+          })
+          .catch((err) => {
+            console.error("🚨 찜하기 처리 중 오류:", err);
+          });
       });
     });
 
@@ -1082,7 +1064,7 @@ document.addEventListener("DOMContentLoaded", () => {
           rating_mood: scores.atmosphere.toFixed(1),
         });
 
-        fetch(`http://127.0.0.1:8000/reviews/grid/${legalDongId}/create/`, {
+        fetch(`/reviews/grid/${legalDongId}/create/`, {
           method: "POST",
           credentials: "same-origin", // 로그인 세션 쿠키 포함해서 보내야 인증됨
           headers: {
@@ -1161,7 +1143,7 @@ document.addEventListener("DOMContentLoaded", () => {
           question_content: text,
         });
 
-        fetch(`http://127.0.0.1:8000/qna/grid/${legalDongId}/create/`, {
+        fetch(`/qna/grid/${legalDongId}/create/`, {
           method: "POST",
           credentials: "same-origin",
           headers: {
@@ -1223,8 +1205,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   }
 
-  // --- [I]/[J] 후기·Q&A 리스트 렌더링 함수는 파일 상단(top-level)으로 이동됨 ---
-  // (renderReviews, renderQnas, openQuestionDetail은 handleStarRating 근처 참고)
+  // --- [I]/[J] 후기·Q&A 새로고침/바인딩 함수는 파일 상단(top-level)으로 이동됨 ---
+  // (bindReviewLikeDelegation, refreshReviewSection, bindQnaCardDelegation,
+  //  openQuestionDetail, refreshQnaSection은 handleStarRating 근처 참고.
+  //  카드 마크업은 이제 Django 템플릿이 직접 렌더링하고, JS는 그 결과물의
+  //  HTML을 그대로 옮겨 붙이기만 함 — 값만 뽑아 재조립하지 않음)
   // 클릭 전 초기 상태는 빈 상태로 시작하고, 지도를 클릭하면
   // window.updateSidebarTitle -> refreshReviewSection / refreshQnaSection이
   // 실제 데이터로 채워준다.
@@ -1244,100 +1229,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ?.classList.toggle("sidebar-collapsed");
   });
 
-  // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
-  const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn");
-
-  if (openLoginBtn) {
-    openLoginBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // 기본 a태그 이동 기능 막기
-
-      const overlay = document.getElementById("loginPopupOverlay");
-      const contentBox = document.getElementById("loginPopupContent");
-
-      // 2. 외부 login.html 파일 가져오기
-      fetch("./login/login.html")
-        .then((response) => response.text())
-        .then((htmlData) => {
-          // 3. 팝업 상자 안에 소스 삽입
-          contentBox.innerHTML = htmlData;
-
-          // 4. 숨겨진 팝업 노출 및 기본 로그인 크기로 초기 설정 보장
-          contentBox.style.width = "518px";
-          contentBox.style.height = "689px";
-          overlay.classList.remove("popup-hide");
-
-          // 5. ⭐️ 중요: HTML이 삽입된 직후에 login.js에 정의된 이벤트들 연결시키기!
-          if (typeof initAuthEvents === "function") {
-            initAuthEvents();
-          }
-
-          // 6. [X] 닫기 버튼 기능 연결
-          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              overlay.classList.add("popup-hide");
-            });
-          });
-        })
-        .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
-    });
-  }
-
-  // 7. 어두운 배경 클릭 시 팝업 닫기
-  const overlay = document.getElementById("loginPopupOverlay");
-  if (overlay) {
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) {
-        overlay.classList.add("popup-hide");
-      }
-    });
-  }
-
-  // components/rightSideBar/rightSideBar.js 내부 DOMContentLoaded 안쪽에 추가
-
-  // 🎯 우측 사이드바의 [점수 기준 보기] 버튼 타겟팅
-  const openScoreInfoBtn = document.querySelector(
-    ".rightSB-safetyScoreContainer button",
-  );
-
-  if (openScoreInfoBtn) {
-    openScoreInfoBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-
-      const overlay = document.getElementById("loginPopupOverlay");
-      const contentBox = document.getElementById("loginPopupContent");
-
-      // 1. 외부 login.html 파일 가져오기 (점수 기준 보기가 포함되어 있음!)
-      fetch("./login/login.html")
-        .then((response) => {
-          if (!response.ok) throw new Error("네트워크 응답에 문제가 있습니다.");
-          return response.text();
-        })
-        .then((htmlData) => {
-          // 2. 팝업 상자 안에 소스 삽입
-          contentBox.innerHTML = htmlData;
-
-          // 3. ⭐️ 점수 기준 보기 전용 규격(518px * 733px) 주입 및 노출
-          contentBox.style.width = "518px";
-          contentBox.style.height = "733px";
-          overlay.classList.remove("popup-hide");
-
-          // 4. ⭐️ 중요: HTML이 삽입된 직후 login.js에 추가할 점수 팝업 초기화 함수 실행!
-          if (typeof initScoreInfoEvent === "function") {
-            initScoreInfoEvent();
-          }
-
-          // 5. [X] 닫기 버튼 기능 결합
-          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              overlay.classList.add("popup-hide");
-            });
-          });
-        })
-        .catch((err) =>
-          console.error("점수 기준 팝업 로드 중 에러 발생:", err),
-        );
-    });
-  }
-});
+  // =====================================================================
+  // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서
+  // .rightSB-aside "바깥" 형제로 빠져나와 있어서(패널이 한 번도 안 열린 상태에서도
+  // 항상 보이도록), 패널이 열리고/접힐 때 옆에 붙어서 같이 이동하려면 별도로
+  // 위치를 맞춰줘야 한다.
+  // .rightSB-aside의 "open" 클래스와 #rightSideBar-container의 "sidebar-collapsed"
+  // 클래스는 kakaoMap.js/leftPanel.js/mapOverlay.js

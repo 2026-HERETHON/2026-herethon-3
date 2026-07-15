@@ -10,44 +10,55 @@ function updateUnderline(target) {
   NavUnderline.style.transform = `translateX(${target.offsetLeft}px)`;
 }
 
+// 🎯 [SPA 탭 전환] 클릭했을 때뿐 아니라, 다른 페이지(예: 마이페이지)에서
+// "제휴 서비스"를 눌러 /?tab=commercial 로 들어왔을 때도 똑같이 써야 해서
+// 탭 전환 로직 자체를 함수로 빼둠 (밑줄 이동 + pageGroups 보이기/숨기기).
+function activateTab(currentMenu) {
+  if (!currentMenu) return;
+
+  // 1. 네비게이션 스타일 토글
+  NavSelected.forEach((m) => m.classList.remove("beBold"));
+  currentMenu.classList.add("beBold");
+  // 2. 밑줄 이동
+  updateUnderline(currentMenu);
+
+  // 3. 페이지 컴포넌트 전환
+  const targetPageId = currentMenu.getAttribute("data-target");
+
+  pageGroups.forEach((page) => {
+    if (page.id === targetPageId) {
+      page.classList.remove("main-page-hide"); // 해당 탭 화면 켜기
+    } else {
+      page.classList.add("main-page-hide"); // 다른 탭 화면 끄기
+    }
+  });
+
+  if (targetPageId === "page-safetyMap") {
+    const ctx = document.getElementById("safetyRadarChart");
+    if (ctx) {
+      const existingChart = Chart.getChart(ctx);
+      if (existingChart) {
+        existingChart.resize();
+        existingChart.update();
+      }
+    }
+  }
+
+  // 🎯 [버그 수정] 탭을 눌러도 주소창의 ?tab= 값이 안 바뀌어서, 제휴 서비스로
+  // 갔다가 안심맵으로 되돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸다.
+  // 탭이 바뀔 때마다 현재 보이는 탭에 맞게 주소창도 같이 갱신해준다
+  // (history 쌓지 않도록 replaceState만 사용).
+  const newUrl = targetPageId === "page-commercial" ? "/?tab=commercial" : "/";
+  if (window.location.pathname + window.location.search !== newUrl) {
+    history.replaceState(null, "", newUrl);
+  }
+}
+
 NavSelected.forEach((menu) => {
   menu.addEventListener("click", (e) => {
     const currentMenu = e.target.closest(".navbar-menu");
     if (!currentMenu) return;
-
-    // 🔽 제휴 서비스는 별도 페이지(commercial.html)로 이동
-    if (currentMenu.classList.contains("navbar-commercial")) {
-      window.location.href = "./commercial/commercial.html";
-      return;
-    }
-
-    // 1. 네비게이션 스타일 토글
-    NavSelected.forEach((m) => m.classList.remove("beBold"));
-    // 2. 밑줄 이동
-    updateUnderline(currentMenu);
-
-    // 3. 페이지 컴포넌트 전환
-    const targetPageId = currentMenu.getAttribute("data-target");
-
-    pageGroups.forEach((page) => {
-      if (page.id === targetPageId) {
-        page.classList.remove("main-page-hide"); // 해당 탭 화면 켜기
-      } else {
-        page.classList.add("main-page-hide"); // 다른 탭 화면 끄기
-      }
-    });
-
-    //
-    if (targetPageId === "page-safetyMap") {
-      const ctx = document.getElementById("safetyRadarChart");
-      if (ctx) {
-        const existingChart = Chart.getChart(ctx);
-        if (existingChart) {
-          existingChart.resize();
-          existingChart.update();
-        }
-      }
-    }
+    activateTab(currentMenu);
   });
 });
 
@@ -55,6 +66,17 @@ NavSelected.forEach((menu) => {
 const activeMenu = document.querySelector(".navbar-menu.beBold");
 if (activeMenu) {
   setTimeout(() => updateUnderline(activeMenu), 50);
+}
+
+// 🎯 [마이페이지 -> 제휴 서비스 이동] 마이페이지는 완전히 별도 페이지라
+// home.html의 탭을 직접 누를 수 없으므로, /?tab=commercial 쿼리로 들어오면
+// 도착하자마자 제휴 서비스 탭을 활성화해준다.
+const requestedTab = new URLSearchParams(window.location.search).get("tab");
+if (requestedTab === "commercial") {
+  const commercialMenu = document.querySelector(".navbar-commercial");
+  if (commercialMenu) {
+    setTimeout(() => activateTab(commercialMenu), 50);
+  }
 }
 
 // index.html 하단에서 생성한 카카오맵 객체를 가져오기 위한 안전장치
@@ -117,59 +139,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. 로그인 상태에 따른 네비게이션 바 변경 함수 정의
-  function renderNavbar() {
-    // 🔓 실제 연동용: localStorage에 토큰이 있으면 true(로그인), 없으면 false(로그아웃)
-    // const isTokenExist = localStorage.getItem("token")
-
-    // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
-    // const token = true; // 🔓 로그인 상태 테스트할 때 주석 해제
-    const token = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
-
-    const navbarContainer = document.getElementById("navbar-container");
-
-    // 오른쪽 로그인 버튼 영역 찾아오기 (a 태그)
-    const loginLink = navbarContainer.querySelector(".navbar-ahref");
-    if (!loginLink) return;
-
-    if (token) {
-      // 🔓 로그인된 상태: [마이페이지]와 [로그아웃] 버튼으로 변경
-      loginLink.outerHTML = `
-        <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
-          <a href="./mypage/mypage.html" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
-          <div style="display:flex; gap: 9px; align-items:center;">
-          <img src="./main-images/account.svg" alt="마이페이지"/>
-          <span class="navbar-mypage" style="cursor: pointer;">마이페이지</span>
-          </div>
-          </a>
-          <div class="navbar-logout" id="nav-logout-btn" style="cursor: pointer;">로그아웃</div>
-        </div>
-      `;
-
-      // 로그아웃 버튼 기능 바인딩
-      document
-        .getElementById("nav-logout-btn")
-        .addEventListener("click", () => {
-          if (confirm("로그아웃 하시겠습니까?")) {
-            localStorage.removeItem("loginToken"); // 토큰 삭제
-            alert("로그아웃 되었습니다.");
-            location.reload(); // 페이지 새로고침해서 nav 다시 그리기
-          }
-        });
-    } else {
-      // 🔒 비로그인 상태: 원래 디자인 유지 (혹시 로그아웃 후 대비용)
-      // index.html에 기본으로 적혀있기 때문에 처음 로드될 때는 처리가 필요 없지만,
-      // 명시적으로 코드를 관리하고 싶다면 여기에 기본 HTML 구조를 넣어줘도 좋아!
-    }
-  }
-
-  // 2. 페이지 로드 시 상단 바 상태 바로 반영하기
-  renderNavbar();
-
- // main.js 파일 맨 최하단 (renderNavbar 실행 코드 바로 아랫부분)을 아래 코드로 덮어씌우기
-
-  // 2. 페이지 로드 시 상단 바 상태 바로 반영하기
-  renderNavbar();
+  // 🎯 로그인 상태(마이페이지/로그아웃 vs 로그인 버튼)는 이제 JS 가짜 토큰이 아니라
+  // home.html을 렌더링하는 Django의 request.user.is_authenticated가 그대로 결정해서 내려준다.
+  // (진짜 MTV: 서버가 처음 렌더링할 때부터 올바른 상태로 나오므로 JS가 따로 바꿀 필요가 없다)
 
   // 🎯 메인페이지 네비바 로그인 버튼 팝업 바인딩
   const mainNavLoginBtn = document.getElementById("main-nav-login-btn");

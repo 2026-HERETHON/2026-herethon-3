@@ -140,3 +140,10 @@ USE_L10N = True #한국 날짜, 숫자 형식
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+# 🎯 프론트 정적 파일(main.css/main.js/components 등) 위치.
+# 특정 앱 소유가 아닌 공용 자산이라 앱별 static/이 아니라
+# 프로젝트 루트의 backend/static/ 에 모아둠.
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]

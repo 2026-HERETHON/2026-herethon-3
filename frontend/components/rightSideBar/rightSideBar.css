@@ -1,3 +1,63 @@
+/* 🎯 [재구조화] home.html에서 .rightSB-aside "바깥" 형제로 옮김 (aside 자체가
+   열리기 전엔 translateX(100%)로 화면 밖에 있어서, 그 안에 두면 패널이 한 번도
+   안 열린 상태에서 GPS 버튼도 같이 사라져버렸음). position:fixed로 뷰포트
+   기준 고정해서 패널 상태와 무관하게 항상 보이게 하고, rightSideBar.js의
+   syncGpsButtonPosition()이 .rightSB-aside/#rightSideBar-container의 open/
+   collapsed 클래스를 지켜보다가 아래 두 modifier 클래스를 붙였다 뗐다 하면서
+   패널 폭만큼 오른쪽 offset을 다시 계산해준다.
+
+   좌표 계산 근거:
+   - top: navbar(#navbar-container) 높이 60px + 23px = 83px
+   - right: "현재 화면에 보이는 패널의 왼쪽 끝"으로부터 45px 떨어진 지점
+     · 패널 완전히 펼쳐짐(rightSB-gpsShifted): rightSB-body 왼쪽 끝이 뷰포트
+       오른쪽에서 506px 지점(rightSB-wholeContainer 545px - rightSB-close
+       35px - 두 자식 사이 여백 4px) → 506 + 45 = 551px
+     · 패널 열려있지만 접힘(rightSB-gpsCollapsed, 35px 탭만 보임): 탭 왼쪽 끝이
+       뷰포트 오른쪽에서 35px 지점 → 35 + 45 = 80px
+     · 패널이 한 번도 안 열린 기본 상태: 보이는 부분이 없음(0) → 0 + 45 = 45px */
+.mapOverlay-locationBtn {
+  position: fixed;
+  top: 83px;
+  right: 45px;
+  width: 54px;
+  height: 54px;
+  z-index: 1000;
+  padding: 13px 14px 13px 13px;
+  border-radius: 27px;     /* 54의 절반 = 완전한 원 */
+  background: var(--GrayScale-White, #fff);
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: right 0.6s ease-in-out; /* .rightSB-aside의 열림 트랜지션과 맞춤 */
+}
+
+.mapOverlay-locationBtn img {
+  width: 27px;             /* 아이콘 27×28 */
+  height: 28px;
+}
+
+.mapOverlay-locationBtn:hover {
+  background: #ededed;     /* 호버 시 배경색 */
+}
+
+.mapOverlay-locationBtn:active {
+  background: #d9d9d9;     /* 클릭 시 배경색 */
+}
+
+/* 패널이 완전히 펼쳐진 상태: rightSB-body 왼쪽 끝에서 45px 떨어진 지점 */
+.mapOverlay-locationBtn.rightSB-gpsShifted {
+  right: 551px;
+}
+
+/* 패널이 열려있지만 접힌 상태(35px 탭만 보임): 탭 왼쪽 끝에서 45px 떨어진 지점 */
+.mapOverlay-locationBtn.rightSB-gpsCollapsed {
+  right: 80px;
+}
+
 .rightSB-wholeContainer {
   display: flex;
   align-items: center;
@@ -418,7 +478,12 @@
 }
 
 .rightSB-tabContent.rightSB-activeContent {
-  display: block;
+  /* 🎯 [빈 후기 중앙 정렬용] display:block이면 자식들이 내용 높이만큼만 차지해서
+     .rightSB-tabContentWrapper가 남는 공간을 안 채운다. flex column + height:100%로
+     바꿔서 아래 .rightSB-reviewListSubPage 등이 남은 공간을 끝까지 채우게 함. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .rightSB-hide {
@@ -434,6 +499,21 @@
   overflow-y: auto; /* 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
   overflow-x: hidden;
   box-sizing: border-box;
+  /* 🎯 [빈 후기 중앙 정렬용] .rightSB-reviewContainer(flex column, 고정 404px)
+     안에서 .rightSB-reviewNav가 쓰고 남은 공간을 전부 차지하도록 함.
+     (min-height:0은 flex 안에서 overflow-y:auto가 제대로 동작하게 하는 필수 설정) */
+  flex: 1;
+  min-height: 0;
+}
+
+/* 🎯 [빈 후기 중앙 정렬용] 후기 리스트 영역이 탭 콘텐츠의 전체 높이를 채우도록 함.
+   실제 카드가 있을 때는 내용이 이 높이를 넘기면 그냥 평소처럼 스크롤됨. */
+.rightSB-reviewListSubPage {
+  height: 100%;
+}
+
+#rightSB-reviewCardContainer {
+  height: 100%;
 }
 
 .rightSB-tabContentWrapper::-webkit-scrollbar {
@@ -1401,132 +1481,4 @@
   position: absolute;
   bottom: 1px;
   left: 0;
-  width: 100%;
-  padding: 10px 16px;
-  box-sizing: border-box;
-  background: #fff;
-  display: flex;
-  align-items: center;
-
-  overflow: hidden;
-  z-index: 10;
-}
-
-.rightSB-answerInput {
-  flex: 1;
-  height: 38px;
-  border: 1px solid var(--GrayScale-400, #a89ea1);
-  border-radius: 10px;
-  padding: 0 45px 0 12px;
-  box-sizing: border-box;
-  font-family: Pretendard;
-  font-size: 13px;
-  outline: none;
-}
-
-.rightSB-answerSubmitBtn {
-  position: absolute;
-  background-color: transparent;
-  right: 24px;
-  width: 26px;
-  height: 26px;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-/* 로그아웃 시 블러 처리될 오버레이 마스크 레이어 */
-.rightSB-overlayWrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-
-  padding-bottom: 37px;
-  box-sizing: border-box;
-  flex: 1 !important;
-  min-height: 0px;
-}
-
-.rightSB-auth-overlay {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  /* 부모 스크롤박스 크기에 유연하게 100% 밀착 대응 */
-  position: absolute;
-  top: 27px;
-  left: 0;
-  bottom: 37px;
-  width: 412px;
-  height: calc(100% - 27px - 37px);
-  z-index: 100;
-
-  box-sizing: border-box;
-  border-radius: 10px;
-  border: 2px solid var(--GrayScale-200, #d9d2d4);
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(9px);
-}
-
-.rightSB-auth-overlay img {
-  width: 76px;
-  height: 76px;
-  margin-bottom: 24px;
-}
-
-.rightSB-overlayMent {
-  color: #000;
-  text-align: center;
-
-  /* Body/L-Bold */
-  font-family: Pretendard;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 150%; /* 30px */
-  letter-spacing: -0.4px;
-
-  margin-bottom: 11px;
-}
-
-.rightSB-overlayMentS {
-  color: #000;
-  text-align: center;
-
-  /* Body/M */
-  font-family: Pretendard;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 150%; /* 24px */
-  letter-spacing: -0.32px;
-
-  margin-bottom: 71px;
-}
-
-.rightSB-auth-loginBtn {
-  display: flex;
-  width: 249px;
-  padding: 8px 0;
-  justify-content: center;
-  align-items: center;
-  border-radius: 10px;
-  background: var(--Color-Blue900, #1077ff);
-
-  color: #fff;
-
-  /* Body/M-Bold */
-  font-family: Pretendard;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 150%; /* 24px */
-  letter-spacing: -0.32px;
-
-  border: none;
-  cursor: pointer;
-}
+  widt
