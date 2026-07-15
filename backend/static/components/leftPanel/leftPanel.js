@@ -8,11 +8,7 @@ document.querySelector(".leftPanel-resetBtn").addEventListener("click", () => {
   const checkboxes = document.querySelectorAll(".leftPanel-customCheckbox input");
 
   checkboxes.forEach((checkbox) => {
-    if (checkbox.id === "leftPanel-filter-cctv") {
-      checkbox.checked = true;
-    } else {
-      checkbox.checked = false;
-    }
+    checkbox.checked = false;
   });
 });
 
