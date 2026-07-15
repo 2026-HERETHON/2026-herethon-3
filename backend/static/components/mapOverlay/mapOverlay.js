@@ -199,28 +199,12 @@ function renderList(level) {
 // (kakaoMap.js 폴리곤 클릭 / leftPanel.js 검색 결과 클릭과 동일한 패턴 재사용)
 function moveMapToSelectedDong() {
   const grid = dongLookup[selected.dong];
-  if (!grid || grid.latitude == null || grid.longitude == null) return;
+  if (!grid) return;
 
-  const kakaoMap = window.map;
-  if (!kakaoMap || typeof kakao === "undefined") return;
-
-  const targetLatLng = new kakao.maps.LatLng(grid.latitude, grid.longitude);
-  const currentLevel = kakaoMap.getLevel();
-
-  if (currentLevel > 6) {
-    kakaoMap.setLevel(6, {
-      animate: { duration: 350 },
-      anchor: targetLatLng,
-    });
-    setTimeout(() => kakaoMap.panTo(targetLatLng), 350);
-  } else {
-    const bounds = kakaoMap.getBounds();
-    if (bounds.contain(targetLatLng)) {
-      kakaoMap.panTo(targetLatLng);
-    } else {
-      kakaoMap.setCenter(targetLatLng);
-    }
-  }
+  // 🎯 [지도 이동] 예전엔 여기서 grid.latitude/longitude(DB 대표 좌표)로 직접
+  // 이동시켰는데, 이제는 window.showLegalDongOnMap()이 폴리곤을 그리면서
+  // 그 도형의 실제 중심(centroid)으로 이동까지 처리해준다. 그래서 여기서는
+  // 더 이상 따로 이동시키지 않는다 (아래 showLegalDongOnMap 호출 참고).
 
   const sidebar = document.querySelector(".rightSB-aside");
   if (sidebar) sidebar.classList.add("open");
@@ -228,7 +212,28 @@ function moveMapToSelectedDong() {
   if (window.updateSidebarTitle) {
     window.updateSidebarTitle(grid.dong, grid.dong, grid.id);
   }
+
+  // 🎯 [1번 스펙] 드롭다운으로 선택된 법정동도 검색과 동일하게 취급해서
+  // 폴리곤 + 법정동 안심점수 인포윈도우를 지도 위에 표시한다.
+  if (window.showLegalDongOnMap) {
+    window.showLegalDongOnMap(grid.dong);
+  }
 }
+
+// =====================================================================
+// 🎯 [0번 스펙] leftPanel.js의 검색창에서 검색 결과를 선택했을 때, 이 드롭다운
+// (시/도-구-동)도 같은 지역으로 동기화되도록 외부에서 호출할 수 있는 함수.
+// =====================================================================
+window.syncMapOverlaySelection = function (sido, gu, dong) {
+  selected.sido = sido || "";
+  selected.gu = gu || "";
+  selected.dong = dong || "";
+
+  renderList("sido");
+  renderList("gu");
+  renderList("dong");
+  updateInfoBox();
+};
 
 // 항목 선택 처리
 function selectItem(level, name) {
