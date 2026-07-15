@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head><title>{{ grid.dong }} 후기</title></head>
@@ -13,8 +14,9 @@
   {% endif %}
 
 <!-- 영역별 만족도 -->
-<!-- 🎯 [프론트 연동용] data-* 속성으로도 값을 내려줘서, 프론트가 텍스트를
-     정규식으로 파싱하지 않고 곧바로 읽어갈 수 있게 함 -->
+<!-- 🎯 [프론트 연동용] 차트/게이지를 그리는 데 필요한 집계 숫자 3개만 data-* 로 내려줌.
+     (카드 목록과 달리 이건 사용자 콘텐츠가 아니라 평균 통계치라, JS가 숫자를
+     읽어 별점 위젯을 그리는 건 일반적인 MTV+JS 프론트에서도 흔한 패턴) -->
   <div
     id="rating-summary"
     data-night="{{ rating_summary.rating_night }}"
@@ -33,35 +35,63 @@
     <a href="?sort=likes">공감순</a>
   </div>
 
-  <!-- 🎯 [프론트 연동용] 후기 목록: 실제 화면에 보이는 요소(strong/p/button)는
-       그대로 두고, 각 후기 div에 data-* 속성을 추가해서 프론트가 필드별로
-       바로 읽어갈 수 있게 함 (닉네임/좋아요 텍스트를 텍스트 파싱하지 않아도 됨) -->
-  <div id="rightSB-reviewCardContainer" data-count="{{ reviews.count }}">
+  <!-- 🎯 [진짜 MTV] 후기 카드: 프론트 사이드바에 실제로 보이는 마크업(class="rightSB-reviewCard" 등)을
+       서버가 그대로 렌더링함. 프론트 JS는 이 마크업의 값만 뽑아 재조립하지 않고,
+       #rightSB-reviewCardContainer의 innerHTML을 통째로 옮겨 붙이기만 한다. -->
+  <div id="rightSB-reviewCardContainer" data-count="{{ reviews|length }}">
     {% if is_empty %}
-      <p>아직 등록된 후기가 없어요.</p>
+      <div style="text-align:center; color:#7b7578; padding:4px 0;">첫 번째 후기를 남겨보세요!</div>
     {% else %}
       {% for review in reviews %}
-        <div
-          class="review-data-item"
-          data-review-id="{{ review.id }}"
-          data-nickname="{{ review.user.nickname }}"
-          data-residence="{{ grid.dong }} 거주 중"
-          data-date="{{ review.created_at|timesince }} 전"
-          data-score="{{ review.average_rating }}"
-          data-likes="{{ review.like_count }}"
-          data-liked="{% if review.id in liked_review_ids %}true{% else %}false{% endif %}"
-          data-content="{{ review.review_content }}"
-        >
-          <strong>{{ review.user.nickname }}</strong>
-          <span>평균 {{ review.average_rating }}점</span>
-          <p>{{ review.review_content }}</p>
-          <button
-            class="like-btn"
-            data-review-id="{{ review.id }}"
-            data-liked="{% if review.id in liked_review_ids %}true{% else %}false{% endif %}"
-          >
-            👍 {{ review.like_count }}
-          </button>
+        <div class="rightSB-reviewCard" data-id="{{ review.id }}">
+          <div class="rightSB-cardUserLine">
+            <div class="rightSB-cardUserInfo">
+              <div class="rightSB-cardAvatar"></div>
+              <div>
+                <span class="rightSB-cardNickname">{{ review.user.nickname }}</span>
+                <span class="rightSB-cardPeriod">{{ grid.dong }} 거주 중</span>
+              </div>
+            </div>
+            <span class="rightSB-cardDate">{{ review.created_at|timesince }} 전</span>
+          </div>
+
+          <div class="rightSB-reviewTextWrapper">
+            <div>
+              <div class="rightSB-cardRatingLine">
+                <div class="rightSB-cardStarsDisplay">
+                  <div class="rightSB-cardEmptyStars">
+                    {% for _ in "12345" %}<img src="{% static 'reviews/rightSB-images/emptyStar.svg' %}" class="rightSB-cardStarIcon" />{% endfor %}
+                  </div>
+                  <div class="rightSB-cardFilledStars" style="width: {{ review.star_width }}px;">
+                    {% for _ in "12345" %}<img src="{% static 'reviews/rightSB-images/filledStar.svg' %}" class="rightSB-cardStarIcon" />{% endfor %}
+                  </div>
+                </div>
+                <span class="rightSB-cardScore">{{ review.average_rating }}</span>
+              </div>
+              <div class="rightSB-cardText">{{ review.review_content }}</div>
+            </div>
+
+            {% if review.id in liked_review_ids %}
+              <button
+                class="rightSB-cardLikeBtn"
+                data-review-id="{{ review.id }}"
+                data-liked="true"
+                style="border-radius:20px; border:1px solid var(--Color-Blue900, #1077FF); background:var(--Color-Blue200, #C4ECFE); color:var(--Color-Blue900, #1077FF);"
+              >
+                <img src="{% static 'reviews/rightSB-images/filledThumbsUp.svg' %}" class="rightSB-likeImg" style="width:11px; height:10px;" />
+                <span class="rightSB-likeCount">{{ review.like_count }}</span>
+              </button>
+            {% else %}
+              <button
+                class="rightSB-cardLikeBtn"
+                data-review-id="{{ review.id }}"
+                data-liked="false"
+              >
+                <img src="{% static 'reviews/rightSB-images/thumbsUp.svg' %}" class="rightSB-likeImg" style="width:11px; height:10px;" />
+                <span class="rightSB-likeCount">{{ review.like_count }}</span>
+              </button>
+            {% endif %}
+          </div>
         </div>
       {% endfor %}
     {% endif %}
@@ -74,7 +104,7 @@
   {% endif %}
 
   <script>
-  document.querySelectorAll('.like-btn').forEach(btn => {
+  document.querySelectorAll('.rightSB-cardLikeBtn').forEach(btn => {
     btn.addEventListener('click', () => {
       const reviewId = btn.dataset.reviewId;
       fetch(`/reviews/${reviewId}/like/`, {
@@ -83,7 +113,8 @@
       })
         .then(res => res.json())
         .then(data => {
-          btn.textContent = `👍 ${data.like_count}`;
+          const countSpan = btn.querySelector('.rightSB-likeCount');
+          if (countSpan) countSpan.textContent = data.like_count;
         });
     });
   });
