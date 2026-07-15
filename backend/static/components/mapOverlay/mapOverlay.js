@@ -171,8 +171,10 @@ function renderList(level) {
       li.classList.add("selected");
     }
 
-    // 구/동 목록에서 아직 안심 데이터가 없는 곳은 흐리게 + "(준비중)" 표시
+    // 시/도·구/동 목록에서 아직 안심 데이터가 없는 곳은 흐리게 + "(준비중)" 표시
+    // (시/도는 서울특별시만 실제 데이터가 있음)
     const isEmpty =
+      (level === "sido" && name !== "서울특별시") ||
       (level === "gu" && guHasData[name] === false) ||
       (level === "dong" && !dongHasData[name]);
     if (isEmpty) {
