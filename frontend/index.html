@@ -351,13 +351,19 @@
             </div>
           </div>
 
-          <!-- 우상단 현재 위치 버튼 -->
-          <div class="mapOverlay-locationBtn">
-            <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
-          </div>
           <!-- ===== 지도 오버레이 끝 ===== -->
                     </div>
                   </main>
+
+        <!-- 🎯 [재구조화] rightSB-aside 자체가 열리기 전엔 translateX(100%)로
+             화면 밖에 가 있어서, 그 안에 두면 GPS 버튼도 같이 사라져버렸다.
+             그래서 aside "바깥" 형제로 빼서 항상 화면에 떠 있게 하고,
+             position:fixed + JS(rightSideBar.js의 syncGpsButtonPosition)가
+             .rightSB-aside/​#rightSideBar-container의 open/collapsed 상태를
+             지켜보다가 패널 폭만큼 왼쪽으로 이동시켜준다. -->
+        <div class="mapOverlay-locationBtn">
+          <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
+        </div>
 
         <!--우측 사이드바-->
         <aside class="rightSB-aside">

@@ -1229,48 +1229,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ?.classList.toggle("sidebar-collapsed");
   });
 
-  // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
-  const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn");
-
-  if (openLoginBtn) {
-    openLoginBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // 기본 a태그 이동 기능 막기
-
-      const overlay = document.getElementById("loginPopupOverlay");
-      const contentBox = document.getElementById("loginPopupContent");
-
-      // 2. 외부 login.html 파일 가져오기
-      fetch("./login/login.html")
-        .then((response) => response.text())
-        .then((htmlData) => {
-          // 3. 팝업 상자 안에 소스 삽입
-          contentBox.innerHTML = htmlData;
-
-          // 4. 숨겨진 팝업 노출 및 기본 로그인 크기로 초기 설정 보장
-          contentBox.style.width = "518px";
-          contentBox.style.height = "689px";
-          overlay.classList.remove("popup-hide");
-
-          // 5. ⭐️ 중요: HTML이 삽입된 직후에 login.js에 정의된 이벤트들 연결시키기!
-          if (typeof initAuthEvents === "function") {
-            initAuthEvents();
-          }
-
-          // 6. [X] 닫기 버튼 기능 연결
-          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              overlay.classList.add("popup-hide");
-            });
-          });
-        })
-        .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
-    });
-  }
-
-  // 7. 어두운 배경 클릭 시 팝업 닫기
-  const overlay = document.getElementById("loginPopupOverlay");
-  if (overlay) {
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) {
-        overlay.classLi
+  // =====================================================================
+  // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서
+  // .rightSB-aside "바깥" 형제로 빠져나와 있어서(패널이 한 번도 안 열린 상태에서도
+  // 항상 보이도록), 패널이 열리고/접힐 때 옆에 붙어서 같이 이동하려면 별도로
+  // 위치를 맞춰줘야 한다.
+  // .rightSB-aside의 "open" 클래스와 #rightSideBar-container의 "sidebar-collapsed"
+  // 클래스는 kakaoMap.js/leftPanel.js/mapOverlay.js

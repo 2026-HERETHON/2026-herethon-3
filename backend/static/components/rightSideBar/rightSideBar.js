@@ -1229,6 +1229,50 @@ document.addEventListener("DOMContentLoaded", () => {
       ?.classList.toggle("sidebar-collapsed");
   });
 
+  // =====================================================================
+  // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서
+  // .rightSB-aside "바깥" 형제로 빠져나와 있어서(패널이 한 번도 안 열린 상태에서도
+  // 항상 보이도록), 패널이 열리고/접힐 때 옆에 붙어서 같이 이동하려면 별도로
+  // 위치를 맞춰줘야 한다.
+  // .rightSB-aside의 "open" 클래스와 #rightSideBar-container의 "sidebar-collapsed"
+  // 클래스는 kakaoMap.js/leftPanel.js/mapOverlay.js/rightSideBar.js 여러 곳에서
+  // 토글되고 있어서, 그 호출부를 전부 찾아 고치는 대신 MutationObserver로 두
+  // 요소의 class 변화를 감지해 이 한 곳에서만 GPS 버튼 위치를 다시 계산한다.
+  // =====================================================================
+  (function initGpsButtonSync() {
+    const gpsBtn = document.querySelector(".mapOverlay-locationBtn");
+    const aside = document.querySelector(".rightSB-aside");
+    const container = document.getElementById("rightSideBar-container");
+    if (!gpsBtn || !aside || !container) return;
+
+    const syncGpsButtonPosition = () => {
+      const isOpen = aside.classList.contains("open");
+      const isCollapsed = container.classList.contains("sidebar-collapsed");
+
+      if (!isOpen) {
+        // 패널이 한 번도 안 열린 상태 -> 기본 위치(오른쪽 상단 고정) 유지
+        gpsBtn.classList.remove("rightSB-gpsShifted", "rightSB-gpsCollapsed");
+      } else if (isCollapsed) {
+        // 패널이 열려있지만 접힌 상태(35px 탭만 보임) -> 그만큼만 이동
+        gpsBtn.classList.add("rightSB-gpsCollapsed");
+        gpsBtn.classList.remove("rightSB-gpsShifted");
+      } else {
+        // 패널이 완전히 펼쳐진 상태(545px) -> 패널 왼쪽에 딱 붙게 이동
+        gpsBtn.classList.add("rightSB-gpsShifted");
+        gpsBtn.classList.remove("rightSB-gpsCollapsed");
+      }
+    };
+
+    const observer = new MutationObserver(syncGpsButtonPosition);
+    observer.observe(aside, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(container, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    syncGpsButtonPosition(); // 초기 상태 반영
+  })();
+
   // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
   const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn");
 
