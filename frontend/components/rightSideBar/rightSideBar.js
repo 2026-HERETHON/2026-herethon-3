@@ -921,30 +921,56 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("click", backToMainList);
 
   // --- [찜하기 기능] ---
-  let isWished = false;
+  // 🎯 [진짜 MTV] 예전엔 로컬 변수(isWished)만 토글하는 가짜 기능이라 실제로
+  // 아무 데도 저장되지 않았다. 마이페이지의 '찜한 동네' 탭이 실제 SavedGrid
+  // 데이터를 보여주므로, 이 버튼도 진짜 /accounts/grid/<id>/save/ 에
+  // POST해서 저장해야 마이페이지에 반영된다.
   document
     .querySelectorAll(".wish-btn, .rightSB-regionHeartImg")
     .forEach((btn) => {
       btn.addEventListener("click", () => {
-        isWished = !isWished;
+        const legalDongId = currentSidebarState.legalDongId;
+        if (!legalDongId) return;
 
-        // 🎯 [수정] 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
-        const allHeartImgs = document.querySelectorAll(
-          ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg",
-        );
+        fetch(`http://127.0.0.1:8000/accounts/grid/${legalDongId}/save/`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+        })
+          .then((res) => {
+            if (res.url.includes("/accounts/login/")) {
+              alert("로그인이 필요해요.");
+              return null;
+            }
+            return res.json();
+          })
+          .then((data) => {
+            if (!data) return;
+            const isWished = data.saved;
 
-        allHeartImgs.forEach((img) => {
-          // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
-          img.src = isWished
-            ? "./components/rightSideBar/rightSB-images/fullHeart.svg"
-            : "./components/rightSideBar/rightSB-images/heart.svg";
-        });
+            // 🎯 문자열 하나로 묶어서 두 종류의 하트 이미지를 모두 수집!
+            const allHeartImgs = document.querySelectorAll(
+              ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg",
+            );
 
-        alert(
-          isWished
-            ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
-            : "💔 찜 목록에서 제외되었습니다.",
-        );
+            allHeartImgs.forEach((img) => {
+              // 💡 찜하기 상태에 따라 이미지 경로 일괄 교체
+              img.src = isWished
+                ? "./components/rightSideBar/rightSB-images/fullHeart.svg"
+                : "./components/rightSideBar/rightSB-images/heart.svg";
+            });
+
+            alert(
+              isWished
+                ? "❤️ 이 동네가 찜 목록에 추가되었습니다."
+                : "💔 찜 목록에서 제외되었습니다.",
+            );
+          })
+          .catch((err) => {
+            console.error("🚨 찜하기 처리 중 오류:", err);
+          });
       });
     });
 

@@ -54,9 +54,68 @@ def logout_view(request):  # AUTH-003
     return redirect('home')
 
 
+def _star_fill_width(score):
+    """
+    🎯 [진짜 MTV용] reviews/views.py의 동일 헬퍼와 같은 계산식.
+    마이페이지의 '내가 작성한 후기' 카드도 서버가 별점 위젯 너비를 미리 계산해서
+    내려주므로, 여기서도 그대로 복제해서 씀 (앱 간 private 함수 import는 피함).
+    """
+    score = float(score or 0)
+    rounded = round(score * 2) / 2
+    filled_count = int(rounded)
+    has_half = (rounded - filled_count) != 0
+
+    total_width = filled_count * 11 + filled_count * 4
+    if has_half:
+        total_width += 5.5
+    elif filled_count > 0:
+        total_width -= 4
+    return total_width
+
+
+def _safety_grade_label(score):
+    """마이페이지 '찜한 동네' 카드의 뱃지 라벨 (별도 스펙 없어서 안심 점수 기준 3단계로 표시)"""
+    score = float(score or 0)
+    if score >= 70:
+        return '안심 구역'
+    if score >= 40:
+        return '보통 구역'
+    return '주의 구역'
+
+
 @login_required
 def profile_view(request):
-    return render(request, 'accounts/profile.html', {'user': request.user})
+    """
+    🎯 [진짜 MTV / SPA 유지] 원래 목업(mypage.html)은 좌측 메뉴 6개를 클릭하면
+    페이지 이동 없이 JS가 보이기/숨기기만 하는 구조였다. 백엔드는 이걸 4개의
+    별도 뷰(profile/profile_residence/profile_posts/profile_saved)로 나눠뒀었는데,
+    각각 페이지 이동을 시키면 메뉴 전환마다 화면이 새로고침되어 원래 UX가 깨진다.
+    그래서 이 뷰 하나에서 4개 뷰가 만들던 데이터를 전부 모아 한 번에 렌더링하고,
+    프론트는 기존 mypage.js의 탭 전환(순수 클래스 토글, 새 요청 없음)을 그대로 쓴다.
+    """
+    reviews = list(
+        Review.objects.filter(user=request.user).select_related('grid')
+    )
+    for review in reviews:
+        review.star_width = _star_fill_width(review.average_rating)
+
+    questions = Question.objects.filter(user=request.user).select_related('grid').prefetch_related('answers')
+    answers = Answer.objects.filter(user=request.user).select_related('question', 'question__grid')
+
+    saved_grids = list(SavedGrid.objects.filter(user=request.user).select_related('grid'))
+    for saved in saved_grids:
+        saved.grade_label = _safety_grade_label(saved.grid.safety_score)
+
+    context = {
+        'reviews': reviews,
+        'questions': questions,
+        'answers': answers,
+        'saved_grids': saved_grids,
+    }
+    if not request.user.verified_grid:
+        context['legal_grids'] = Grid.objects.filter(is_legal_dong=True)
+
+    return render(request, 'accounts/profile.html', context)
 
 
 @login_required

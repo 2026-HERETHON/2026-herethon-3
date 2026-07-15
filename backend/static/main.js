@@ -10,44 +10,55 @@ function updateUnderline(target) {
   NavUnderline.style.transform = `translateX(${target.offsetLeft}px)`;
 }
 
+// 🎯 [SPA 탭 전환] 클릭했을 때뿐 아니라, 다른 페이지(예: 마이페이지)에서
+// "제휴 서비스"를 눌러 /?tab=commercial 로 들어왔을 때도 똑같이 써야 해서
+// 탭 전환 로직 자체를 함수로 빼둠 (밑줄 이동 + pageGroups 보이기/숨기기).
+function activateTab(currentMenu) {
+  if (!currentMenu) return;
+
+  // 1. 네비게이션 스타일 토글
+  NavSelected.forEach((m) => m.classList.remove("beBold"));
+  currentMenu.classList.add("beBold");
+  // 2. 밑줄 이동
+  updateUnderline(currentMenu);
+
+  // 3. 페이지 컴포넌트 전환
+  const targetPageId = currentMenu.getAttribute("data-target");
+
+  pageGroups.forEach((page) => {
+    if (page.id === targetPageId) {
+      page.classList.remove("main-page-hide"); // 해당 탭 화면 켜기
+    } else {
+      page.classList.add("main-page-hide"); // 다른 탭 화면 끄기
+    }
+  });
+
+  if (targetPageId === "page-safetyMap") {
+    const ctx = document.getElementById("safetyRadarChart");
+    if (ctx) {
+      const existingChart = Chart.getChart(ctx);
+      if (existingChart) {
+        existingChart.resize();
+        existingChart.update();
+      }
+    }
+  }
+
+  // 🎯 [버그 수정] 탭을 눌러도 주소창의 ?tab= 값이 안 바뀌어서, 제휴 서비스로
+  // 갔다가 안심맵으로 되돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸다.
+  // 탭이 바뀔 때마다 현재 보이는 탭에 맞게 주소창도 같이 갱신해준다
+  // (history 쌓지 않도록 replaceState만 사용).
+  const newUrl = targetPageId === "page-commercial" ? "/?tab=commercial" : "/";
+  if (window.location.pathname + window.location.search !== newUrl) {
+    history.replaceState(null, "", newUrl);
+  }
+}
+
 NavSelected.forEach((menu) => {
   menu.addEventListener("click", (e) => {
     const currentMenu = e.target.closest(".navbar-menu");
     if (!currentMenu) return;
-
-    // 🎯 [SPA 탭 전환] 제휴 서비스도 이제 home.html 안의 #page-commercial로
-    // 내용이 통째로 들어있는 다른 탭이라, 특별 취급 없이 바로 아래의
-    // 공통 탭 전환 로직(밑줄 이동 + pageGroups 보이기/숨기기)을 그대로 탄다.
-    // (예전엔 여기서 /commercial/로 하드 네비게이션을 시켜서, 제휴 서비스 ->
-    // 안심맵으로 돌아올 때만 화면이 새로고침되듯 뚝 끊기는 문제가 있었음)
-
-    // 1. 네비게이션 스타일 토글
-    NavSelected.forEach((m) => m.classList.remove("beBold"));
-    // 2. 밑줄 이동
-    updateUnderline(currentMenu);
-
-    // 3. 페이지 컴포넌트 전환
-    const targetPageId = currentMenu.getAttribute("data-target");
-
-    pageGroups.forEach((page) => {
-      if (page.id === targetPageId) {
-        page.classList.remove("main-page-hide"); // 해당 탭 화면 켜기
-      } else {
-        page.classList.add("main-page-hide"); // 다른 탭 화면 끄기
-      }
-    });
-
-    //
-    if (targetPageId === "page-safetyMap") {
-      const ctx = document.getElementById("safetyRadarChart");
-      if (ctx) {
-        const existingChart = Chart.getChart(ctx);
-        if (existingChart) {
-          existingChart.resize();
-          existingChart.update();
-        }
-      }
-    }
+    activateTab(currentMenu);
   });
 });
 
@@ -55,6 +66,17 @@ NavSelected.forEach((menu) => {
 const activeMenu = document.querySelector(".navbar-menu.beBold");
 if (activeMenu) {
   setTimeout(() => updateUnderline(activeMenu), 50);
+}
+
+// 🎯 [마이페이지 -> 제휴 서비스 이동] 마이페이지는 완전히 별도 페이지라
+// home.html의 탭을 직접 누를 수 없으므로, /?tab=commercial 쿼리로 들어오면
+// 도착하자마자 제휴 서비스 탭을 활성화해준다.
+const requestedTab = new URLSearchParams(window.location.search).get("tab");
+if (requestedTab === "commercial") {
+  const commercialMenu = document.querySelector(".navbar-commercial");
+  if (commercialMenu) {
+    setTimeout(() => activateTab(commercialMenu), 50);
+  }
 }
 
 // index.html 하단에서 생성한 카카오맵 객체를 가져오기 위한 안전장치

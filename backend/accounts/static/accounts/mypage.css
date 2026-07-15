@@ -637,3 +637,64 @@ background: var(--Color-Blue200, #C4ECFE);
   white-space: nowrap;       /* 줄바꿈 방지 */
 
 }
+
+/* 🎯 [진짜 MTV] 내가 작성한 후기 카드의 별점 위젯.
+   reviews 앱 rightSideBar.css의 별점 오버레이 방식과 동일한 원리를
+   그대로 가져옴 — 빈 별 5개 위에 채워진 별 5개를 서버가 계산한
+   review.star_width 만큼만 잘라서 겹쳐 보여준다. */
+.myPage-cardStarsDisplay {
+  position: relative;
+  display: inline-flex;
+  width: 71px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.myPage-cardEmptyStars {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: 4px;
+  width: 100%;
+  height: 10px;
+  z-index: 1;
+}
+
+.myPage-cardFilledStars {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: 4px;
+  height: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+
+.myPage-cardStarIcon {
+  width: 11px;
+  height: 10px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+/* 실거주지 인증 카드 - 아직 실거주지를 설정하지 않은 경우의 드롭다운/버튼 */
+.myPage-residenceIcon {
+  width: 64px;
+  height: 64px;
+}
+
+.myPage-residenceSelect {
+  margin-top: 30px;
+  padding: 13px 20px;
+  border-radius: 15px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  font-family: "Pretendard", sans-serif;
+  font-size: 18px;
+  color: #000;
+}

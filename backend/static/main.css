@@ -34,11 +34,23 @@ nav {
   background-color: #fff;
 }
 
+.navbar-logoImg {
+  margin-left: 26px;
+  height: 38px;
+}
+
+.navbar-logoImg img {
+  height: 38px;
+}
+
 .navbar-Select {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
-  gap: 20px; /*일단 임의로 넣었어요*/
+  gap: 20px;
+  z-index: 1;
 }
 
 .navbar-Select .navbar-menu {
