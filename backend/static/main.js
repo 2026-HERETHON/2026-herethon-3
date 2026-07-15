@@ -15,11 +15,11 @@ NavSelected.forEach((menu) => {
     const currentMenu = e.target.closest(".navbar-menu");
     if (!currentMenu) return;
 
-    // 🔽 제휴 서비스는 별도 페이지(commercial.html)로 이동
-    if (currentMenu.classList.contains("navbar-commercial")) {
-      window.location.href = "./commercial/commercial.html";
-      return;
-    }
+    // 🎯 [SPA 탭 전환] 제휴 서비스도 이제 home.html 안의 #page-commercial로
+    // 내용이 통째로 들어있는 다른 탭이라, 특별 취급 없이 바로 아래의
+    // 공통 탭 전환 로직(밑줄 이동 + pageGroups 보이기/숨기기)을 그대로 탄다.
+    // (예전엔 여기서 /commercial/로 하드 네비게이션을 시켜서, 제휴 서비스 ->
+    // 안심맵으로 돌아올 때만 화면이 새로고침되듯 뚝 끊기는 문제가 있었음)
 
     // 1. 네비게이션 스타일 토글
     NavSelected.forEach((m) => m.classList.remove("beBold"));

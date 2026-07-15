@@ -17,7 +17,7 @@
           <div class="login-inputTitle">아이디</div>
           <div class="login-inputBox">
             <img src="./login/login-images/account.svg" alt="아이디" />
-            <input type="text" placeholder="아이디를 입력해주세요" />
+            <input type="text" id="login-username" name="username" placeholder="아이디를 입력해주세요" />
           </div>
         </div>
 
@@ -26,7 +26,7 @@
           <div class="login-inputBox">
             <div class="login-align">
               <img src="./login/login-images/password.svg" alt="비밀번호" />
-              <input type="password" placeholder="비밀번호를 입력해주세요" />
+              <input type="password" id="login-password" name="password" placeholder="비밀번호를 입력해주세요" />
             </div>
             <img
               class="login-seeImg"
@@ -36,6 +36,13 @@
           </div>
         </div>
       </div>
+
+      <!-- 🎯 [진짜 연동용] 로그인 실패 시(아이디/비밀번호 불일치 등) 에러 메시지 표시 영역 -->
+      <div
+        class="login-errorMsg"
+        id="login-error"
+        style="display:none; color:#ff4d4f; font-size:13px; margin-top:-14px;"
+      ></div>
 
       <div style="display: flex; gap: 27px; flex-direction: column">
         <button class="login-loginBtn">로그인</button>
@@ -68,7 +75,7 @@
               <div class="login-inputTitle">닉네임</div>
               <div class="login-inputBox">
                 <img src="./login/login-images/account.svg" alt="닉네임" />
-                <input type="text" placeholder="닉네임을 입력해주세요" />
+                <input type="text" id="signup-nickname" name="nickname" placeholder="닉네임을 입력해주세요" />
               </div>
             </div>
 
@@ -76,9 +83,12 @@
               <div class="login-inputTitle">아이디</div>
               <div class="login-inputBox">
                 <img src="./login/login-images/account.svg" alt="아이디" />
-                <input type="text" placeholder="아이디를 입력해주세요" />
+                <input type="text" id="signup-username" name="username" placeholder="아이디를 입력해주세요" />
               </div>
             </div>
+
+            <!-- 🎯 [단순화] 이메일/비밀번호 확인 입력칸은 백엔드에서 선택값·단일 비밀번호로
+                 처리하기로 해서 뺐음 (accounts/forms.py의 SignUpForm 참고) -->
 
             <div class="login-infoInput">
               <div class="login-inputTitle">비밀번호</div>
@@ -87,6 +97,8 @@
                   <img src="./login/login-images/password.svg" alt="비밀번호" />
                   <input
                     type="password"
+                    id="signup-password1"
+                    name="password1"
                     placeholder="비밀번호를 입력해주세요"
                   />
                 </div>
@@ -112,15 +124,18 @@
             <div class="login-infoInput">
               <div class="login-inputTitle">성별</div>
               <div class="login-chooseGender">
-                <button class="login-genderBox">
+                <button type="button" class="login-genderBox">
                   <img src="./login/login-images/woman.svg" />
                   <span>여성</span>
                 </button>
-                <button class="login-genderBox">
+                <button type="button" class="login-genderBox">
                   <img src="./login/login-images/man.svg" />
                   <span>남성</span>
                 </button>
               </div>
+              <!-- 🎯 [진짜 연동용] 버튼 클릭으로는 스타일만 바뀌므로, 실제 전송값은
+                   이 hidden input에 담아서 login.js가 클릭할 때마다 채워준다. -->
+              <input type="hidden" id="signup-gender" name="gender" />
             </div>
 
             <div class="login-infoInput">
@@ -129,6 +144,9 @@
                 <img src="./login/login-images/place.svg" alt="거주지" />
                 <input type="text" placeholder="거주지를 입력해주세요" />
               </div>
+              <!-- 🎯 참고: 실거주지는 회원가입 항목이 아니라, 가입 후 마이페이지에서
+                   GPS로 인증하는 별도 흐름(accounts:profile_residence)이라 이 입력값은
+                   아직 서버로 전송하지 않음. -->
             </div>
 
             <div class="login-personalInfo">
@@ -136,6 +154,7 @@
                 <input
                   type="checkbox"
                   id="check-agree"
+                  name="agree_privacy"
                   class="login-customCheckInput"
                 />
                 <label for="check-agree" class="login-customCheckLabel">
@@ -154,6 +173,14 @@
           </div>
         </div>
       </div>
+
+      <!-- 🎯 [진짜 연동용] 회원가입 실패 시(닉네임 중복 등) 에러 메시지 표시 영역 -->
+      <div
+        class="login-errorMsg"
+        id="signup-error"
+        style="display:none; color:#ff4d4f; font-size:13px; margin-top:-8px; margin-bottom:8px;"
+      ></div>
+
       <div style="display: flex; gap: 27px; flex-direction: column">
         <button class="login-signupBtn">회원가입</button>
         <div class="login-joinRecommend">
@@ -288,7 +315,7 @@
           >
             <img
               class="login-infoNoticeImg"
-              src="./login//login-images/circle.svg"
+              src="./login/login-images/circle.svg"
               alt="안내"
             />
 

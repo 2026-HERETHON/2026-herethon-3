@@ -7,6 +7,9 @@ let currentSidebarState = {
   detailDongName: null,
   legalDongName: null,
   legalDongId: null,
+  // 🎯 [답변 작성 연동용] 지금 상세보기로 열려있는 질문의 id를 기억해뒀다가
+  // 답변 등록 버튼을 눌렀을 때 어느 질문에 답변을 다는 건지 알 수 있게 함.
+  currentQuestionId: null,
 };
 
 // 💡 [공용] Django CSRF 토큰을 쿠키에서 꺼내는 헬퍼 (list.html의 getCookie와 동일한 로직)
@@ -292,6 +295,9 @@ function bindQnaCardDelegation() {
 function openQuestionDetail(questionId) {
   if (!questionId) return;
 
+  // 🎯 답변 등록 버튼이 "지금 어느 질문에 답할지" 알 수 있도록 기억해둠
+  currentSidebarState.currentQuestionId = questionId;
+
   const titleEl = document.getElementById("qnaDetailTitle");
   const ansContainer = document.getElementById("qnaAnswerContainer");
   const ansCountEl = document.getElementById("qnaDetailAnsCount");
@@ -338,6 +344,69 @@ function openQuestionDetail(questionId) {
   // DOMContentLoaded 안에서만 정의되는 updateBottomButtons를
   // window.__updateBottomButtons로 노출해뒀으므로 그걸 통해 호출
   window.__updateBottomButtons?.();
+}
+
+// =====================================================================
+// 🎯 [Q&A] 답변 작성 - 사이드바 입력창 → /qna/question/<id>/answer/ 실제 POST
+//
+// 💡 이 버튼/입력창은 페이지 전체가 다시 그려지지 않는 고정 마크업이라
+// DOMContentLoaded에서 한 번만 바인딩하면 됨 (카드처럼 innerHTML로
+// 통째로 교체되는 요소가 아니라서 이벤트 위임이 필요 없음).
+//
+// ⚠️ 백엔드(qna/views.py answer_create)는 폼 유효성 검사에 실패해도
+// 에러를 보여주지 않고 무조건 qna:detail로 리다이렉트하도록 만들어져
+// 있어서(명세서 그대로), 프론트에서는 "성공"과 "조용히 씹힘"을 구분할
+// 방법이 없다. 그래서 여기서도 요청이 끝나면 입력칸을 비우고 답변
+// 목록을 새로고침만 하고, 별도의 성공/실패 메시지는 표시하지 않는다.
+// =====================================================================
+function bindAnswerSubmit() {
+  const btn = document.querySelector(".rightSB-answerSubmitBtn");
+  const input = document.querySelector(".rightSB-answerInput");
+  if (!btn || !input || btn.dataset.clickBound === "true") return;
+  btn.dataset.clickBound = "true";
+
+  const submitAnswer = () => {
+    const questionId = currentSidebarState.currentQuestionId;
+    const content = input.value.trim();
+    if (!questionId || !content) return;
+
+    btn.disabled = true;
+
+    fetch(`http://127.0.0.1:8000/qna/question/${questionId}/answer/`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: new URLSearchParams({ answer_content: content }),
+    })
+      .then((res) => {
+        // 🎯 answer_create는 @login_required라서, 로그인 세션이 없으면
+        // qna:detail이 아니라 로그인 페이지로 리다이렉트된다 — 이 경우만
+        // 유일하게 프론트에서 구분 가능한 "실패"라서 alert로 알려준다.
+        if (res.url.includes("/accounts/login/")) {
+          alert("로그인이 필요해요. 다시 로그인해주세요.");
+          return;
+        }
+        input.value = "";
+        // 방금 등록한(혹은 조용히 실패한) 답변까지 반영된 최신 상세를 다시 그림
+        openQuestionDetail(questionId);
+        alert("답변이 등록되었습니다.");
+      })
+      .catch((err) => {
+        console.error("🚨 답변 등록 중 오류:", err);
+        alert("답변 등록 중 오류가 발생했어요.");
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
+  };
+
+  btn.addEventListener("click", submitAnswer);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitAnswer();
+  });
 }
 
 // 🎯 [공용] Q&A 목록 새로고침 (refreshReviewSection의 Q&A 버전)
@@ -582,12 +651,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // 로그인 상태 체크 및 탭 제어 기능
   // ==========================================
   function checkAuthAndToggleTabs() {
-    // 🔓 실제 연동용: localStorage에 토큰이 있으면 true(로그인), 없으면 false(로그아웃)
-    // const isTokenExist = localStorage.getItem("token")
-
-    // 💡 [테스트 스위치] 원하는 상태를 주석 해제해서 확인해봐!
-    const isTokenExist = true; // 🔓 로그인 상태 테스트할 때 주석 해제
-    // const isTokenExist = false; // 🔒 로그아웃 상태 테스트할 때 주석 해제
+    // 🎯 [진짜 연동] home.html의 <body data-authenticated="...">에 Django가
+    // request.user.is_authenticated를 그대로 내려주므로, 그 값을 읽는다.
+    // (예전엔 여기 하드코딩된 테스트 스위치가 있었는데, 실제 로그인 상태와
+    // 무관하게 값이 고정돼 있어서 로그인해도 잠금 화면이 안 사라졌었음)
+    const isTokenExist = document.body.dataset.authenticated === "true";
 
     const contentContainer = document.querySelector(".rightSB-overlayWrapper");
     if (!contentContainer) return;
@@ -653,6 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
   handleStarRating();
   checkAuthAndToggleTabs();
   updateBottomButtons();
+  bindAnswerSubmit();
 
   // --- [C] 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
   function updateIndicator(target) {
