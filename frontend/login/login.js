@@ -327,4 +327,4 @@ function bindSignupSubmit() {
           // (자동 로그인은 하지 않음). 예전엔 여기서 바로 새로고침했는데,
           // 이제 "회원가입 완료" 팝업(signUpSuccess-section)을 먼저 보여주고,
           // "로그인하러 가기"를 눌러야 로그인 폼에서 직접 로그인하게 한다.
-          const authCard = document.getElementById("auth-card"
+          const authCard = document.getElementById("auth-card")}})})}
