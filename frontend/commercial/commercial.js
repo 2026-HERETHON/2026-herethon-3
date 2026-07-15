@@ -5,9 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
     item.addEventListener("click", () => {
       const target = item.getAttribute("data-target");
 
-      // 🔙 "안심맵" 클릭 시 메인 페이지(index.html)로 이동
+      // 🔙 "안심맵" 클릭 시 메인 페이지(home)로 이동
       if (target === "safetyMap") {
-        window.location.href = "./index.html";
+        window.location.href = "/";
         return;
       }
 
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const safetyMenu = document.querySelector(".navbar-safetyMap");
   if (safetyMenu) {
     safetyMenu.addEventListener("click", () => {
-      window.location.href = "../index.html";
+      window.location.href = "/";
     });
   }
 
