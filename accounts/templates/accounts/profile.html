@@ -270,10 +270,10 @@
             {% for a in answers %}
               <a href="{% url 'qna:detail' question_id=a.question.id %}" style="text-decoration:none; color:inherit; display:block;">
                 <div class="myPage-qnaItem">
-                  <div class="myPage-qnaIcon">Q</div>
-                  <span class="myPage-qnaText">{{ a.question.question_content }}</span>
+                  <div class="myPage-qnaIcon">A</div>
+                  <span class="myPage-qnaText">{{ a.answer_content }}</span>
                   <div class="myPage-qnaRight">
-                    <span class="myPage-qnaCount">답변 {{ a.question.answers.count }}</span>
+                    <span class="myPage-qnaCount">Q. {{ a.question.question_content|truncatechars:20 }}</span>
                     <img src="{% static 'accounts/mypage-images/chevron-right.svg' %}" class="myPage-qnaArrow" />
                   </div>
                 </div>
