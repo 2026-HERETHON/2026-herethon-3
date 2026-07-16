@@ -1,0 +1,894 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <base href="{% get_static_prefix %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>안심맵</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="./components/rightSideBar/rightSideBar.css" />
+    <link rel="stylesheet" href="./components/leftPanel/leftPanel.css" />
+    <link rel="stylesheet" href="./login/login.css" />
+    <link rel="stylesheet" href="./components/mapOverlay/mapOverlay.css" />
+    <link rel="stylesheet" href="./components/kakaoMap/kakaoMap.css" />
+    <link rel="stylesheet" href="commercial/commercial.css" />
+    <link rel="icon" href="{% static 'favicon.svg' %}">
+  </head>
+  <body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}">
+    <!--nav-->
+    <nav>
+      <div id="navbar-container">
+        <div class="navbar-logoImg"><img src="../static/main-images/logo.svg"/></div>
+        <div class="navbar-Select">
+          <div
+            class="navbar-menu navbar-safetyMap beBold"
+            data-target="page-safetyMap"
+          >
+            안심맵
+          </div>
+          <div
+            class="navbar-menu navbar-commercial"
+            data-target="page-commercial"
+          >
+            제휴 서비스
+          </div>
+          <div class="navbar-underline"></div>
+        </div>
+        {% if request.user.is_authenticated %}
+        <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
+          <a href="{% url 'accounts:profile' %}" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
+            <div style="display:flex; gap: 9px; align-items:center;">
+              <img src="main-images/account.svg" alt="마이페이지" />
+              <span class="navbar-mypage" style="cursor: pointer;">마이페이지</span>
+            </div>
+          </a>
+          <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
+        </div>
+        {% else %}
+        <a
+          href="javascript:void(0);"
+          class="navbar-ahref"
+          id="main-nav-login-btn"
+        >
+          <div class="navbar-login">
+            <img
+              class="navbar-loginImg"
+              src="main-images/goToLogin.svg"
+              alt="로그인하기"
+            />
+            로그인
+          </div>
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <div class="contentbox">
+      <!--안심맵 페이지-->
+      <div id="page-safetyMap" class="main-page-group">
+        <!--좌측 사이드바-->
+        <aside class="leftSB-aside">
+          <div id="leftPanel-container">
+            <div class="leftPanel-wrapper">
+
+               <div class="leftPanel-searchWrapper">
+                <div class="leftPanel-searchBar">
+                  <img
+                    src="./components/leftPanel/leftPanel-images/search.svg"
+                    class="leftPanel-searchIcon"
+                  />
+                  <input
+                    type="text"
+                    placeholder="장소를 입력해주세요"
+                    class="leftPanel-searchInput"
+                  />
+                </div>
+                <ul class="leftPanel-searchResults leftPanel-hide"></ul>
+              </div>
+              <!-- 안전 정보 필터 -->
+              <div class="leftPanel-filterBox">
+                <div class="leftPanel-filterHeader">
+                  <h4>안전 정보 필터</h4>
+                  <span class="leftPanel-resetBtn">초기화</span>
+                </div>
+
+                <div class="leftPanel-filterItem">
+                  <div class="leftPanel-filterItemLeft">
+                    <img
+                      src="./components/leftPanel/leftPanel-images/cctv.png"
+                      alt="CCTV"
+                    />
+                    <span>CCTV</span>
+                  </div>
+                  <label class="leftPanel-customCheckbox">
+                    <input type="checkbox" data-filter-type="cctv" id="leftPanel-filter-cctv" />
+                    <span class="leftPanel-checkboxBox"></span>
+                    <img
+                      src="./components/leftPanel/leftPanel-images/check.svg"
+                      class="leftPanel-checkboxIcon"
+                      alt="체크됨"
+                    />
+                  </label>
+                </div>
+
+                <div class="leftPanel-filterItem">
+                  <div class="leftPanel-filterItemLeft">
+                    <img
+                      src="./components/leftPanel/leftPanel-images/streetlight.png"
+                      alt="가로등"
+                    />
+                    <span>가로등</span>
+                  </div>
+                  <label class="leftPanel-customCheckbox">
+                    <input type="checkbox" data-filter-type="light" />
+                    <span class="leftPanel-checkboxBox"></span>
+                    <img
+                      src="./components/leftPanel/leftPanel-images/check.svg"
+                      class="leftPanel-checkboxIcon"
+                      alt="체크됨"
+                    />
+                  </label>
+                </div>
+
+                <div class="leftPanel-filterItem">
+                  <div class="leftPanel-filterItemLeft">
+                    <img
+                      src="./components/leftPanel/leftPanel-images/police.png"
+                      alt="파출소/지구대"
+                    />
+                    <span>파출소 / 지구대</span>
+                  </div>
+                  <label class="leftPanel-customCheckbox">
+                    <input type="checkbox" data-filter-type="police" />
+                    <span class="leftPanel-checkboxBox"></span>
+                    <img
+                      src="./components/leftPanel/leftPanel-images/check.svg"
+                      class="leftPanel-checkboxIcon"
+                      alt="체크됨"
+                    />
+                  </label>
+                </div>
+
+                <div class="leftPanel-filterItem">
+                  <div class="leftPanel-filterItemLeft">
+                    <img
+                      src="./components/leftPanel/leftPanel-images/alarm.png"
+                      alt="비상벨"
+                    />
+                    <span>비상벨</span>
+                  </div>
+                  <label class="leftPanel-customCheckbox">
+                    <input type="checkbox" data-filter-type="bell" />
+                    <span class="leftPanel-checkboxBox"></span>
+                    <img
+                      src="./components/leftPanel/leftPanel-images/check.svg"
+                      class="leftPanel-checkboxIcon"
+                      alt="체크됨"
+                    />
+                  </label>
+                </div>
+
+                <div class="leftPanel-filterItem">
+                  <div class="leftPanel-filterItemLeft">
+                    <img
+                      src="./components/leftPanel/leftPanel-images/night.svg"
+                      alt="여성밤길치안안전"
+                    />
+                    <span>여성밤길치안안전</span>
+                  </div>
+                  <label class="leftPanel-customCheckbox">
+                    <input type="checkbox" data-filter-type="night_safety" />
+                    <span class="leftPanel-checkboxBox"></span>
+                    <img
+                      src="./components/leftPanel/leftPanel-images/check.svg"
+                      class="leftPanel-checkboxIcon"
+                      alt="체크됨"
+                    />
+                  </label>
+                </div>
+
+                <div class="leftPanel-filterItem">
+                  <div class="leftPanel-filterItemLeft">
+                    <img
+                      src="./components/leftPanel/leftPanel-images/warning.png"
+                      alt="범죄주의구간"
+                    />
+                    <span>범죄주의구간</span>
+                  </div>
+                  <label class="leftPanel-customCheckbox">
+                    <input type="checkbox" data-filter-type="crime_zone" />
+                    <span class="leftPanel-checkboxBox"></span>
+                    <img
+                      src="./components/leftPanel/leftPanel-images/check.svg"
+                      class="leftPanel-checkboxIcon"
+                      alt="체크됨"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <!-- 안전 점수 범례 -->
+              <div class="leftPanel-legendBox">
+                <h4>안전 점수 범례</h4>
+                <div class="leftPanel-legendGradient">
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #1077ff"
+                  ></span>
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #1d9bfe"
+                  ></span>
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #48b7ff"
+                  ></span>
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #6dc6ff"
+                  ></span>
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #99CDE5"
+                  ></span>
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #B9D4DF"
+                  ></span>
+                  <span
+                    class="leftPanel-legendCell"
+                    style="background: #DADFE1"
+                  ></span>
+                </div>
+                <div class="leftPanel-legendLabels">
+                  <span>매우 안전</span>
+                  <span>주의 필요</span>
+                </div>
+              </div>
+
+              <!-- 사용 가이드 -->
+              <div class="leftPanel-guideBox">
+                <div class="leftPanel-guideHeader">
+                  <h4>사용 가이드</h4>
+                  <span class="leftPanel-closeIcon">✕</span>
+                </div>
+                <p>지도를 클릭하거나 드래그하여 원하는 지역을 탐색해보세요.</p>
+              </div>
+
+              <!-- 안내 -->
+              <div class="leftPanel-noticeBox">
+                <h4>안내</h4>
+                <p>
+                  본 정보는 공공데이터와 사용자 후기를 기반으로 한 참고
+                  자료이며, 특정 지역을 위험 지역으로 단정하지 않습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!--카카오맵-->
+        <main>
+          <div id="mainMap-conatiner">
+            <div id="map"></div>
+            <!-- ===== 지도 오버레이 시작 (mainMap-conatiner 안에 넣기) ===== -->
+            <!-- 상단 위치 선택 -->
+              <div class="mapOverlay-locationSelect">
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/location-pin.svg"
+                  class="mapOverlay-pin"
+                  alt="위치"
+              />
+
+            <!-- 시/도 드롭다운 -->
+            <div class="mapOverlay-dropdown" data-level="sido">
+              <div class="mapOverlay-dropdownSelected">
+                <span class="mapOverlay-dropdownText">-</span>
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
+                  class="mapOverlay-chevron"
+                />
+              </div>
+              <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+            </div>
+
+            <!-- 구 드롭다운 -->
+            <div class="mapOverlay-dropdown" data-level="gu">
+              <div class="mapOverlay-dropdownSelected">
+                <span class="mapOverlay-dropdownText">-</span>
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
+                  class="mapOverlay-chevron"
+                />
+              </div>
+              <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+            </div>
+
+            <!-- 동 드롭다운 -->
+            <div class="mapOverlay-dropdown" data-level="dong">
+              <div class="mapOverlay-dropdownSelected">
+                <span class="mapOverlay-dropdownText">-</span>
+                <img
+                  src="./components/mapOverlay/mapOverlay-images/dropdown.svg"
+                  class="mapOverlay-chevron"
+                />
+              </div>
+              <ul class="mapOverlay-dropdownList mapOverlay-hide"></ul>
+            </div>
+          </div>
+
+          <!-- 하단 지도 정보 보기 -->
+          <div class="mapOverlay-infoBox">
+            <div class="mapOverlay-infoHeader">
+              <span>지도 정보 보기</span>
+              <img
+                src="./components/mapOverlay/mapOverlay-images/chevron-up.svg"
+                class="mapOverlay-infoToggle mapOverlay-flipped"
+              />
+            </div>
+            <div class="mapOverlay-infoList mapOverlay-hide">
+              <div class="mapOverlay-infoItem">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/cctv.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">CCTV</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="cctv">127개</span>
+              </div>
+
+              <div class="mapOverlay-infoItem">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/streetlight.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">가로등</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="streetlight">430개</span>
+              </div>
+
+              <div class="mapOverlay-infoItem mapOverlay-infoItemWide">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/police.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">파출소/지구대</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="police">3곳</span>
+              </div>
+
+              <div class="mapOverlay-infoItem">
+                <div class="mapOverlay-infoTop">
+                  <div class="mapOverlay-infoIconCircle">
+                    <img src="./components/mapOverlay/mapOverlay-images/alarm.png" />
+                  </div>
+                  <span class="mapOverlay-infoName">비상벨</span>
+                </div>
+                <span class="mapOverlay-infoCount" data-type="alarm">8개</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== 지도 오버레이 끝 ===== -->
+                    </div>
+                  </main>
+
+        <!-- 🎯 [재구조화] rightSB-aside 자체가 열리기 전엔 translateX(100%)로
+             화면 밖에 가 있어서, 그 안에 두면 GPS 버튼도 같이 사라져버렸다.
+             그래서 aside "바깥" 형제로 빼서 항상 화면에 떠 있게 하고,
+             position:fixed + JS(rightSideBar.js의 syncGpsButtonPosition)가
+             .rightSB-aside/​#rightSideBar-container의 open/collapsed 상태를
+             지켜보다가 패널 폭만큼 왼쪽으로 이동시켜준다. -->
+        <div class="mapOverlay-locationBtn">
+          <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
+        </div>
+
+        <!--우측 사이드바-->
+        <aside class="rightSB-aside">
+          <div id="rightSideBar-container">
+            <div class="rightSB-wholeContainer">
+              <div class="rightSB-close">
+                <img
+                  src="./components/rightSideBar/rightSB-images/closeSB.svg"
+                />
+              </div>
+              <div class="rightSB-body">
+                <!--지역 명-->
+                <div class="rightSB-region">
+                  <span class="rightSB-regionText"></span>
+                  <img
+                    class="rightSB-regionHeartImg"
+                    src="./components/rightSideBar/rightSB-images/heart.svg"
+                    alt="닫기"
+                  />
+                </div>
+                <div class="region-underline"></div>
+
+                <div class="rightSB-content">
+                <!-- 🎯 [노트북 화면 대응] 안심점수+영역별 만족도를 하나로 묶어서,
+                     짧은 화면에서 이 그룹 전체가 rightSB-content의 정확히 절반만
+                     차지하고 나머지 절반은 QnA/후기(rightSB-overlayWrapper, 이미
+                     flex:1로 남는 공간을 다 먹게 되어있음)가 갖도록 함. -->
+                <div class="rightSB-topInfoGroup">
+                  <!--안심 점수 및 그래프-->
+                  <div class="rightSB-safety">
+                    <div class="rightSB-safetyScoreContainer">
+                      <div class="rightSB-safetyScoreTitle">안심 점수</div>
+                      <div class="rightSB-safteyScore">
+                        <div class="rightSB-score">82</div>
+                        <div class="rightSB-fullScore">/ 100</div>
+                        <div class="rightSB-safeRegion">안심 구역</div>
+                      </div>
+                      <div class="rightSB-regionDescription">
+                        이 지역은 전반적으로<br />안전한 편에 속해요.
+                      </div>
+                      <button>점수 기준 보기</button>
+                    </div>
+                    <div class="rightSB-safetyGraph">
+                      <canvas id="safetyRadarChart"></canvas>
+                    </div>
+                  </div>
+
+                  <!--영역별 만족도-->
+                  <div class="rightSB-satisfactionContainer">
+                    <div class="rightSB-satisfactionTitle rightSB-boldFont">
+                      영역별 만족도
+                    </div>
+                    <div class="rightSB-satisfcationLine"></div>
+
+                    <div class="rightSB-satisfactionList">
+                      <div class="rightSB-night rightSB-satisfcationItem">
+                        <div class="rightSB-satisfactionItemTitle">
+                          <img
+                            src="./components/rightSideBar/rightSB-images/night.svg"
+                          />
+                          <div class="rightSB-boldFont">밤길 체감 안전도</div>
+                        </div>
+
+                        <div class="rightSB-starRatingContainer">
+                          <div class="rightSB-starRatingDisplay"></div>
+                          <div class="rightSB-starRatingScore">
+                            <span
+                              class="rightSB-ratingScore"
+                              id="rightSB-night-score-text"
+                            ></span>
+                            <span class="rightSB-RatingFullScore">/ 5.0</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="rightSB-convenience rightSB-satisfcationItem">
+                        <div class="rightSB-satisfactionItemTitle">
+                          <img
+                            src="./components/rightSideBar/rightSB-images/convenience.svg"
+                          />
+                          <div class="rightSB-boldFont">편의시설 만족도</div>
+                        </div>
+
+                        <div class="rightSB-starRatingContainer">
+                          <div class="rightSB-starRatingDisplay"></div>
+                          <div class="rightSB-starRatingScore">
+                            <span
+                              class="rightSB-ratingScore"
+                              id="rightSB-convenience-score-text"
+                            ></span>
+                            <span class="rightSB-RatingFullScore">/ 5.0</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="rightSB-atmosphere rightSB-satisfcationItem">
+                        <div class="rightSB-satisfactionItemTitle">
+                          <img
+                            src="./components/rightSideBar/rightSB-images/atmosphere.svg"
+                          />
+                          <div class="rightSB-boldFont">동네 분위기</div>
+                        </div>
+
+                        <div class="rightSB-starRatingContainer">
+                          <div class="rightSB-starRatingDisplay"></div>
+                          <div class="rightSB-starRatingScore">
+                            <span
+                              class="rightSB-ratingScore"
+                              id="rightSB-atmosphere-score-text"
+                            ></span>
+                            <span class="rightSB-RatingFullScore">/ 5.0</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- /.rightSB-topInfoGroup -->
+
+                  <!--오버레이용 div-->
+                  <div class="rightSB-overlayWrapper">
+                    <!--실거주 후기 / QnA 파트 (이하 리뷰창)-->
+                    <div class="rightSB-reviewContainer">
+                      <!--리뷰창 네비게이션 바-->
+                      <div class="rightSB-reviewNav">
+                        <div
+                          class="rightSB-reviewSelected rightSB-navbar-menu rightSB-beBold"
+                        >
+                          실거주 후기
+                          <span>(12)</span>
+                        </div>
+                        <div class="rightSB-QnASelected rightSB-navbar-menu">
+                          Q&A
+                          <span>(7)</span>
+                        </div>
+                        <div class="rightSB-navbar-indicator"></div>
+                      </div>
+                      <div class="rightSB-reviewNavUnderline"></div>
+
+                      <!--실거주 후기 / QnA 파트 분리-->
+                      <div class="rightSB-tabContentWrapper">
+                        <!--실거주 후기 파트-->
+                        <div
+                          id="tabContentReview"
+                          class="rightSB-tabContent rightSB-activeContent"
+                        >
+                          <!--실거주 후기 List-->
+                          <div class="rightSB-reviewListSubPage">
+                            <div id="rightSB-reviewCardContainer"></div>
+                          </div>
+
+                          <!--실거주 후기 Form-->
+                          <div class="rightSB-reviewFormSubPage rightSB-hide">
+                            <div class="rightSB-reviewTitle">
+                              <img
+                                src="./components/rightSideBar/rightSB-images/backBtn.svg"
+                                class="rightSB-backBtnSmall"
+                              />
+                              후기 작성하기
+                            </div>
+
+                            <div class="rightSB-reviewContainerBox">
+                              <div class="rightSB-reviewCheckListTitle">
+                                영역별 만족도
+                              </div>
+                              <div class="rightSB-reviewCheckListTitleDetail">
+                                각 항목별 만족도를 선택해주세요
+                              </div>
+
+                              <div class="rightSB-reviewCheckLists">
+                                <div class="rightSB-reviewChecks">
+                                  <div class="rightSB-nightCheck">
+                                    <img
+                                      src="./components/rightSideBar/rightSB-images/night.svg"
+                                    />
+                                    <div>
+                                      <div class="rightSB-mediumFont">
+                                        밤길 체감 안전도
+                                      </div>
+                                      <div class="rightSB-lightFont">
+                                        밤에 혼자 돌아다녀도 안전한 느낌이에요.
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div
+                                    class="rightSB-rating"
+                                    data-type="night"
+                                  ></div>
+                                </div>
+
+                                <div class="rightSB-reviewChecks">
+                                  <div class="rightSB-convenienceCheck">
+                                    <img
+                                      src="./components/rightSideBar/rightSB-images/convenience.svg"
+                                    />
+                                    <div>
+                                      <div class="rightSB-mediumFont">
+                                        편의시설 만족도
+                                      </div>
+                                      <div class="rightSB-lightFont">
+                                        병원, 주차, 편의점 등이 잘 갖춰져
+                                        있어요.
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div
+                                    class="rightSB-rating"
+                                    data-type="convenience"
+                                  ></div>
+                                </div>
+
+                                <div class="rightSB-reviewChecks">
+                                  <div class="rightSB-atmosCheck">
+                                    <img
+                                      src="./components/rightSideBar/rightSB-images/atmosphere.svg"
+                                    />
+                                    <div>
+                                      <div class="rightSB-mediumFont">
+                                        동네 분위기
+                                      </div>
+                                      <div class="rightSB-lightFont">
+                                        동네 분위기가 쾌적하고 좋았어요.
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div
+                                    class="rightSB-rating"
+                                    data-type="atmosphere"
+                                  ></div>
+                                </div>
+                              </div>
+
+                              <div class="rightSB-reviewCheckListTitle">
+                                자세한 후기
+                              </div>
+                              <div class="rightSB-reviewCheckListTitleDetail">
+                                실거주 경험을 바탕으로 솔직한 후기를 남겨주세요.
+                              </div>
+                              <div class="rightSB-reviewContentContainer">
+                                <textarea
+                                  class="rightSB-reviewContent"
+                                  placeholder="예) 밤길은 어떤지, 주변 편의시설은 어떤지, 실제로 거주해보니 느낀 점 등을 자유롭게 적어주세요."
+                                ></textarea>
+                                <div class="rightSB-currentChars">
+                                  <span>0</span>/500
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!--QnA 파트-->
+                        <div id="tabContentQnA" class="rightSB-tabContent">
+                          <!--QnA List-->
+                          <div class="rightSB-qnaListSubPage">
+                            <!--QnA 검색창-->
+                            <div class="rightSB-qnaSearchWrapper">
+                              <input placeholder="검색어를 입력해주세요." />
+                              <button class="rightSB-qnaSearchBtn">
+                                <img
+                                  src="./components/rightSideBar/rightSB-images/search.svg"
+                                  alt="검색"
+                                />
+                              </button>
+                            </div>
+                            <!--QnA 질문 리스트-->
+                            <div id="rightSB-qnaCardContainer"></div>
+                          </div>
+
+                          <!--QnA 상세 보기 페이지-->
+                          <div class="rightSB-qnaDetailSubPage rightSB-hide">
+                            <div class="rightSB-qnaDetailHeader">
+                              <img
+                                src="./components/rightSideBar/rightSB-images/backBtn.svg"
+                                class="rightSB-detailBackBtn"
+                                alt="뒤로가기"
+                              />
+                              <div class="rightSB-detailQuestionLine">
+                                <div class="rightSB-qnaInfo">
+                                  <div class="rightSB-qnaAvatar">Q</div>
+                                  <div class="rightSB-qnaInfotext">
+                                    <div
+                                      class="rightSB-detailQuestionTitle"
+                                      id="qnaDetailTitle"
+                                    ></div>
+                                    <div class="rightSB-detailQuestionMeta">
+                                      <span id="qnaDetailUser">작성자</span> ·
+                                      <span id="qnaDetailDate">날짜</span> ·
+                                      조회
+                                      <span id="qnaDetailViews">0</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <span
+                                  class="rightSB-detailAnswerCount"
+                                  id="qnaDetailAnsCount"
+                                  >답변 0</span
+                                >
+                              </div>
+                            </div>
+
+                            <div class="rightSB-qnaDivider"></div>
+
+                            <div
+                              class="rightSB-answerListWrapper"
+                              id="qnaAnswerContainer"
+                            ></div>
+
+                            <div class="rightSB-answerInputWrapper">
+                              <input
+                                type="text"
+                                class="rightSB-answerInput"
+                                placeholder="답변을 입력해주세요."
+                              />
+                              <button class="rightSB-answerSubmitBtn">
+                                <img
+                                  src="./components/rightSideBar/rightSB-images/arrowUp.svg"
+                                  alt="전송"
+                                />
+                              </button>
+                            </div>
+                          </div>
+                          <!--QnA Form-->
+                          <div class="rightSB-qnaFormSubPage rightSB-hide">
+                            <div class="rightSB-reviewTitle">
+                              <img
+                                src="./components/rightSideBar/rightSB-images/backBtn.svg"
+                                class="rightSB-backBtnSmall"
+                              />
+                              질문 남기기
+                            </div>
+                            <div class="rightSB-reviewContainerBox">
+                              <div class="rightSB-reviewContentContainer">
+                                <textarea
+                                  class="rightSB-reviewContent"
+                                  placeholder="궁금한 내용을 입력해주세요."
+                                ></textarea>
+                                <div class="rightSB-currentChars">
+                                  <span>0</span>/500
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!--버튼들-->
+                    <!--실거주 후기 버튼-->
+                    <div class="rightSB-reviewBtn">
+                      <button class="rightSB-reviewSubmitBtn go-to-review-form">
+                        <img
+                          src="./components/rightSideBar/rightSB-images/askingQ.svg"
+                          class="rightSB-askingQImg"
+                        />후기 작성하기
+                      </button>
+                      <button class="rightSB-reviewCancleBtn wish-btn">
+                        <img
+                          src="./components/rightSideBar/rightSB-images/heart.svg"
+                          class="rightSB-heartImg"
+                        />
+                        이 동네 찜하기
+                      </button>
+                    </div>
+
+                    <!-- QnA 탭 버튼-->
+                    <div class="rightSB-reviewBtn">
+                      <button class="rightSB-reviewSubmitBtn go-to-review-form">
+                        <img
+                          src="./components/rightSideBar/rightSB-images/askingQ.svg"
+                          class="rightSB-askingQImg"
+                        />
+                        질문 남기기
+                      </button>
+                      <button class="rightSB-reviewCancleBtn wish-btn">
+                        <img
+                          src="./components/rightSideBar/rightSB-images/heart.svg"
+                          class="rightSB-heartImg"
+                        />
+                        이 동네 찜하기
+                      </button>
+                    </div>
+
+                    <!--실거주 후기/QnA Form 버튼-->
+                    <div class="rightSB-reviewBtn">
+                      <button class="rightSB-reviewSubmitBtn">등록하기</button>
+                      <button class="rightSB-reviewCancleBtn">취소</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!--제휴서비스 페이지-->
+      <!-- 🎯 [진짜 SPA 탭 전환] 예전엔 별도 페이지(/commercial/)로 진짜 이동해서
+           안심맵으로 돌아올 때 화면이 뚝 끊기며 새로고침됐는데, 이제 home.html의
+           다른 탭(안심맵)과 똑같이 이 안에 내용을 통째로 넣어서 nav바는 그대로
+           유지한 채 콘텐츠 영역만 바뀌게 한다. (main.js의 기존 탭 전환 로직 재사용) -->
+      <div id="page-commercial" class="main-page-group main-page-hide">
+        <div class="commercial-container">
+          <!-- 1. 왼쪽 사이드바 -->
+          <aside class="sidebar">
+            <ul class="sidebar-menu">
+              <li class="menu-item active">
+                <img src="commercial/commercial-image/commercial_icon.svg" alt="" class="menu-icon">
+                <span>제휴 서비스</span>
+              </li>
+              <li class="menu-item">
+                <img src="commercial/commercial-image/icon-inquiry.svg" alt="" class="menu-icon">
+                <span>제휴 문의</span>
+              </li>
+            </ul>
+          </aside>
+
+          <!-- 2. 오른쪽 메인 콘텐츠 -->
+          <main class="content-area">
+            <!-- 상단 헤더 섹션 -->
+            <section class="content-header">
+              <div class="header-text">
+                <span class="sub-title">안전한 일상을 위한 파트너</span>
+                <h1 class="main-title">제휴 서비스<span class="point-blue">.</span></h1>
+                <p class="description">
+                신뢰할 수 있는 파트너와 함께<br>
+                더 안전하고 편리한 생활을 지원합니다.
+                </p>
+              </div>
+              <div class="header-image">
+                <img src="commercial/commercial-image/partner-illustration.png" alt="제휴 서비스 일러스트">
+              </div>
+            </section>
+
+            <!-- 하단 서비스 카드 리스트 섹션 -->
+            <section class="card-list">
+              <!-- 카드 1: 안심 귀가 서비스 -->
+              <div class="service-card theme-return">
+                <div class="card-left">
+                  <div class="icon-wrapper circle-blue">
+                    <img src="commercial/commercial-image/icon-shield.svg" alt="방패 아이콘">
+                  </div>
+                  <div class="card-info">
+                    <h3>안심 귀가 서비스</h3>
+                    <p>늦은 밤에도 안심하고 귀가할 수 있도록<br>동행 매칭과 경로 공유를 지원합니다.</p>
+                  </div>
+                </div>
+                <div class="card-divider-up"></div>
+                <div class="card-right">
+                  <ul class="feature-list">
+                    <li><img src="commercial/commercial-image/icon-li1.svg" alt=""> 실시간 동행 매칭</li>
+                    <li><img src="commercial/commercial-image/icon-li2.svg" alt=""> 실시간 위치 공유</li>
+                    <li><img src="commercial/commercial-image/icon-li3.svg" alt=""> 위급상황 자동 알림</li>
+                  </ul>
+                  <button class="btn-detail">자세히 보기</button>
+                </div>
+              </div>
+
+              <!-- 카드 2: 안심 주거 서비스 -->
+              <div class="service-card theme-housing">
+                <div class="card-left">
+                  <div class="icon-wrapper circle-light-blue">
+                    <img src="commercial/commercial-image/icon-home.svg" alt="집 아이콘">
+                  </div>
+                  <div class="card-info">
+                    <h3>안심 주거 서비스</h3>
+                    <p>전월세 계약부터 이사, 정착까지<br>안전한 주거 생활을 도와드립니다.</p>
+                  </div>
+                </div>
+                <div class="card-divider-down"></div>
+                <div class="card-right">
+                  <ul class="feature-list">
+                    <li><img src="commercial/commercial-image/icon-li1.svg" alt=""> 전월세 계약 체크리스트</li>
+                    <li><img src="commercial/commercial-image/icon-li4.svg" alt=""> 이사 업체 추천</li>
+                    <li><img src="commercial/commercial-image/icon-li5.svg" alt=""> 주거 정보 및 가이드</li>
+                  </ul>
+                  <button class="btn-detail">자세히 보기</button>
+                </div>
+              </div>
+            </section>
+          </main>
+        </div>햣
+      </div>
+    </div>
+
+    <!--로그인 팝업-->
+    <div id="loginPopupOverlay" class="popup-hide">
+      <div id="loginPopupContent"></div>
+    </div>
+
+    <!--JS-->
+    <!--그래프 구현 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--카카오맵-->
+    <script
+      type="text/javascript"
+      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=bf623b88c0f6dc20fec1663e69dcc22d&libraries=clusterer"
+    ></script>
+
+    <script src="./login/login.js"></script>
+    <script src="./components/rightSideBar/rightSideBar.js"></script>
+    <script src="./components/leftPanel/leftPanel.js"></script>
+    <script src="./components/mapOverlay/mapOverlay.js"></script>
+    <!-- 제휴 서비스 탭 내부의 좌측 메뉴(제휴 서비스/제휴 문의) 활성화 토글용 -->
+    <script src="commercial/commercial.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
