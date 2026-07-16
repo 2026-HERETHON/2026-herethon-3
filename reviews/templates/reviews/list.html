@@ -53,7 +53,11 @@
               <div class="rightSB-cardAvatar"></div>
               <div>
                 <span class="rightSB-cardNickname">{{ review.user.nickname }}</span>
-                <span class="rightSB-cardPeriod">{{ grid.dong }} 거주 중</span>
+                <span class="rightSB-cardPeriod">
+                  {% if review.user.verified_grid %}
+                    {{ review.user.verified_grid.dong_group }} 거주 중
+                  {% endif %}
+                </span>
               </div>
             </div>
             <span class="rightSB-cardDate">{{ review.created_at|timesince }} 전</span>
