@@ -595,9 +595,10 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     }
 
     // ====================================================
-    // 행정동(detailDongName) + 그 부모 법정동(legalDongName) 둘 다 전달.
-    // updateSidebarTitle 쪽에서 detailDongName !== legalDongName이면
-    // "행정동 안심점수/그래프"로 판단해서 행정동 기준으로 조회한다.
+    // 행정동 자신의 grid.id를 detailDongId로 같이 전달한다. updateSidebarTitle
+    // 쪽에서는 이 id가 legalDongId와 다를 때만 "행정동 안심점수/그래프"로
+    // 판단해서 행정동 기준으로 조회한다 (이름 비교는 "신림동"처럼 법정동과
+    // 행정동 이름이 같은 경우 오판하므로 쓰지 않음).
     // (영역별 만족도/후기/QnA는 legalDongId 기준 그대로 유지)
     // ====================================================
     const legalDongId = legalDongCache[legalDongName] || grid.id;

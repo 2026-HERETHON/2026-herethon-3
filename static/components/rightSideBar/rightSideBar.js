@@ -618,14 +618,22 @@ window.updateSidebarTitle = function (
 
   // ====================================================
   // 사이드바 상단 안심점수/그래프는 "어떤 폴리곤을 클릭했는가"에 따라 달라진다.
-  // - 검색(법정동 선택)이나 법정동 폴리곤 자체를 볼 때: detailDongName === legalDongName
-  //   -> 법정동(is_legal_dong=true) 기준으로 조회
-  // - 법정동 안에서 hover-in 후 특정 행정동 폴리곤을 클릭했을 때: detailDongName(행정동)이
-  //   legalDongName(법정동)과 다름 -> 그 행정동(is_legal_dong=false) 기준으로 조회
+  // - 검색(법정동 선택)이나 법정동 폴리곤 자체를 볼 때: legalDongId만 넘어오고
+  //   detailDongId는 undefined -> 법정동(is_legal_dong=true) 기준으로 조회
+  // - 법정동 안에서 hover-in 후 특정 행정동 폴리곤을 클릭했을 때: kakaoMap.js가
+  //   그 행정동 자신의 grid.id를 detailDongId로 넘겨줌 -> 그 행정동
+  //   (is_legal_dong=false) 기준으로 조회
   // (영역별 만족도/후기/QnA는 아래 refreshReviewSection/refreshQnaSection에서
   //  legalDongId 기준으로 그대로 유지된다)
+  //
+  // 주의: detailDongName !== legalDongName으로 판단하면 안 된다. "신림동"처럼
+  // 법정동과 그 소속 행정동이 이름이 완전히 같은 경우가 있어서(예: 관악구
+  // 신림동 법정동 밑에 "신림동"이라는 행정동이 실제로 존재), 이름 비교로는
+  // 행정동 클릭인데도 법정동으로 잘못 분류돼 엉뚱한 데이터가 떴었다. id는
+  // 절대 겹치지 않으므로 id 기준으로 판단해야 한다.
   // ====================================================
-  const isAdminDongDetail = detailDongName !== legalDongName;
+  const isAdminDongDetail =
+    detailDongId !== undefined && detailDongId !== legalDongId;
   const detailUrl = isAdminDongDetail
     ? `/grids/${encodeURIComponent(detailDongName)}/?is_legal_dong=false`
     : `/grids/${encodeURIComponent(legalDongName)}/?is_legal_dong=true`;
