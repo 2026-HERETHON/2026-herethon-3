@@ -292,7 +292,15 @@
 
           {% for saved in saved_grids %}
             <div class="myPage-savedCard">
-              <div class="myPage-savedMap">동네 지도 사진</div>
+              <div class="myPage-savedMap">
+                {% with points=saved.grid.thumbnail_polygon_points %}
+                  {% if points %}
+                    <svg class="myPage-savedMapSvg" viewBox="0 0 100 100">
+                      <polygon points="{{ points }}" />
+                    </svg>
+                  {% endif %}
+                {% endwith %}
+              </div>
               <div class="myPage-savedInfo">
                 <h3 class="myPage-savedName">{{ saved.grid.dong }}</h3>
                 <p class="myPage-savedRegion">{{ saved.grid.sido }} {{ saved.grid.gu }}</p>

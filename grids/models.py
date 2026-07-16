@@ -1,4 +1,7 @@
+import json
+
 from django.db import models
+from shapely.geometry import shape
 
 
 class Grid(models.Model):
@@ -37,6 +40,58 @@ class Grid(models.Model):
 
     def __str__(self):
         return self.dong
+
+    @property
+    def thumbnail_polygon_points(self, size=100, padding=14):
+        """
+        법정동/행정동 실제 사진 대신, boundary_geojson 좌표만으로 폴리곤
+        모양을 그대로 살린 SVG용 좌표 문자열을 만든다 (마이페이지 찜한 동네
+        카드처럼 지도 캡처 없이 동네 모양 아이콘만 필요할 때 사용).
+        size x size 뷰박스 안에서 사방으로 padding만큼 여백을 두고 정규화한
+        "x1,y1 x2,y2 ..." 문자열을 반환.
+        """
+        if not self.boundary_geojson:
+            return ""
+
+        try:
+            geom = shape(json.loads(self.boundary_geojson))
+        except (ValueError, TypeError, KeyError):
+            return ""
+
+        # MultiPolygon이면 가장 넓은 폴리곤 하나만 사용 (지도 렌더링과 동일한 방식)
+        if geom.geom_type == "MultiPolygon":
+            if not geom.geoms:
+                return ""
+            geom = max(geom.geoms, key=lambda g: g.area)
+        if geom.geom_type != "Polygon":
+            return ""
+
+        coords = list(geom.exterior.coords)
+        if len(coords) < 3:
+            return ""
+
+        lons = [c[0] for c in coords]
+        lats = [c[1] for c in coords]
+        min_lon, max_lon = min(lons), max(lons)
+        min_lat, max_lat = min(lats), max(lats)
+        lon_range = (max_lon - min_lon) or 1
+        lat_range = (max_lat - min_lat) or 1
+
+        # 여백을 뺀 실제 그릴 영역 크기
+        draw_size = size - 2 * padding
+
+        # 가로세로 비율을 유지한 채 긴 쪽을 draw_size에 맞추고, 짧은 쪽은 가운데 정렬
+        scale = draw_size / max(lon_range, lat_range)
+        off_x = padding + (draw_size - lon_range * scale) / 2
+        off_y = padding + (draw_size - lat_range * scale) / 2
+
+        points = []
+        for lon, lat in coords:
+            x = (lon - min_lon) * scale + off_x
+            # 위도는 위로 갈수록 커지지만 SVG는 아래로 갈수록 커지므로 뒤집는다
+            y = size - ((lat - min_lat) * scale + off_y)
+            points.append(f"{x:.1f},{y:.1f}")
+        return " ".join(points)
 
     class Meta:
         ordering = ['dong_group', 'dong']
