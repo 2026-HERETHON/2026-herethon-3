@@ -657,17 +657,18 @@ const facilityOverlays = { cctv: [], light: [], police: [], bell: [] }; // 화�
 
 // 타입별 마커 아이콘 (필터 UI와 동일한 이미지 재활용)
 const FACILITY_ICONS = {
-    cctv: "./components/leftPanel/leftPanel-images/cctv.png",
-    light: "./components/leftPanel/leftPanel-images/streetlight.png",
-    police: "./components/leftPanel/leftPanel-images/police.png",
-    bell: "./components/leftPanel/leftPanel-images/alarm.png",
+    cctv: "./components/kakaoMap/marker-images/cctv-marker.png",
+    light: "./components/kakaoMap/marker-images/streetlight-marker.png",
+    police: "./components/kakaoMap/marker-images/police-marker.png",
+    bell: "./components/kakaoMap/marker-images/alarm-marker.png",
+
 };
 
 // 타입별 집계 원 색상 (여러 필터 동시 표시 구분용)
 const FACILITY_COLORS = {
     cctv: "rgba(59, 110, 231, 0.88)",   // 파랑
     light: "rgba(245, 166, 35, 0.88)",  // 주황
-    police: "rgba(46, 91, 173, 0.88)",  // 남색
+    police: "rgba(29, 164, 47, 0.88)",  // 초록
     bell: "rgba(231, 76, 60, 0.88)",    // 빨강
 };
 
@@ -685,7 +686,7 @@ function getFacilityMarkerImage(type) {
     if (!facilityMarkerImages[type]) {
         facilityMarkerImages[type] = new kakao.maps.MarkerImage(
             FACILITY_ICONS[type],
-            new kakao.maps.Size(32, 32),
+            new kakao.maps.Size(40, 40),
         );
     }
     return facilityMarkerImages[type];
