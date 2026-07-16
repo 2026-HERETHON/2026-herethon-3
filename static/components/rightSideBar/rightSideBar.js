@@ -387,6 +387,9 @@ function openQuestionDetail(questionId) {
     .querySelector(".rightSB-qnaListSubPage")
     ?.classList.add("rightSB-hide");
   document
+    .querySelector(".rightSB-qnaFormSubPage")
+    ?.classList.add("rightSB-hide");
+  document
     .querySelector(".rightSB-qnaDetailSubPage")
     ?.classList.remove("rightSB-hide");
   // DOMContentLoaded 안에서만 정의되는 updateBottomButtons를
@@ -1008,6 +1011,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.querySelector(".go-to-review-form")
     ?.addEventListener("click", () => {
       qnaListSub?.classList.add("rightSB-hide");
+      qnaDetailSub?.classList.add("rightSB-hide");
       qnaFormSub?.classList.remove("rightSB-hide");
       updateBottomButtons();
     });
@@ -1045,6 +1049,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (charSpan) charSpan.textContent = "0";
 
       qnaFormSub?.classList.add("rightSB-hide");
+      qnaDetailSub?.classList.add("rightSB-hide");
       qnaListSub?.classList.remove("rightSB-hide");
     }
     updateBottomButtons();
@@ -1333,6 +1338,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.querySelector(".rightSB-detailBackBtn")
     ?.addEventListener("click", () => {
       qnaDetailSub?.classList.add("rightSB-hide");
+      qnaFormSub?.classList.add("rightSB-hide");
       qnaListSub?.classList.remove("rightSB-hide");
       updateBottomButtons();
     });
