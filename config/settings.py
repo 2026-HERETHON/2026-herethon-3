@@ -147,3 +147,6 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# 🎯 collectstatic이 모든 정적 파일을 모아둘 배포용 경로 (Render 등 배포 환경 필수).
+STATIC_ROOT = BASE_DIR / "staticfiles"
