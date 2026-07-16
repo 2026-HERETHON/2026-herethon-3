@@ -10,6 +10,7 @@ from .models import Review, ReviewLike
 from .forms import ReviewForm
 from django.db.models import Avg
 from accounts.models import SavedGrid
+from accounts.decorators import verified_residence_required
 
 
 def _star_fill_width(score):
@@ -86,7 +87,10 @@ def review_list(request, grid_id):  # REV-001, REV-004
     }
     return render(request, 'reviews/list.html', context)
 
+def _get_review_grid(request, grid_id):
+    return get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
 
+@verified_residence_required(_get_review_grid)
 @login_required
 def review_create(request, grid_id):  # REV-002
     grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)

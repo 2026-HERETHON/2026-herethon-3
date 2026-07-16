@@ -21,7 +21,9 @@
               <div class="rightSB-ansAvatar"></div>
               <div>
                 <span class="rightSB-ansNickname">{{ answer.user.nickname }}</span>
-                <span class="rightSB-ansPeriod">{{ question.grid.dong }} 거주 중</span>
+                <span class="rightSB-ansPeriod">
+                  {% if answer.user.verified_grid %}{{ answer.user.verified_grid.dong_group }} 거주 중{% endif %}
+                </span>
               </div>
             </div>
             <span class="rightSB-ansDate">{{ answer.created_at|timesince }} 전</span>
