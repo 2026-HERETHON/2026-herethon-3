@@ -685,7 +685,10 @@
   height: 148px;
   aspect-ratio: 157/148;
 
-  background: url(<path-to-image>) lightgray -280.56px -118.969px / 452.708% 482.308% no-repeat;
+  /* 🚧 TODO: 실제 회원가입 성공 이미지 에셋 추가되면 아래 url()에 채워넣기.
+     (Figma 익스포트 그대로 붙여넣어져 있던 <path-to-image> 플레이스홀더가
+     collectstatic(whitenoise)에서 존재하지 않는 파일로 인식돼 빌드가 깨져서 우선 제거함) */
+  background: lightgray;
 
   margin-bottom: 2px;
   margin-top: 77px;
