@@ -1,7 +1,5 @@
-// login/login.js
-
 // ==========================================
-// 🔓 [1] 로그인 / 회원가입 팝업 초기화 및 토글 기능
+// 로그인 / 회원가입 팝업 초기화 및 토글 기능
 // ==========================================
 function initAuthEvents() {
   const authCard = document.getElementById("auth-card");
@@ -124,6 +122,15 @@ function initAuthEvents() {
     });
   });
 
+  // 비밀번호 글자 수 카운팅
+  const password1Input = document.getElementById("signup-password1");
+  const pwCountingEl = authCard.querySelector(".login-pwCounting");
+  if (password1Input && pwCountingEl) {
+    password1Input.addEventListener("input", (e) => {
+      pwCountingEl.textContent = e.target.value.length;
+    });
+  }
+
   // ==========================================
   // 성별 개별 선택 기능 (남/여 디자인 분리)
   // ==========================================
@@ -170,12 +177,12 @@ function initAuthEvents() {
 }
 
 // ==========================================
-// 🏠 [거주지 자동완성] /grids/?is_legal_dong=true 를 한 번 받아서
-// sido + gu + dong_group + dong 을 합친 문자열로 포함(부분일치) 검색한다.
-// 항목을 고르면 그 '법정동'의 grid_id(숫자)를 hidden input(#signup-grid_id)에 저장.
+// 거주지 자동완성 /grids/?is_legal_dong=true 를 한 번 받아서
+// sido + gu + dong_group + dong 을 합친 문자열로 포함(부분일치) 검색
+// 항목을 고르면 그 '법정동'의 grid_id(숫자)를 hidden input(#signup-grid_id)에 저장
 // - 실거주지 인증(verified_grid)은 반드시 is_legal_dong=True Grid만 허용되므로
-//   애초에 법정동만 받아와서 저장 대상이 항상 법정동이 되도록 한다.
-// - 데이터가 21건뿐이라 전체를 한 번 받아 클라이언트에서 필터링 (명세서 5-8 권장).
+//   애초에 법정동만 받아와서 저장 대상은 항상 법정동
+// - 데이터가 21건뿐이라 전체를 한 번 받아 클라이언트에서 필터링
 // ==========================================
 
 // 여러 번 팝업을 열어도 네트워크는 한 번만 타도록 모듈 레벨에 캐시
@@ -328,7 +335,7 @@ function bindResidenceAutocomplete() {
 }
 
 // ==========================================
-// 📊 [2] 점수 기준 보기 팝업 초기화 기능
+// 점수 기준 보기 팝업 초기화 기능
 // ==========================================
 function initScoreInfoEvent() {
   const authCard = document.getElementById("auth-card");
@@ -351,8 +358,8 @@ function initScoreInfoEvent() {
 }
 
 // ==========================================
-// 🔐 [3] 실제 로그인 / 회원가입 연동 (Django accounts 앱)
-// /accounts/login/, /accounts/signup/ 으로 POST해서 실제 세션 쿠키로 로그인한다.
+// 실제 로그인 / 회원가입 연동
+// /accounts/login/, /accounts/signup/ 으로 POST해서 실제 세션 쿠키로 로그인
 // ==========================================
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -372,8 +379,7 @@ function hideAuthError(elId) {
   if (el) el.style.display = "none";
 }
 
-// Django가 폼 에러와 함께 같은 페이지를 다시 렌더링(200)했을 때, 에러 텍스트를 뽑아온다.
-// (JSON이 아니라 실제 렌더링된 Django Template 응답에서 에러 문구만 읽어오는 것)
+// Django가 폼 에러와 함께 같은 페이지를 다시 렌더링(200)했을 때, 에러 텍스트
 function extractDjangoFormError(htmlText) {
   const doc = new DOMParser().parseFromString(htmlText, "text/html");
   const errorEls = doc.querySelectorAll(
@@ -413,9 +419,8 @@ function bindLoginSubmit() {
       body: new URLSearchParams({ username, password }),
     })
       .then((res) => {
-        // 로그인 성공: Django가 302로 홈으로 리다이렉트하고 fetch가 그걸
-        // 따라가므로 최종 res.url이 /accounts/login/이 아니게 된다.
-        // 실패: 같은 로그인 폼을 에러와 함께 200으로 재렌더링.
+        // 로그인 성공: Django가 302로 홈으로 리다이렉트
+        // 실패: 같은 로그인 폼을 에러와 함께 200으로 재렌더링
         if (res.redirected || !res.url.includes("/accounts/login/")) {
           window.location.reload(); // 세션 쿠키가 잡혔으니 새로고침해서 nav도 실제 상태로 갱신
           return null;
@@ -441,8 +446,7 @@ function bindSignupSubmit() {
     e.preventDefault();
     hideAuthError("signup-error");
 
-    // 이메일/비밀번호 확인 입력칸은 뺐음 — 서버(SignUpForm)도 이메일은
-    // 선택값으로, password2는 password1을 그대로 복사해서 처리함.
+    // 이메일/비밀번호 확인 입력칸은 뺐음
     const nickname = document.getElementById("signup-nickname")?.value.trim();
     const username = document.getElementById("signup-username")?.value.trim();
     const password1 = document.getElementById("signup-password1")?.value;
@@ -459,8 +463,8 @@ function bindSignupSubmit() {
       showAuthError("signup-error", "성별을 선택해주세요.");
       return;
     }
-    // SignUpForm의 grid_id가 required=True라서, 목록에서 고르지 않으면 서버가 거부한다.
-    // 직접 타이핑만 하고 드롭다운을 안 고르면 hidden 값이 비어 있으므로 여기서 막는다.
+    // SignUpForm의 grid_id가 required=True라서, 목록에서 고르지 않으면 서버가 거부
+    // 직접 타이핑만 하고 드롭다운을 안 고르면 hidden 값이 비어 있으므로 여기서 막음
     if (!gridId) {
       showAuthError("signup-error", "거주지를 목록에서 선택해주세요.");
       return;
@@ -491,9 +495,6 @@ function bindSignupSubmit() {
     })
       .then((res) => {
         if (res.redirected || !res.url.includes("/accounts/signup/")) {
-          // 서버가 회원가입을 마쳤을 때만 여기로 온다 (자동 로그인은 안 함).
-          // 예전엔 바로 새로고침했는데, 이제 "회원가입 완료" 팝업을 먼저 보여주고,
-          // "로그인하러 가기"를 눌러야 로그인 폼에서 직접 로그인하게 한다.
           const authCard = document.getElementById("auth-card");
           const popupContent = document.getElementById("loginPopupContent");
           const signupSec = authCard?.querySelector(".signup-section");
@@ -519,3 +520,5 @@ function bindSignupSubmit() {
       });
   });
 }
+
+
