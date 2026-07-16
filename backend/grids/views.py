@@ -20,6 +20,10 @@ def grid_list(request):
     if gu_param:
         grids = grids.filter(gu=gu_param)
 
+    search_param = request.GET.get('search')
+    if search_param:
+        grids = grids.filter(dong_group__icontains=search_param)
+
     data = []
     for grid in grids:
         data.append({
