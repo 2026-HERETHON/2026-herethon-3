@@ -8,6 +8,21 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}" />
     <link rel="stylesheet" href="{% static 'main.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts/mypage.css' %}" />
+
+    <style>
+      /* body는 잠가둔 채(overflow hidden 유지) 화면을 꽉 채운다 */
+      html, body { height: 100vh; overflow: hidden; }
+
+      /* nav 높이(60px)를 뺀 나머지를 레이아웃이 채우게 하고,
+         레이아웃 자체는 안 넘치게 한다 */
+      .myPage-layout { height: calc(100vh - 60px); overflow: hidden; }
+
+      /* 사이드바는 고정 높이, 안 스크롤 */
+      .myPage-sidebar { height: 100%; overflow: hidden; flex-shrink: 0; }
+
+      /* 🎯 오른쪽 메인만 세로 스크롤 허용 */
+      .myPage-main { height: 100%; overflow-y: auto; }
+    </style>
   </head>
   <body>
     <!-- 🎯 [진짜 MTV] home.html과 같은 nav 마크업을 그대로 써서 로그인 상태가
