@@ -102,7 +102,7 @@
                     <span>CCTV</span>
                   </div>
                   <label class="leftPanel-customCheckbox">
-                    <input type="checkbox" id="leftPanel-filter-cctv" />
+                    <input type="checkbox" data-filter-type="cctv" id="leftPanel-filter-cctv" />
                     <span class="leftPanel-checkboxBox"></span>
                     <img
                       src="./components/leftPanel/leftPanel-images/check.svg"
@@ -121,7 +121,7 @@
                     <span>가로등</span>
                   </div>
                   <label class="leftPanel-customCheckbox">
-                    <input type="checkbox" />
+                    <input type="checkbox" data-filter-type="light" />
                     <span class="leftPanel-checkboxBox"></span>
                     <img
                       src="./components/leftPanel/leftPanel-images/check.svg"
@@ -140,7 +140,7 @@
                     <span>파출소 / 지구대</span>
                   </div>
                   <label class="leftPanel-customCheckbox">
-                    <input type="checkbox" />
+                    <input type="checkbox" data-filter-type="police" />
                     <span class="leftPanel-checkboxBox"></span>
                     <img
                       src="./components/leftPanel/leftPanel-images/check.svg"
@@ -159,7 +159,7 @@
                     <span>비상벨</span>
                   </div>
                   <label class="leftPanel-customCheckbox">
-                    <input type="checkbox" />
+                    <input type="checkbox" data-filter-type="bell" />
                     <span class="leftPanel-checkboxBox"></span>
                     <img
                       src="./components/leftPanel/leftPanel-images/check.svg"
@@ -872,7 +872,7 @@
     <!--카카오맵-->
     <script
       type="text/javascript"
-      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=bf623b88c0f6dc20fec1663e69dcc22d"
+      src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=bf623b88c0f6dc20fec1663e69dcc22d&libraries=clusterer"
     ></script>
 
     <script src="./login/login.js"></script>
