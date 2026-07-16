@@ -90,16 +90,10 @@ function getClampedPanTarget(oldCenter, clickLatLng, legalPolygonPath) {
 
 // [★ 4번 스펙] 안심 점수(0~100)에 따른 색상 매핑 함수
 function getColorBySafetyScore(score) {
-    if (score >= 90) return "rgb(12, 68, 124)";
-    if (score >= 80) return "rgb(24, 95, 165)";
-    if (score >= 70) return "rgb(36, 116, 195)";
-    if (score >= 64) return "rgb(55, 138, 221)";
-    if (score >= 58) return "rgb(98, 163, 226)";
-    if (score >= 52) return "rgb(133, 183, 235)";
-    if (score >= 46) return "rgb(159, 195, 240)";
-    if (score >= 40) return "rgb(185, 212, 223)";
-    if (score >= 20) return "rgb(153, 205, 229)";
-    return "rgb(218, 223, 225)";
+    if (score >= 68) return "#1077FF";
+    if (score >= 63) return "#48b7ff";
+    if (score >= 57) return "#99CDE5";
+    return "#DADFE1";
 }
 
 // 디버그 로그가 추가된 파서
