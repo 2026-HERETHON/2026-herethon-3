@@ -657,17 +657,17 @@ const facilityOverlays = { cctv: [], light: [], police: [], bell: [] }; // 화�
 
 // 타입별 마커 아이콘 (필터 UI와 동일한 이미지 재활용)
 const FACILITY_ICONS = {
-    cctv: "./components/kakaoMap/marker-images/cctv-marker.png",
-    light: "./components/kakaoMap/marker-images/streetlight-marker.png",
-    police: "./components/kakaoMap/marker-images/police-marker.png",
-    bell: "./components/kakaoMap/marker-images/alarm-marker.png",
+    cctv: "./components/leftPanel/leftPanel-images/cctv.png",
+    light: "./components/leftPanel/leftPanel-images/streetlight.png",
+    police: "./components/leftPanel/leftPanel-images/police.png",
+    bell: "./components/leftPanel/leftPanel-images/alarm.png",
 };
 
 // 타입별 집계 원 색상 (여러 필터 동시 표시 구분용)
 const FACILITY_COLORS = {
     cctv: "rgba(59, 110, 231, 0.88)",   // 파랑
     light: "rgba(245, 166, 35, 0.88)",  // 주황
-    police: "rgba(29, 164, 47, 0.88)",  // 초록
+    police: "rgba(46, 91, 173, 0.88)",  // 남색
     bell: "rgba(231, 76, 60, 0.88)",    // 빨강
 };
 
@@ -685,7 +685,7 @@ function getFacilityMarkerImage(type) {
     if (!facilityMarkerImages[type]) {
         facilityMarkerImages[type] = new kakao.maps.MarkerImage(
             FACILITY_ICONS[type],
-            new kakao.maps.Size(40, 40),
+            new kakao.maps.Size(32, 32),
         );
     }
     return facilityMarkerImages[type];
@@ -800,8 +800,14 @@ function createCountOverlay(type, position, count) {
         `transform:translate(${ox}px, ${oy}px)`,
     ].join(";");
     el.textContent = count;
-    el.addEventListener("click", () => {
-        map.setLevel(map.getLevel() - 2, { anchor: position });
+    el.addEventListener("click", (e) => {
+        // 원 클릭이 밑의 폴리곤 클릭까지 전달되지 않게 차단
+        e.stopPropagation();
+        // 🎯 [버그 수정] setLevel의 anchor 옵션은 계산이 꼬여 지도가 엉뚱한 곳으로
+        // 튀는 문제가 있다(파일 위쪽 showLegalDongOnMap 주석 참고). 기존 코드와
+        // 동일하게 center를 먼저 확정하고 나서 줌을 바꾼다.
+        map.setCenter(position);
+        map.setLevel(map.getLevel() - 2, { animate: { duration: 350 } });
     });
 
     const overlay = new kakao.maps.CustomOverlay({
@@ -815,9 +821,148 @@ function createCountOverlay(type, position, count) {
     return overlay;
 }
 
+// =====================================================================
+// 🎯 [안전 정보 필터 - 히트맵] 여성밤길치안안전 / 범죄주의구간
+//
+// 시설 4개와 달리 API가 아니라 "정적 PNG + bounds(meta json)" 방식이다.
+// 카카오맵에는 이미지를 좌표 범위에 고정하는 기능이 없어서,
+// AbstractOverlay를 상속한 커스텀 그라운드 오버레이로 직접 구현한다.
+// (줌/이동 시 draw()가 자동 호출되어 이미지 크기/위치를 다시 계산)
+//
+// 표시 규칙: 법정동이 선택돼 있고, 그 동의 히트맵 파일이 meta에 있을 때만
+// 표시한다. (동 미선택 시 아무것도 안 뜸 — 시설 필터와 동일한 스펙)
+// =====================================================================
+
+// PNG/meta 파일 위치 (페이지 URL 기준 상대경로). 파일을 옮기면 여기만 수정.
+const HEATMAP_DATA_PATH = "./overlay-data/";
+const HEATMAP_META_FILE = "heatmap_overlay_meta.json";
+
+// 체크박스 data-filter-type 값 == meta json 키 접미사
+const HEATMAP_TYPES = new Set(["night_safety", "crime_zone"]);
+
+let heatmapMeta = null; // meta json 캐시
+let heatmapMetaLoading = null; // 중복 fetch 방지용 프라미스
+const heatmapActive = { night_safety: false, crime_zone: false }; // 체크 여부
+const heatmapShown = { night_safety: null, crime_zone: null }; // { key, overlay }
+
+// meta json을 최초 1회만 로드
+function loadHeatmapMeta() {
+    if (heatmapMeta) return Promise.resolve(heatmapMeta);
+    if (heatmapMetaLoading) return heatmapMetaLoading;
+    heatmapMetaLoading = fetch(HEATMAP_DATA_PATH + HEATMAP_META_FILE)
+        .then((res) => {
+            if (!res.ok) throw new Error(`status=${res.status}`);
+            return res.json();
+        })
+        .then((json) => {
+            heatmapMeta = json;
+            console.log(`🎯 히트맵 meta 로드 완료 (${Object.keys(json).length}건)`);
+            return json;
+        })
+        .catch((err) => {
+            console.error(
+                `🚨 히트맵 meta 로드 실패. ${HEATMAP_DATA_PATH}${HEATMAP_META_FILE} 경로에 파일이 있는지 확인하세요.`,
+                err,
+            );
+            heatmapMetaLoading = null; // 실패 시 다음에 재시도 가능하게
+            return null;
+        });
+    return heatmapMetaLoading;
+}
+
+// 이미지를 경위도 bounds에 고정하는 그라운드 오버레이 (카카오 공식 패턴)
+// kakao.maps.load 이후에만 AbstractOverlay가 존재하므로 생성자를 지연 정의한다.
+let GroundOverlayCtor = null;
+function getGroundOverlayCtor() {
+    if (GroundOverlayCtor) return GroundOverlayCtor;
+
+    function GroundOverlay(bounds, imgSrc) {
+        // bounds: { min_lon, min_lat, max_lon, max_lat }
+        this.sw = new kakao.maps.LatLng(bounds.min_lat, bounds.min_lon);
+        this.ne = new kakao.maps.LatLng(bounds.max_lat, bounds.max_lon);
+
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.style.position = "absolute";
+        img.style.opacity = "0.65";
+        img.style.pointerEvents = "none"; // 밑의 폴리곤 클릭/호버를 막지 않게
+        this.node = img;
+    }
+    GroundOverlay.prototype = new kakao.maps.AbstractOverlay();
+
+    GroundOverlay.prototype.onAdd = function () {
+        this.getPanels().overlayLayer.appendChild(this.node);
+    };
+
+    // 지도 이동/줌 때마다 자동 호출: bounds의 픽셀 좌표를 다시 계산해 이미지에 반영
+    GroundOverlay.prototype.draw = function () {
+        const projection = this.getProjection();
+        const swPoint = projection.pointFromCoords(this.sw);
+        const nePoint = projection.pointFromCoords(this.ne);
+
+        this.node.style.left = `${swPoint.x}px`;
+        this.node.style.top = `${nePoint.y}px`;
+        this.node.style.width = `${nePoint.x - swPoint.x}px`;
+        this.node.style.height = `${swPoint.y - nePoint.y}px`;
+    };
+
+    GroundOverlay.prototype.onRemove = function () {
+        if (this.node.parentNode) this.node.parentNode.removeChild(this.node);
+    };
+
+    GroundOverlayCtor = GroundOverlay;
+    return GroundOverlayCtor;
+}
+
+// 현재 상태(체크 여부 + 선택된 동)에 맞게 히트맵 표시를 갱신한다.
+// 원하는 상태와 이미 떠 있는 것이 같으면 아무것도 안 하므로(idempotent)
+// idle 등에서 반복 호출해도 부담 없다.
+function renderHeatmaps() {
+    if (!map) return;
+
+    HEATMAP_TYPES.forEach((type) => {
+        // 이 타입이 지금 떠 있어야 하는 meta 키 계산 (조건 미충족이면 null)
+        let desiredKey = null;
+        if (heatmapActive[type] && heatmapMeta && currentLegalDongName) {
+            const key = `${currentLegalDongName}_${type}`;
+            if (heatmapMeta[key]) desiredKey = key;
+        }
+
+        const shown = heatmapShown[type];
+        if (shown?.key === desiredKey) return; // 이미 원하는 상태
+
+        // 지금 떠 있는 게 있으면 제거
+        if (shown) {
+            shown.overlay.setMap(null);
+            heatmapShown[type] = null;
+        }
+        if (!desiredKey) return;
+
+        // 새로 표시
+        const entry = heatmapMeta[desiredKey];
+        const Ctor = getGroundOverlayCtor();
+        const overlay = new Ctor(entry.bounds, HEATMAP_DATA_PATH + entry.file);
+        overlay.setMap(map);
+        heatmapShown[type] = { key: desiredKey, overlay };
+        console.log(`🎯 히트맵 표시: ${desiredKey}`);
+    });
+}
+
+// 히트맵 체크박스 토글 처리
+async function toggleHeatmapFilter(type, checked) {
+    heatmapActive[type] = checked;
+    if (checked) {
+        await mapReadyPromise;
+        await loadHeatmapMeta();
+        if (!heatmapActive[type]) return; // 로딩 중 해제됨
+    }
+    renderHeatmaps();
+}
+
 // 🎯 핵심: 현재 화면 범위/줌 기준으로, 켜져 있는 타입들을 다시 그린다
 function renderFacilities() {
     if (!map) return; // 지도 초기화 전 호출 방어
+    renderHeatmaps(); // 동 선택/해제 훅을 공유 — 원하는 상태와 같으면 no-op
     const bounds = map.getBounds();
     const sw = bounds.getSouthWest();
     const ne = bounds.getNorthEast();
@@ -923,7 +1068,12 @@ function initFacilityFilter() {
 
     checkboxes.forEach((checkbox) => {
         checkbox.addEventListener("change", (e) => {
-            toggleFacilityFilter(e.target.dataset.filterType, e.target.checked);
+            const type = e.target.dataset.filterType;
+            if (HEATMAP_TYPES.has(type)) {
+                toggleHeatmapFilter(type, e.target.checked);
+            } else {
+                toggleFacilityFilter(type, e.target.checked);
+            }
         });
     });
 
@@ -933,9 +1083,15 @@ function initFacilityFilter() {
         resetBtn.addEventListener("click", () => {
             checkboxes.forEach((checkbox) => {
                 checkbox.checked = false;
-                facilityActive[checkbox.dataset.filterType] = false;
+                const type = checkbox.dataset.filterType;
+                if (HEATMAP_TYPES.has(type)) {
+                    heatmapActive[type] = false;
+                } else {
+                    facilityActive[type] = false;
+                }
             });
             Object.keys(facilityOverlays).forEach(clearFacilityOverlays);
+            renderHeatmaps();
         });
     }
 
