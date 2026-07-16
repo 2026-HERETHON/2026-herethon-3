@@ -2,7 +2,7 @@
 //
 // 예전 static 목업의 mypage.js는 상계동/신림동 데이터를 하드코딩해서
 // 차트 2개만 그렸는데, 이제는 서버(accounts/profile.html)가 실제 찜한 동네 카드를
-// 전부 렌더링하고 각 카드의 canvas에 data-* 속성으로 실제 grid 수치만 실어서 내려준다.
+// 전부 렌더링하고 각 카드의 canvas에 data-* 속성으로 실제 grid 수치만 실어서 내려줌
 // (마크업 자체는 서버가 렌더링 — 차트 좌표값 같은 순수 집계 수치만 JS가 읽어서
 //  Chart.js에 넘기는 건 카드 마크업을 재조립하는 것과는 다른, 정당한 프론트 연산임)
 
@@ -101,8 +101,7 @@ document.querySelectorAll(".myPage-savedChartBox canvas").forEach(renderSavedCha
 
 // ==========================================
 // [3] 실거주지 인증 — GPS 인증 / 실거주지 설정
-// (accounts/profile_residence.html에 있던 로직을 그대로 옮겨옴 — 같은 화면 안의
-//  다른 탭일 뿐이라 API 호출 대상 URL도 동일하게 유지)
+// (profile.html 안의 다른 탭일 뿐이라 API 호출 대상 URL도 동일하게 유지)
 // ==========================================
 function getCookie(name) {
   let value = null;
@@ -143,7 +142,7 @@ document.getElementById("verify-residence-btn")?.addEventListener("click", (e) =
           location.reload();
         }
       } catch (err) {
-        console.error("🚨 실거주지 인증 중 오류:", err);
+        console.error("실거주지 인증 중 오류:", err);
         if (resultEl) resultEl.textContent = "인증 처리 중 오류가 발생했어요.";
       }
     },
@@ -169,6 +168,6 @@ document.getElementById("set-residence-form")?.addEventListener("submit", async 
     const data = await res.json();
     if (data.success) location.reload();
   } catch (err) {
-    console.error("🚨 실거주지 설정 중 오류:", err);
+    console.error("실거주지 설정 중 오류:", err);
   }
 });

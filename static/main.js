@@ -44,7 +44,7 @@ function activateTab(currentMenu) {
   }
 
   // 탭을 눌러도 주소창의 ?tab= 값이 안 바뀌어서, 제휴 서비스로 갔다가
-  // 안심맵으로 돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸다.
+  // 안심맵으로 돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸음
   // 탭이 바뀔 때마다 주소창도 갱신 (history 안 쌓게 replaceState만 사용).
   const newUrl = targetPageId === "page-commercial" ? "/?tab=commercial" : "/";
   if (window.location.pathname + window.location.search !== newUrl) {
@@ -61,8 +61,8 @@ NavSelected.forEach((menu) => {
 });
 
 // 로고 클릭 -> 안심맵 이동: 어떤 탭을 보고 있든 로고를 누르면 항상 안심맵
-// 탭으로 돌아가야 한다. activateTab을 재사용해 navbar-safetyMap을 직접
-// 클릭한 것과 동일하게 동작시킨다.
+// 탭으로 돌아가야 함. activateTab을 재사용해 navbar-safetyMap을 직접
+// 클릭한 것과 동일하게 동작
 const logoImg = document.querySelector(".navbar-logoImg");
 if (logoImg) {
   logoImg.addEventListener("click", () => {
@@ -78,7 +78,7 @@ if (activeMenu) {
 }
 
 // 마이페이지는 별도 페이지라 home.html의 탭을 직접 누를 수 없으므로,
-// /?tab=commercial 쿼리로 들어오면 도착하자마자 제휴 서비스 탭을 활성화한다.
+// /?tab=commercial 쿼리로 들어오면 도착하자마자 제휴 서비스 탭을 활성화함
 const requestedTab = new URLSearchParams(window.location.search).get("tab");
 if (requestedTab === "commercial") {
   const commercialMenu = document.querySelector(".navbar-commercial");
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   // 로그인 상태는 이제 JS 가짜 토큰이 아니라 Django의
-  // request.user.is_authenticated가 결정해서 내려준다.
+  // request.user.is_authenticated가 결정해서 내려줌
 
   // 메인페이지 네비바 로그인 버튼 팝업 바인딩
   const mainNavLoginBtn = document.getElementById("main-nav-login-btn");
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initAuthEvents();
           } else {
             console.error(
-              "🚨 login.js의 initAuthEvents 함수를 로드하지 못했습니다.",
+              "login.js의 initAuthEvents 함수를 로드하지 못했습니다.",
             );
           }
 
@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         })
         .catch((err) =>
-          console.error("🚨 메인 내비바 팝업 로드 중 에러 발생:", err),
+          console.error("메인 내비바 팝업 로드 중 에러 발생:", err),
         );
     });
   }

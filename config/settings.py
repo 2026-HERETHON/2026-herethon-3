@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'neighborhoods',
     "accounts.apps.AccountsConfig",
     "reviews.apps.ReviewsConfig",
     "grids.apps.GridsConfig",

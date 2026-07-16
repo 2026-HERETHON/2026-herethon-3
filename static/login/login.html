@@ -159,7 +159,7 @@
                 </button>
               </div>
               <!-- 버튼 클릭으로는 스타일만 바뀌므로, 실제 전송값은
-                   이 hidden input에 담아서 login.js가 클릭할 때마다 채워준다. -->
+                   이 hidden input에 담아서 login.js가 클릭할 때마다 채움 -->
               <input type="hidden" id="signup-gender" name="gender" />
             </div>
 
@@ -176,8 +176,8 @@
               </div>
               <!-- 실제 서버로 보내는 값은 선택한 '법정동'의 grid_id(숫자).
                    위 텍스트 입력은 사람이 검색용으로만 쓰고, 드롭다운에서 항목을 고르면
-                   login.js가 이 hidden input에 grid_id를 채운다. SignUpForm이
-                   grid_id=required 라서 이 값이 없으면 회원가입이 서버에서 거부된다. -->
+                   login.js가 이 hidden input에 grid_id를 채움. SignUpForm이
+                   grid_id=required라서 이 값이 없으면 회원가입이 서버에서 거부됨 -->
               <input type="hidden" id="signup-grid_id" name="grid_id" />
               <!-- 자동완성 드롭다운이 그려질 자리 -->
               <ul id="signup-residence-list" class="residence-autocomplete" style="display:none;"></ul>
@@ -292,7 +292,7 @@
 
       <div style="display: flex; gap: 14px; flex-direction: column">
         <!-- 회원가입은 자동 로그인을 시키지 않으므로, 이 버튼은 로그인 폼으로
-             이동시켜 직접 로그인하게 한다. -->
+             이동시켜 직접 로그인하게 함 -->
         <button type="button" class="login-loginBtn signup-success-continueBtn">로그인하러 가기</button>
         <div class="login-joinRecommend signup-success-skipBtn" style="cursor: pointer;">
           나중에 하기

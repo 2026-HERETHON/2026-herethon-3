@@ -655,7 +655,7 @@ background: var(--Color-Blue200, #C4ECFE);
 /* 내가 작성한 후기 카드의 별점 위젯.
    reviews 앱 rightSideBar.css의 별점 오버레이 방식과 동일 —
    빈 별 5개 위에 채워진 별 5개를 서버가 계산한
-   review.star_width 만큼만 잘라서 겹쳐 보여준다. */
+   review.star_width 만큼만 잘라서 겹쳐 보여줌 */
 .myPage-cardStarsDisplay {
   position: relative;
   display: inline-flex;

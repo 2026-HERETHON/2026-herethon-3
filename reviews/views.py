@@ -16,7 +16,7 @@ from accounts.decorators import verified_residence_required
 def _star_fill_width(score):
     """
     별점 위젯의 '채워진 별' 너비(px)를 서버에서 미리 계산.
-    카드 마크업 자체를 서버가 렌더링하므로 너비도 서버에서 계산해 내려준다.
+    카드 마크업 자체를 서버가 렌더링하므로 너비도 서버에서 계산해 내려줌
     (프론트 rightSideBar.js의 기존 계산식과 동일)
     """
     score = float(score or 0)

@@ -76,18 +76,18 @@ function initAuthEvents() {
   }
 
   // '가입하기' 클릭 시 무조건 성공 창을 띄우면 서버가 실제로 거절해도
-  // (닉네임 중복 등) 성공 화면이 떠버린다. bindSignupSubmit()이 서버 응답을
+  // (닉네임 중복 등) 성공 화면이 떠버림. bindSignupSubmit()이 서버 응답을
   // 확인한 뒤 진짜 성공했을 때만 띄우도록 함.
 
   // 회원가입 성공 창의 버튼들
-  // 회원가입 = 로그인이 아니다 (signup_view가 자동 로그인시키지 않음).
-  // 로그인 폼을 보여줘서 방금 만든 계정으로 직접 로그인하게 한다.
+  // 회원가입 = 로그인이 아님 (signup_view가 자동 로그인시키지 않음).
+  // 로그인 폼을 보여줘서 방금 만든 계정으로 직접 로그인하게 함.
   const continueBtn = successSec?.querySelector(".signup-success-continueBtn");
   if (continueBtn) {
     continueBtn.addEventListener("click", () => {
       // is-signup 클래스를 안 지우면 login-section이 display:block이 돼도
-      // .login-card.is-signup .login-section{opacity:0} 때문에 안 보인다.
-      // 다른 버튼(goToLoginBtns)들과 똑같이 지워줘야 한다.
+      // .login-card.is-signup .login-section{opacity:0} 때문에 안 보임.
+      // 다른 버튼(goToLoginBtns)들과 똑같이 지워줘야 함.
       authCard.classList.remove("is-signup");
       popupContent.style.width = "518px";
       popupContent.style.height = "689px";
@@ -158,7 +158,7 @@ function initAuthEvents() {
           currentBtn.classList.add("is-selected", "is-male");
         }
 
-        // 실제 전송값(F/M)은 hidden input에 채워둔다.
+        // 실제 전송값(F/M)은 hidden input에 채워둠
         if (genderHiddenInput) {
           if (genderText === "여성") genderHiddenInput.value = "F";
           else if (genderText === "남성") genderHiddenInput.value = "M";
@@ -170,7 +170,7 @@ function initAuthEvents() {
   // 거주지 자동완성 드롭다운 바인딩 (회원가입 폼 전용)
   bindResidenceAutocomplete();
 
-  // 로그인/회원가입 제출 버튼을 실제 accounts 앱과 연결한다.
+  // 로그인/회원가입 제출 버튼을 실제 accounts 앱과 연결
   // (팝업이 열릴 때마다 innerHTML이 새로 그려지므로 매번 다시 바인딩해야 함)
   bindLoginSubmit();
   bindSignupSubmit();
@@ -205,7 +205,7 @@ function loadLegalDongGrids() {
     .then((data) => {
       // 응답 형태: {"grids": [{id, dong, dong_group, sido, gu, is_legal_dong, ...}, ...]}
       const grids = Array.isArray(data?.grids) ? data.grids : [];
-      // 검색용 합친 문자열(haystack)을 미리 만들어 둔다.
+      // 검색용 합친 문자열(haystack)을 미리 만들어 둠
       _residenceGridsCache = grids.map((g) => ({
         id: g.id,
         dong: g.dong,
@@ -223,7 +223,7 @@ function loadLegalDongGrids() {
       return _residenceGridsCache;
     })
     .catch((err) => {
-      console.error("🚨 거주지 목록(grids) 로드 실패:", err);
+      console.error("거주지 목록(grids) 로드 실패:", err);
       _residenceGridsPromise = null; // 실패 시 다음에 재시도 가능하도록
       _residenceGridsCache = null;
       return [];
@@ -238,7 +238,7 @@ function bindResidenceAutocomplete() {
   const list = document.getElementById("signup-residence-list");
   if (!input || !hidden || !list) return;
 
-  // 팝업이 매번 새로 그려지므로 데이터는 미리(또는 최초 포커스 때) 당겨둔다.
+  // 팝업이 매번 새로 그려지므로 데이터는 미리(또는 최초 포커스 때) 당겨둠
   let grids = [];
   loadLegalDongGrids().then((data) => {
     grids = data;
@@ -279,7 +279,7 @@ function bindResidenceAutocomplete() {
     list.style.display = "block";
   }
 
-  // 입력할 때마다 필터링. 사용자가 직접 타이핑하면 이전에 고른 grid_id는 무효화한다.
+  // 입력할 때마다 필터링. 사용자가 직접 타이핑하면 이전에 고른 grid_id는 무효화됨
   input.addEventListener("input", () => {
     hidden.value = ""; // 확정 선택 전까지는 서버로 보낼 값 없음
     const q = input.value.trim().toLowerCase();
@@ -432,7 +432,7 @@ function bindLoginSubmit() {
         showAuthError("login-error", extractDjangoFormError(htmlText));
       })
       .catch((err) => {
-        console.error("🚨 로그인 처리 중 오류:", err);
+        console.error("로그인 처리 중 오류:", err);
         showAuthError("login-error", "로그인 처리 중 오류가 발생했어요.");
       });
   });
@@ -515,7 +515,7 @@ function bindSignupSubmit() {
         showAuthError("signup-error", extractDjangoFormError(htmlText));
       })
       .catch((err) => {
-        console.error("🚨 회원가입 처리 중 오류:", err);
+        console.error("회원가입 처리 중 오류:", err);
         showAuthError("signup-error", "회원가입 처리 중 오류가 발생했어요.");
       });
   });

@@ -45,10 +45,10 @@ class Grid(models.Model):
     def thumbnail_polygon_points(self, size=100, padding=14):
         """
         법정동/행정동 실제 사진 대신, boundary_geojson 좌표만으로 폴리곤
-        모양을 그대로 살린 SVG용 좌표 문자열을 만든다 (마이페이지 찜한 동네
+        모양을 그대로 살린 SVG용 좌표 문자열을 생성 (마이페이지 찜한 동네
         카드처럼 지도 캡처 없이 동네 모양 아이콘만 필요할 때 사용).
         size x size 뷰박스 안에서 사방으로 padding만큼 여백을 두고 정규화한
-        "x1,y1 x2,y2 ..." 문자열을 반환.
+        "x1,y1 x2,y2 ..." 문자열 반환.
         """
         if not self.boundary_geojson:
             return ""
@@ -88,7 +88,7 @@ class Grid(models.Model):
         points = []
         for lon, lat in coords:
             x = (lon - min_lon) * scale + off_x
-            # 위도는 위로 갈수록 커지지만 SVG는 아래로 갈수록 커지므로 뒤집는다
+            # 위도는 위로 갈수록 커지지만 SVG는 아래로 갈수록 커지므로 뒤집음
             y = size - ((lat - min_lat) * scale + off_y)
             points.append(f"{x:.1f},{y:.1f}")
         return " ".join(points)

@@ -40,7 +40,7 @@
   <div id="rightSB-reviewCardContainer" data-count="{{ reviews|length }}">
     {% if is_empty %}
       <!-- rightSideBar.css에 height:100% 체인이 있어서, 여기서 flex 중앙
-           정렬하면 rightSB-reviewNav를 뺀 나머지 영역 정중앙에 뜬다. -->
+           정렬하면 rightSB-reviewNav를 뺀 나머지 영역 정중앙에 뜸 -->
       <div style="display:flex; align-items:center; justify-content:center; height:100%; text-align:center; color:#7b7578;">첫 번째 후기를 남겨보세요!</div>
     {% else %}
       {% for review in reviews %}

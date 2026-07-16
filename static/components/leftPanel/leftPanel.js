@@ -15,7 +15,7 @@ document.querySelector(".leftPanel-resetBtn").addEventListener("click", () => {
 // =====================================================================
 // 동 검색 자동완성: 좌측 패널 검색창에 법정동 이름으로 검색 시
 // "시/도 구 동" 형태로 후보를 드롭다운에 보여주고, 클릭하면
-// 지도 이동 + 우측 사이드바 오픈까지 처리한다.
+// 지도 이동 + 우측 사이드바 오픈까지 처리함
 // =====================================================================
 let leftPanelLegalDongList = [];
 let leftPanelLegalDongLoaded = false;
@@ -45,7 +45,7 @@ async function fetchLeftPanelLegalDongList() {
     });
     leftPanelLegalDongLoaded = true;
   } catch (err) {
-    console.error("🚨 동 검색용 법정동 목록 로딩 실패:", err);
+    console.error("동 검색용 법정동 목록 로딩 실패:", err);
   }
 
   return leftPanelLegalDongList;
@@ -99,7 +99,7 @@ function selectLeftPanelSearchResult(grid) {
 
   // 예전엔 여기서 grid.latitude/longitude로 직접 이동시켰는데, 이제는
   // window.showLegalDongOnMap()이 폴리곤 중심(centroid)으로 이동까지
-  // 처리해준다.
+  // 처리해줌
 
   // ===== 2. 우측 사이드바 오픈 =====
   const sidebar = document.querySelector(".rightSB-aside");
