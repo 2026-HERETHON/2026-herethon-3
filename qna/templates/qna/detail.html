@@ -81,6 +81,19 @@
         color: #21a8ff;
         font-weight: 600;
       }
+      .qnaDetail-backBtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-bottom: 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4b4548;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -111,6 +124,8 @@
     </nav>
 
     <div class="qnaDetail-wrap">
+      <button type="button" class="qnaDetail-backBtn" onclick="history.back()">&lt; 뒤로가기</button>
+
       <div class="qnaDetail-questionCard">
         <p class="qnaDetail-questionUser">{{ question.user.nickname }}님의 질문 · {{ question.grid.dong }}</p>
         <p class="qnaDetail-questionText" id="qna-question-content">{{ question.question_content }}</p>
@@ -138,18 +153,6 @@
           {% endfor %}
         {% endif %}
       </div>
-
-      {% if request.user.is_authenticated %}
-        <form class="qnaDetail-answerForm" method="post" action="{% url 'qna:answer_create' question.id %}">
-          {% csrf_token %}
-          {{ answer_form.as_p }}
-          <button type="submit">답변 등록</button>
-        </form>
-      {% else %}
-        <p class="qnaDetail-loginNote">
-          <a href="{% url 'accounts:login' %}">로그인</a>하고 답변을 작성해보세요.
-        </p>
-      {% endif %}
     </div>
   </body>
 </html>
