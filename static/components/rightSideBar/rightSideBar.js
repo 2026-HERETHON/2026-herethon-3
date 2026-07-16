@@ -5,6 +5,7 @@ let myRadarChart = null;
 // 후기 등록/좋아요 처리 후 "지금 보고 있는 사이드바"를 새로고침할 때 필요함.
 let currentSidebarState = {
   detailDongName: null,
+  detailDongId: null, 
   legalDongName: null,
   legalDongId: null,
   // 지금 상세보기로 열려있는 질문의 id를 기억해뒀다가 답변 등록 버튼을
@@ -589,11 +590,31 @@ window.updateSidebarTitle = function (
   detailDongName,
   legalDongName,
   legalDongId,
+  detailDongId,
 ) {
   if (!detailDongName) return;
 
   // 후기 등록/좋아요 처리 후 새로고침할 때 참조할 수 있도록 저장
-  currentSidebarState = { detailDongName, legalDongName, legalDongId };
+  currentSidebarState = { detailDongName, legalDongName, legalDongId, detailDongId  };
+  
+  const targetGridId = detailDongId || legalDongId;
+
+  if (targetGridId) {
+    fetch(`/accounts/grid/${targetGridId}/check-saved/`, {
+      credentials: "same-origin",
+    })
+      .then((res) => (res.ok ? res.json() : { saved: false }))
+      .then((data) => {
+        const allHeartImgs = document.querySelectorAll(
+          ".wish-btn .rightSB-heartImg, .rightSB-regionHeartImg",
+        );
+        allHeartImgs.forEach((img) => {
+          img.src = data.saved
+            ? "./components/rightSideBar/rightSB-images/fullHeart.svg"
+            : "./components/rightSideBar/rightSB-images/heart.svg";
+        });
+      });
+  }
 
   // ====================================================
   // 사이드바 상단 안심점수/그래프는 "어떤 폴리곤을 클릭했는가"에 따라 달라진다.
@@ -1074,10 +1095,10 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelectorAll(".wish-btn, .rightSB-regionHeartImg")
     .forEach((btn) => {
       btn.addEventListener("click", () => {
-        const legalDongId = currentSidebarState.legalDongId;
-        if (!legalDongId) return;
+        const targetGridId = currentSidebarState.detailDongId || currentSidebarState.legalDongId;
+        if (!targetGridId) return;
 
-        fetch(`/accounts/grid/${legalDongId}/save/`, {
+        fetch(`/accounts/grid/${targetGridId}/save/`, {
           method: "POST",
           credentials: "same-origin",
           headers: {
