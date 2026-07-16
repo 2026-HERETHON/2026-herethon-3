@@ -21,7 +21,7 @@
   right: 45px;
   width: 54px;
   height: 54px;
-  z-index: 1000;
+  z-index: 10;
   padding: 13px 14px 13px 13px;
   border-radius: 27px;     /* 54의 절반 = 완전한 원 */
   background: var(--GrayScale-White, #fff);
@@ -1132,6 +1132,17 @@
   letter-spacing: -0.24px;
 }
 
+/* 🎯 [검색창 고정 + 리스트만 스크롤] qnaDetailSubPage(질문+답변 고정/스크롤)와
+   동일한 패턴: 이 페이지 자체를 flex column + height:100%로 만들고,
+   검색창(.rightSB-qnaSearchWrapper, flex-shrink:0)은 자기 높이만큼만 고정으로
+   차지하고, 카드 목록(#rightSB-qnaCardContainer)이 flex:1 + overflow-y:auto로
+   남는 공간을 차지하면서 그 안에서만 스크롤되게 한다. */
+.rightSB-qnaListSubPage {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /*QnA 리스트 검색창*/
 .rightSB-qnaSearchWrapper {
   box-sizing: border-box;
@@ -1201,6 +1212,30 @@
   width: 100%;
   padding: 0 14px;
   box-sizing: border-box;
+
+  /* 검색창은 고정, 이 목록만 스크롤 (min-height:0은 flex 안에서
+     overflow-y:auto가 제대로 동작하기 위한 필수 설정) */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#rightSB-qnaCardContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+#rightSB-qnaCardContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#rightSB-qnaCardContainer::-webkit-scrollbar-thumb {
+  background: #a89ea1;
+  border-radius: 4px;
+  background-clip: padding-box;
+}
+
+#rightSB-qnaCardContainer::-webkit-scrollbar-button {
+  display: none;
 }
 
 .rightSB-qnaCard {
@@ -1380,6 +1415,28 @@
   padding-bottom: 60px; /* 하단 입력 폼 공간 마련 */
 }
 
+.rightSB-answerListWrapper::-webkit-scrollbar {
+  width: 4px; /* 스크롤바 너비 */
+}
+
+.rightSB-answerListWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rightSB-answerListWrapper::-webkit-scrollbar-thumb {
+  background: #a89ea1;
+  border-radius: 4px;
+
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+
+  background-clip: padding-box;
+}
+
+.rightSB-answerListWrapper::-webkit-scrollbar-button {
+  display: none;
+}
+
 /* 개별 답변 상자 카드 */
 .rightSB-answerCard {
   padding: 16px;
@@ -1481,4 +1538,164 @@
   position: absolute;
   bottom: 1px;
   left: 0;
-  widt
+  width: 100%;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  background: #fff;
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+  z-index: 10;
+}
+
+.rightSB-answerInput {
+  flex: 1;
+  height: 38px;
+  border: 1px solid var(--GrayScale-400, #a89ea1);
+  border-radius: 10px;
+  padding: 0 45px 0 12px;
+  box-sizing: border-box;
+  font-family: Pretendard;
+  font-size: 13px;
+  outline: none;
+}
+
+.rightSB-answerSubmitBtn {
+  position: absolute;
+  background-color: transparent;
+  right: 24px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* 로그아웃 시 블러 처리될 오버레이 마스크 레이어 */
+.rightSB-overlayWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  padding-bottom: 37px;
+  box-sizing: border-box;
+  flex: 1 !important;
+  min-height: 0px;
+}
+
+.rightSB-auth-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  /* 부모 스크롤박스 크기에 유연하게 100% 밀착 대응 */
+  position: absolute;
+  top: 27px;
+  left: 0;
+  bottom: 37px;
+  width: 412px;
+  height: calc(100% - 27px - 37px);
+  z-index: 100;
+
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 2px solid var(--GrayScale-200, #d9d2d4);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(9px);
+}
+
+.rightSB-auth-overlay img {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 24px;
+}
+
+.rightSB-overlayMent {
+  color: #000;
+  text-align: center;
+
+  /* Body/L-Bold */
+  font-family: Pretendard;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 30px */
+  letter-spacing: -0.4px;
+
+  margin-bottom: 11px;
+}
+
+.rightSB-overlayMentS {
+  color: #000;
+  text-align: center;
+
+  /* Body/M */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+
+  margin-bottom: 71px;
+}
+
+.rightSB-auth-loginBtn {
+  display: flex;
+  width: 249px;
+  padding: 8px 0;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  background: var(--Color-Blue900, #1077ff);
+
+  color: #fff;
+
+  /* Body/M-Bold */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+
+  border: none;
+  cursor: pointer;
+}
+
+/* =====================================================================
+   🎯 [노트북 화면 대응] 1920×1080 기준으로 짜여있던 레이아웃이라, 1440×900처럼
+   세로가 짧은 화면(약 200px 부족)에서는 안심점수/영역별 만족도 쪽도 전부 고정
+   px라 하나도 안 줄어들고, 그 밑 QnA/후기(.rightSB-reviewContainer)만 남는
+   공간을 받다 보니 거의 안 남아서 심하게 눌리는 문제가 있었다.
+
+   처음엔 .rightSB-topInfoGroup(안심점수+영역별 만족도)만 zoom을 줬는데,
+   그 아래 QnA/후기 영역이랑 region 타이틀은 원본 크기 그대로라 패널 안에서
+   비율이 안 맞았음. 그래서 우측 사이드바 패널 전체(.rightSB-wholeContainer:
+   region 타이틀 + 안심점수/만족도 + QnA/후기 + 닫기 탭까지 전부)를 같은
+   고정 배율(zoom: 0.8824 = 900/1020)로 통째로 줄여서 비율을 통일한다.
+   zoom은 transform과 달리 부모 레이아웃에서 차지하는 공간(flex 배분 등)도
+   같이 줄어들기 때문에, 안쪽 flex:1(.rightSB-overlayWrapper)이 남는 공간을
+   다시 정상적으로 계산해서 가져간다.
+
+   ⚠️ 참고: GPS 버튼 오른쪽 offset(551px/80px)이나 사이드바 접힘 상태의 35px
+   탭 노출 폭은 원래(비축소) 크기 기준으로 계산해둔 값이라, 패널이 실제로 이
+   배율만큼 좁아지면 몇 px 정도 어긋나 보일 수 있음 -> 눈으로 보고 어긋나면
+   알려주면 그 값들만 따로 미세 조정하면 됨.
+
+   높이는 너비랑 다르게, 네비바(60px) 제외한 나머지 화면을 그대로 다 채워야
+   함(줄어들면 안 됨). 근데 zoom이 세로도 같이 축소해버려서 그냥 두면 패널
+   밑에 빈 공간이 생김 -> zoom 적용 "전" 로컬 높이값을 1/0.8824배만큼 미리
+   더 크게 잡아둬서, zoom으로 축소되고 난 뒤 실제 화면에 보이는 높이가
+   다시 정확히 (100vh - 60px)이 되도록 보정한다. */
+@media (max-height: 950px) {
+  .rightSB-wholeContainer {
+    zoom: 0.8824; /* 900 / 1020, 고정 배율 (너비는 이 배율 그대로 줄어듦) */
+    height: calc((100vh - 60px) / 0.8824); /* 높이는 축소 후에도 풀로 채워지도록 역보정 */
+  }
+}

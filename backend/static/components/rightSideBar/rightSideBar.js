@@ -459,6 +459,68 @@ function bindAnswerSubmit() {
   });
 }
 
+// =====================================================================
+// 🎯 [Q&A] 검색창 - 질문 제목(question_content)만 클라이언트에서 필터링
+// 카드 자체는 서버가 렌더링해서 그대로 옮겨 붙이는 구조라, 검색은 새로
+// fetch하지 않고 이미 그려진 카드들을 보이기/숨기기만 한다. 입력창 자체는
+// innerHTML로 교체되는 요소가 아니라서 DOMContentLoaded에서 한 번만
+// 바인딩하면 되고(bindAnswerSubmit과 동일한 패턴), 필터링 함수는 실행될
+// 때마다 그 시점에 렌더링돼 있는 카드들을 querySelectorAll로 새로 읽으므로
+// refreshQnaSection이 카드 목록을 통째로 갈아끼워도 계속 잘 동작한다.
+// =====================================================================
+function bindQnaSearch() {
+  const wrapper = document.querySelector(".rightSB-qnaSearchWrapper");
+  const input = wrapper?.querySelector("input");
+  const btn = wrapper?.querySelector(".rightSB-qnaSearchBtn");
+  if (!input || input.dataset.searchBound === "true") return;
+  input.dataset.searchBound = "true";
+
+  const applyQnaSearch = () => {
+    const keyword = input.value.trim().toLowerCase();
+    const container = document.getElementById("rightSB-qnaCardContainer");
+    if (!container) return;
+
+    const cards = container.querySelectorAll(".rightSB-qnaCard");
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const titleText =
+        card.querySelector(".rightSB-qnaQuestion")?.textContent || "";
+      const isMatch = !keyword || titleText.toLowerCase().includes(keyword);
+      card.style.display = isMatch ? "" : "none";
+      if (isMatch) visibleCount += 1;
+    });
+
+    // 검색어가 있는데 매칭되는 카드가 하나도 없으면 안내 문구 표시
+    // ("등록된 질문 없음" 빈 상태와 안 겹치도록 카드가 원래 있었을 때만 표시)
+    let emptyNotice = container.querySelector(".rightSB-qnaSearchEmpty");
+    if (keyword && visibleCount === 0 && cards.length > 0) {
+      if (!emptyNotice) {
+        emptyNotice = document.createElement("div");
+        emptyNotice.className = "rightSB-qnaSearchEmpty";
+        emptyNotice.style.cssText =
+          "text-align:center; color:#7b7578; padding:24px 0;";
+        emptyNotice.textContent = "검색 결과가 없습니다.";
+        container.appendChild(emptyNotice);
+      }
+    } else if (emptyNotice) {
+      emptyNotice.remove();
+    }
+  };
+
+  input.addEventListener("input", applyQnaSearch);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyQnaSearch();
+    }
+  });
+  btn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    applyQnaSearch();
+  });
+}
+
 // 🎯 [공용] Q&A 목록 새로고침 (refreshReviewSection의 Q&A 버전)
 //
 // 💡 [진짜 MTV로 전환] 예전엔 .qna-data-item에서 값만 뽑아 JS가
@@ -793,6 +855,7 @@ document.addEventListener("DOMContentLoaded", () => {
   checkAuthAndToggleTabs();
   updateBottomButtons();
   bindAnswerSubmit();
+  bindQnaSearch();
 
   // --- [C] 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
   function updateIndicator(target) {
@@ -1428,21 +1491,3 @@ locBtn?.addEventListener("click", () => {
     });
   }
 });
-
-qnaDetailSub
-    ?.querySelector(".rightSB-detailBackBtn")
-    ?.addEventListener("click", () => {
-      qnaDetailSub?.classList.add("rightSB-hide");
-      qnaListSub?.classList.remove("rightSB-hide");
-      updateBottomButtons();
-    });
-
-  // 사이드바 접기 토글
-  document.querySelector(".rightSB-close")?.addEventListener("click", () => {
-    document
-      .getElementById("rightSideBar-container")
-      ?.classList.toggle("sidebar-collapsed");
-  });
-
-  // =====================================================================
-  // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서

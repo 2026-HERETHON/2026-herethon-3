@@ -37,6 +37,7 @@ nav {
 .navbar-logoImg {
   margin-left: 26px;
   height: 38px;
+  cursor: pointer; /* 🎯 클릭하면 안심맵 탭으로 이동 (main.js) */
 }
 
 .navbar-logoImg img {

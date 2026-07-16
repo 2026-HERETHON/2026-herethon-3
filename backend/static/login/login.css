@@ -141,6 +141,7 @@
 }
 
 .login-inputBox input {
+  font-size: 14px;
   height: 30px;
   width: 330px;
   border: none;
