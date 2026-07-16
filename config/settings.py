@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     'corsheaders.middleware.CorsMiddleware', 
     "django.middleware.common.CommonMiddleware",
@@ -150,3 +151,11 @@ STATICFILES_DIRS = [
 
 # 🎯 collectstatic이 모든 정적 파일을 모아둘 배포용 경로 (Render 등 배포 환경 필수).
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# 🎯 DEBUG=False인 프로덕션에서는 Django가 정적 파일을 직접 서빙하지 않으므로,
+# whitenoise가 collectstatic 결과물을 압축/캐싱해서 직접 서빙하도록 함.
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}

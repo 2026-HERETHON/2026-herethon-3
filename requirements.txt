@@ -13,3 +13,4 @@ shapely==2.1.2
 sqlparse==0.5.5
 tzdata==2026.3
 urllib3==2.7.0
+whitenoise==6.8.2
