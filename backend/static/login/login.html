@@ -163,15 +163,24 @@
               <input type="hidden" id="signup-gender" name="gender" />
             </div>
 
-            <div class="login-infoInput">
+            <div class="login-infoInput" style="position: relative;">
               <div class="login-inputTitle">거주지</div>
               <div class="login-inputBox">
                 <img src="./login/login-images/place.svg" alt="거주지" />
-                <input type="text" placeholder="거주지를 입력해주세요" />
+                <input
+                  type="text"
+                  id="signup-residence"
+                  autocomplete="off"
+                  placeholder="거주지를 입력해주세요 (예: 상계동)"
+                />
               </div>
-              <!-- 🎯 참고: 실거주지는 회원가입 항목이 아니라, 가입 후 마이페이지에서
-                   GPS로 인증하는 별도 흐름(accounts:profile_residence)이라 이 입력값은
-                   아직 서버로 전송하지 않음. -->
+              <!-- 🎯 [연동용] 실제 서버로 보내는 값은 선택한 '법정동'의 grid_id(숫자).
+                   위 텍스트 입력은 사람이 검색용으로만 쓰고, 드롭다운에서 항목을 고르면
+                   login.js가 이 hidden input에 grid_id를 채운다. SignUpForm이
+                   grid_id=required 라서 이 값이 없으면 회원가입이 서버에서 거부된다. -->
+              <input type="hidden" id="signup-grid_id" name="grid_id" />
+              <!-- 자동완성 드롭다운이 그려질 자리 -->
+              <ul id="signup-residence-list" class="residence-autocomplete" style="display:none;"></ul>
             </div>
 
             <div class="login-personalInfo">
