@@ -242,6 +242,8 @@ export function initKakaoMap() {
 
             customOverlay = new kakao.maps.CustomOverlay({});
             infowindow = new kakao.maps.InfoWindow({ removable: true });
+            // 🎯 시설 집계 원(zIndex 1)보다 항상 위에 뜨도록
+            infowindow.setZIndex(100);
 
             // 🎯 [1번 스펙] 기본 폴리곤은 처음에(그리고 확대/축소해도) 아예 뜨지 않는다.
             // 검색(leftPanel 검색창 / mapOverlay 드롭다운)으로 법정동을 선택했을 때만
@@ -328,6 +330,8 @@ function clearAllMapOverlays() {
     clearAdminOverlays();
     if (infowindow) infowindow.close();
     currentLegalDongName = null;
+    // 🎯 동 선택이 해제됐으니 시설 필터 표시도 전체 기준으로 다시 그림
+    renderFacilities();
 }
 
 function cancelHoverRevert() {
@@ -424,6 +428,9 @@ window.showLegalDongOnMap = async function (legalDongName) {
         fillColor: getColorBySafetyScore(grid.safety_score),
         fillOpacity: 0.45,
     });
+
+    // 🎯 법정동이 바뀌었으니 시설 필터 표시도 새 동네 기준으로 다시 그림
+    renderFacilities();
 
     // 🎯 [검색 시 화면 중심 = 폴리곤 실제 중심] DB에 박제된 grid.latitude/longitude가
     // 아니라, 방금 그린 폴리곤 도형의 centroid로 지도 중심을 이동시킨다.
@@ -608,4 +615,494 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     if (window.updateSidebarTitle) {
         window.updateSidebarTitle(grid.dong, legalDongName, legalDongId);
     }
+
+    // 🎯 하단 "지도 정보 보기" 박스(CCTV/가로등/파출소/비상벨 개수)를
+    // 클릭한 행정동 기준 개수로 갱신한다. grid에는 이미 이 행정동의
+    // cctv_count/light_count/police_count/bell_count가 들어있다.
+    if (window.updateMapOverlayInfoBoxForAdminDong) {
+        window.updateMapOverlayInfoBoxForAdminDong(grid);
+    }
 }
+
+// =====================================================================
+// 🎯 [안전 정보 필터] CCTV/가로등/파출소/비상벨 시설 표시 (자체 집계 방식)
+//
+// ⚡ 성능 배경: 시설 데이터가 가로등 1만+, CCTV 3천+ 지점이라
+// MarkerClusterer(마커 전체 생성 후 라이브러리가 묶는 방식)로는
+// 2개 이상 켰을 때 지도 조작마다 렉이 걸림. 그래서:
+//   - 데이터는 타입별로 1회만 fetch해서 배열로 캐싱 (마커 객체 안 만듦)
+//   - 지도 이동/줌이 끝날 때(idle)마다 "화면에 보이는 것만" 다시 그림
+//   - 축소 상태(level >= CLUSTER_MIN_LEVEL): 화면을 격자로 나눠
+//     칸별 개수를 집계한 숫자 원(CustomOverlay)만 표시
+//   - 확대 상태(level < CLUSTER_MIN_LEVEL): 화면 범위 안의 지점만
+//     골라 아이콘 마커 생성 (전체의 극히 일부)
+// 1만 개 배열 순회는 수 ms라, 화면에 실제로 그리는 개체 수만 적으면
+// 타입 4개를 전부 켜도 밀리지 않는다.
+// =====================================================================
+
+// 이 레벨 이상(축소)이면 격자 집계 숫자 원, 미만(확대)이면 개별 아이콘
+const CLUSTER_MIN_LEVEL = 4;
+
+// 확대 상태에서 화면 안 지점이 이보다 많으면 아이콘 대신 집계로 폴백 (안전장치)
+const MAX_VISIBLE_MARKERS = 800;
+
+// 축소 상태에서 화면을 나눌 격자 크기(픽셀 기준, 대략)
+const GRID_PX = 90;
+
+// 타입별 상태
+const facilityData = { cctv: null, light: null, police: null, bell: null }; // fetch 캐시
+const facilityLoading = { cctv: false, light: false, police: false, bell: false };
+const facilityActive = { cctv: false, light: false, police: false, bell: false }; // 체크 여부
+const facilityOverlays = { cctv: [], light: [], police: [], bell: [] }; // 화면에 그려진 마커/오버레이
+
+// 타입별 마커 아이콘 (필터 UI와 동일한 이미지 재활용)
+const FACILITY_ICONS = {
+    cctv: "./components/kakaoMap/marker-images/cctv-marker.png",
+    light: "./components/kakaoMap/marker-images/streetlight-marker.png",
+    police: "./components/kakaoMap/marker-images/police-marker.png",
+    bell: "./components/kakaoMap/marker-images/alarm-marker.png",
+
+};
+
+// 타입별 집계 원 색상 (여러 필터 동시 표시 구분용)
+const FACILITY_COLORS = {
+    cctv: "rgba(59, 110, 231, 0.88)",   // 파랑
+    light: "rgba(245, 166, 35, 0.88)",  // 주황
+    police: "rgba(29, 164, 47, 0.88)",  // 초록
+    bell: "rgba(231, 76, 60, 0.88)",    // 빨강
+};
+
+// 여러 타입을 동시에 켰을 때 집계 원이 정확히 겹치지 않게 살짝 밀어줄 오프셋(px)
+const FACILITY_PIXEL_OFFSET = {
+    cctv: [0, 0],
+    light: [14, 10],
+    police: [-14, 10],
+    bell: [0, -16],
+};
+
+// 타입별 마커 이미지는 1회만 생성해서 재사용
+const facilityMarkerImages = {};
+function getFacilityMarkerImage(type) {
+    if (!facilityMarkerImages[type]) {
+        facilityMarkerImages[type] = new kakao.maps.MarkerImage(
+            FACILITY_ICONS[type],
+            new kakao.maps.Size(40, 40),
+        );
+    }
+    return facilityMarkerImages[type];
+}
+
+// 시설 좌표를 최초 1회만 fetch해서 캐싱
+async function loadFacilityData(type) {
+    if (facilityData[type] || facilityLoading[type]) return;
+    facilityLoading[type] = true;
+    try {
+        const res = await fetch(`/grids/facilities/?type=${type}`);
+        if (!res.ok) {
+            console.warn(`⚠️ 시설(${type}) 좌표 조회 실패 status=${res.status}`);
+            return;
+        }
+        const data = await res.json();
+        // 좌표 없는 지점은 캐싱 단계에서 걸러 매 렌더마다 검사하지 않게 한다
+        facilityData[type] = (data.facilities || []).filter(
+            (f) => f.latitude != null && f.longitude != null,
+        );
+        console.log(`🎯 시설(${type}) 데이터 ${facilityData[type].length}개 지점 캐싱`);
+    } catch (err) {
+        console.error(`🚨 시설(${type}) 데이터 로드 실패:`, err);
+    } finally {
+        facilityLoading[type] = false;
+    }
+}
+
+// 해당 타입이 화면에 그려놓은 것들 제거
+function clearFacilityOverlays(type) {
+    facilityOverlays[type].forEach((o) => o.setMap(null));
+    facilityOverlays[type] = [];
+}
+
+// =====================================================================
+// 🎯 [법정동 스코프] 시설 API(/grids/facilities/)는 지역 파라미터가 없어
+// 항상 전 지역(상계동+신림동) 시설을 내려준다. 그래서 법정동이 선택돼
+// 있으면(currentLegalPolygon 존재) 그 폴리곤 "안"의 지점만 클라이언트에서
+// 걸러 보여준다. 1만 개 × 폴리곤 판정은 무겁기 때문에 동 이름별로 캐싱.
+// =====================================================================
+const facilityDongCache = {}; // { "light|신림동": [지점...] }
+
+// isPointInPolygonPath와 같은 레이캐스팅인데, LatLng 객체를 1만 개씩
+// 만들지 않도록 숫자 좌표를 바로 받는 버전
+function isRawPointInPath(lng, lat, path) {
+    let inside = false;
+    for (let i = 0, j = path.length - 1; i < path.length; j = i++) {
+        const xi = path[i].getLng();
+        const yi = path[i].getLat();
+        const xj = path[j].getLng();
+        const yj = path[j].getLat();
+        const intersect =
+            yi > lat !== yj > lat &&
+            lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+// 현재 선택된 법정동 기준으로 걸러진 지점 배열을 반환
+// 🎯 [스펙] 검색으로 법정동을 선택하기 전에는 아무것도 표시하지 않는다
+function getScopedFacilityData(type) {
+    const all = facilityData[type];
+    if (!all) return null;
+    if (!currentLegalDongName || !currentLegalPolygon) return [];
+
+    const cacheKey = `${type}|${currentLegalDongName}`;
+    if (facilityDongCache[cacheKey]) return facilityDongCache[cacheKey];
+
+    const path = currentLegalPolygon.getPath();
+    // 폴리곤 바운딩박스로 1차 컷 → 통과한 것만 정밀 판정 (성능)
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    path.forEach((p) => {
+        minLat = Math.min(minLat, p.getLat());
+        maxLat = Math.max(maxLat, p.getLat());
+        minLng = Math.min(minLng, p.getLng());
+        maxLng = Math.max(maxLng, p.getLng());
+    });
+
+    const scoped = all.filter(
+        (f) =>
+            f.latitude >= minLat &&
+            f.latitude <= maxLat &&
+            f.longitude >= minLng &&
+            f.longitude <= maxLng &&
+            isRawPointInPath(f.longitude, f.latitude, path),
+    );
+    facilityDongCache[cacheKey] = scoped;
+    console.log(`🎯 시설(${type}) ${currentLegalDongName} 범위 ${scoped.length}개 지점`);
+    return scoped;
+}
+
+// 집계 숫자 원 CustomOverlay 생성 (클릭하면 그 지점으로 확대)
+function createCountOverlay(type, position, count) {
+    // 개수에 따라 원 크기 3단계
+    const size = count >= 300 ? 54 : count >= 50 ? 44 : 36;
+    const [ox, oy] = FACILITY_PIXEL_OFFSET[type];
+
+    const el = document.createElement("div");
+    el.style.cssText = [
+        `width:${size}px`,
+        `height:${size}px`,
+        `line-height:${size}px`,
+        `background:${FACILITY_COLORS[type]}`,
+        "color:#fff",
+        "border-radius:50%",
+        "text-align:center",
+        "font-weight:600",
+        `font-size:${size >= 50 ? 14 : 12}px`,
+        "box-shadow:0 2px 6px rgba(0,0,0,0.25)",
+        "cursor:pointer",
+        `transform:translate(${ox}px, ${oy}px)`,
+    ].join(";");
+    el.textContent = count;
+    el.addEventListener("click", (e) => {
+        // 원 클릭이 밑의 폴리곤 클릭까지 전달되지 않게 차단
+        e.stopPropagation();
+        // 🎯 [버그 수정] setLevel의 anchor 옵션은 계산이 꼬여 지도가 엉뚱한 곳으로
+        // 튀는 문제가 있다(파일 위쪽 showLegalDongOnMap 주석 참고). 기존 코드와
+        // 동일하게 center를 먼저 확정하고 나서 줌을 바꾼다.
+        map.setCenter(position);
+        map.setLevel(map.getLevel() - 2, { animate: { duration: 350 } });
+    });
+
+    const overlay = new kakao.maps.CustomOverlay({
+        position,
+        content: el,
+        yAnchor: 0.5,
+        xAnchor: 0.5,
+        zIndex: 1, // 안심점수 인포윈도우(높은 zIndex)에 가려지지 않도록 낮게 유지
+    });
+    overlay.setMap(map);
+    return overlay;
+}
+
+// =====================================================================
+// 🎯 [안전 정보 필터 - 히트맵] 여성밤길치안안전 / 범죄주의구간
+//
+// 시설 4개와 달리 API가 아니라 "정적 PNG + bounds(meta json)" 방식이다.
+// 카카오맵에는 이미지를 좌표 범위에 고정하는 기능이 없어서,
+// AbstractOverlay를 상속한 커스텀 그라운드 오버레이로 직접 구현한다.
+// (줌/이동 시 draw()가 자동 호출되어 이미지 크기/위치를 다시 계산)
+//
+// 표시 규칙: 법정동이 선택돼 있고, 그 동의 히트맵 파일이 meta에 있을 때만
+// 표시한다. (동 미선택 시 아무것도 안 뜸 — 시설 필터와 동일한 스펙)
+// =====================================================================
+
+// PNG/meta 파일 위치 (페이지 URL 기준 상대경로). 파일을 옮기면 여기만 수정.
+const HEATMAP_DATA_PATH = "./overlay-data/";
+const HEATMAP_META_FILE = "heatmap_overlay_meta.json";
+
+// 체크박스 data-filter-type 값 == meta json 키 접미사
+const HEATMAP_TYPES = new Set(["night_safety", "crime_zone"]);
+
+let heatmapMeta = null; // meta json 캐시
+let heatmapMetaLoading = null; // 중복 fetch 방지용 프라미스
+const heatmapActive = { night_safety: false, crime_zone: false }; // 체크 여부
+const heatmapShown = { night_safety: null, crime_zone: null }; // { key, overlay }
+
+// meta json을 최초 1회만 로드
+function loadHeatmapMeta() {
+    if (heatmapMeta) return Promise.resolve(heatmapMeta);
+    if (heatmapMetaLoading) return heatmapMetaLoading;
+    heatmapMetaLoading = fetch(HEATMAP_DATA_PATH + HEATMAP_META_FILE)
+        .then((res) => {
+            if (!res.ok) throw new Error(`status=${res.status}`);
+            return res.json();
+        })
+        .then((json) => {
+            heatmapMeta = json;
+            console.log(`🎯 히트맵 meta 로드 완료 (${Object.keys(json).length}건)`);
+            return json;
+        })
+        .catch((err) => {
+            console.error(
+                `🚨 히트맵 meta 로드 실패. ${HEATMAP_DATA_PATH}${HEATMAP_META_FILE} 경로에 파일이 있는지 확인하세요.`,
+                err,
+            );
+            heatmapMetaLoading = null; // 실패 시 다음에 재시도 가능하게
+            return null;
+        });
+    return heatmapMetaLoading;
+}
+
+// 이미지를 경위도 bounds에 고정하는 그라운드 오버레이 (카카오 공식 패턴)
+// kakao.maps.load 이후에만 AbstractOverlay가 존재하므로 생성자를 지연 정의한다.
+let GroundOverlayCtor = null;
+function getGroundOverlayCtor() {
+    if (GroundOverlayCtor) return GroundOverlayCtor;
+
+    function GroundOverlay(bounds, imgSrc) {
+        // bounds: { min_lon, min_lat, max_lon, max_lat }
+        this.sw = new kakao.maps.LatLng(bounds.min_lat, bounds.min_lon);
+        this.ne = new kakao.maps.LatLng(bounds.max_lat, bounds.max_lon);
+
+        const img = document.createElement("img");
+        img.src = imgSrc;
+        img.style.position = "absolute";
+        img.style.opacity = "0.65";
+        img.style.pointerEvents = "none"; // 밑의 폴리곤 클릭/호버를 막지 않게
+        this.node = img;
+    }
+    GroundOverlay.prototype = new kakao.maps.AbstractOverlay();
+
+    GroundOverlay.prototype.onAdd = function () {
+        this.getPanels().overlayLayer.appendChild(this.node);
+    };
+
+    // 지도 이동/줌 때마다 자동 호출: bounds의 픽셀 좌표를 다시 계산해 이미지에 반영
+    GroundOverlay.prototype.draw = function () {
+        const projection = this.getProjection();
+        const swPoint = projection.pointFromCoords(this.sw);
+        const nePoint = projection.pointFromCoords(this.ne);
+
+        this.node.style.left = `${swPoint.x}px`;
+        this.node.style.top = `${nePoint.y}px`;
+        this.node.style.width = `${nePoint.x - swPoint.x}px`;
+        this.node.style.height = `${swPoint.y - nePoint.y}px`;
+    };
+
+    GroundOverlay.prototype.onRemove = function () {
+        if (this.node.parentNode) this.node.parentNode.removeChild(this.node);
+    };
+
+    GroundOverlayCtor = GroundOverlay;
+    return GroundOverlayCtor;
+}
+
+// 현재 상태(체크 여부 + 선택된 동)에 맞게 히트맵 표시를 갱신한다.
+// 원하는 상태와 이미 떠 있는 것이 같으면 아무것도 안 하므로(idempotent)
+// idle 등에서 반복 호출해도 부담 없다.
+function renderHeatmaps() {
+    if (!map) return;
+
+    HEATMAP_TYPES.forEach((type) => {
+        // 이 타입이 지금 떠 있어야 하는 meta 키 계산 (조건 미충족이면 null)
+        let desiredKey = null;
+        if (heatmapActive[type] && heatmapMeta && currentLegalDongName) {
+            const key = `${currentLegalDongName}_${type}`;
+            if (heatmapMeta[key]) desiredKey = key;
+        }
+
+        const shown = heatmapShown[type];
+        if (shown?.key === desiredKey) return; // 이미 원하는 상태
+
+        // 지금 떠 있는 게 있으면 제거
+        if (shown) {
+            shown.overlay.setMap(null);
+            heatmapShown[type] = null;
+        }
+        if (!desiredKey) return;
+
+        // 새로 표시
+        const entry = heatmapMeta[desiredKey];
+        const Ctor = getGroundOverlayCtor();
+        const overlay = new Ctor(entry.bounds, HEATMAP_DATA_PATH + entry.file);
+        overlay.setMap(map);
+        heatmapShown[type] = { key: desiredKey, overlay };
+        console.log(`🎯 히트맵 표시: ${desiredKey}`);
+    });
+}
+
+// 히트맵 체크박스 토글 처리
+async function toggleHeatmapFilter(type, checked) {
+    heatmapActive[type] = checked;
+    if (checked) {
+        await mapReadyPromise;
+        await loadHeatmapMeta();
+        if (!heatmapActive[type]) return; // 로딩 중 해제됨
+    }
+    renderHeatmaps();
+}
+
+// 🎯 핵심: 현재 화면 범위/줌 기준으로, 켜져 있는 타입들을 다시 그린다
+function renderFacilities() {
+    if (!map) return; // 지도 초기화 전 호출 방어
+    renderHeatmaps(); // 동 선택/해제 훅을 공유 — 원하는 상태와 같으면 no-op
+    const bounds = map.getBounds();
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    const level = map.getLevel();
+    const aggregated = level >= CLUSTER_MIN_LEVEL;
+
+    Object.keys(facilityActive).forEach((type) => {
+        clearFacilityOverlays(type);
+        if (!facilityActive[type]) return;
+        // 선택된 법정동이 있으면 그 폴리곤 안의 지점만 대상
+        const scoped = getScopedFacilityData(type);
+        if (!scoped) return;
+
+        // 1) 화면 범위 안의 지점만 추림 (1만 개여도 단순 비교라 수 ms)
+        const visible = scoped.filter(
+            (f) =>
+                f.latitude >= sw.getLat() &&
+                f.latitude <= ne.getLat() &&
+                f.longitude >= sw.getLng() &&
+                f.longitude <= ne.getLng(),
+        );
+
+        // 2-a) 축소 상태(또는 지점이 너무 많으면): 격자 집계 → 숫자 원
+        if (aggregated || visible.length > MAX_VISIBLE_MARKERS) {
+            // 🎯 격자 칸 크기: 화면 픽셀 기준으로 구하되, "1유효숫자"로 스냅해서
+            // 같은 줌 레벨에서는 항상 동일한 값이 되게 한다. 그리고 칸의 기준점을
+            // 화면 좌하단이 아니라 세계 좌표 원점(경도/위도 0)에 고정한다.
+            // → 지도를 아무리 끌어도 격자가 따라 움직이지 않아 원 위치가 고정됨.
+            const container = document.getElementById("map");
+            const snap = (v) => {
+                const mag = Math.pow(10, Math.floor(Math.log10(v)));
+                return Math.round(v / mag) * mag;
+            };
+            const cellLng = snap(
+                ((ne.getLng() - sw.getLng()) / container.clientWidth) * GRID_PX,
+            );
+            const cellLat = snap(
+                ((ne.getLat() - sw.getLat()) / container.clientHeight) * GRID_PX,
+            );
+
+            // 칸별로 개수/좌표합 집계 (원은 칸 내 지점들의 평균 위치에 표시)
+            const bins = new Map();
+            visible.forEach((f) => {
+                const cx = Math.floor(f.longitude / cellLng);
+                const cy = Math.floor(f.latitude / cellLat);
+                const key = `${cx},${cy}`;
+                let bin = bins.get(key);
+                if (!bin) {
+                    bin = { count: 0, latSum: 0, lngSum: 0 };
+                    bins.set(key, bin);
+                }
+                const c = f.count || 1;
+                bin.count += c;
+                bin.latSum += f.latitude * c;
+                bin.lngSum += f.longitude * c;
+            });
+
+            bins.forEach((bin) => {
+                const pos = new kakao.maps.LatLng(
+                    bin.latSum / bin.count,
+                    bin.lngSum / bin.count,
+                );
+                facilityOverlays[type].push(createCountOverlay(type, pos, bin.count));
+            });
+            return;
+        }
+
+        // 2-b) 확대 상태: 화면 안 지점만 아이콘 마커로
+        const image = getFacilityMarkerImage(type);
+        visible.forEach((f) => {
+            const m = new kakao.maps.Marker({
+                map: map,
+                position: new kakao.maps.LatLng(f.latitude, f.longitude),
+                image,
+                title: f.count > 1 ? `${f.count}개` : "",
+            });
+            facilityOverlays[type].push(m);
+        });
+    });
+}
+
+// 체크박스 토글 처리
+async function toggleFacilityFilter(type, checked) {
+    facilityActive[type] = checked;
+    if (checked) {
+        await mapReadyPromise;
+        await loadFacilityData(type);
+        // 로딩 중에 해제됐으면 그리지 않음
+        if (!facilityActive[type]) return;
+    }
+    renderFacilities();
+}
+
+// 필터 체크박스 + 지도 idle 이벤트 연결
+function initFacilityFilter() {
+    const checkboxes = document.querySelectorAll("input[data-filter-type]");
+    if (checkboxes.length === 0) {
+        console.warn(
+            "⚠️ data-filter-type 체크박스를 찾지 못했습니다. home.html 반영 여부를 확인하세요.",
+        );
+        return;
+    }
+
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", (e) => {
+            const type = e.target.dataset.filterType;
+            if (HEATMAP_TYPES.has(type)) {
+                toggleHeatmapFilter(type, e.target.checked);
+            } else {
+                toggleFacilityFilter(type, e.target.checked);
+            }
+        });
+    });
+
+    // "초기화" 버튼: 시설 필터 4개 해제 + 표시 전부 제거
+    const resetBtn = document.querySelector(".leftPanel-resetBtn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = false;
+                const type = checkbox.dataset.filterType;
+                if (HEATMAP_TYPES.has(type)) {
+                    heatmapActive[type] = false;
+                } else {
+                    facilityActive[type] = false;
+                }
+            });
+            Object.keys(facilityOverlays).forEach(clearFacilityOverlays);
+            renderHeatmaps();
+        });
+    }
+
+    // 지도 이동/줌이 끝날 때마다 화면 범위 기준으로 다시 그림
+    mapReadyPromise.then(() => {
+        kakao.maps.event.addListener(map, "idle", renderFacilities);
+    });
+
+    console.log(`🎯 안전 정보 필터 ${checkboxes.length}개 연결 완료 (자체 집계 방식)`);
+}
+
+// 모듈 로드 시점(= DOM 파싱 완료 후)에 바로 연결
+initFacilityFilter();

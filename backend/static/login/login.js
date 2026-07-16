@@ -162,10 +162,171 @@ function initAuthEvents() {
     });
   }
 
+  // 🎯 [연동용] 거주지 자동완성 드롭다운 바인딩 (회원가입 폼 전용)
+  bindResidenceAutocomplete();
+
   // 🎯 [진짜 연동용] 로그인/회원가입 제출 버튼을 실제 accounts 앱과 연결한다.
   // (팝업이 열릴 때마다 innerHTML이 통째로 새로 그려지므로 매번 다시 바인딩해야 함)
   bindLoginSubmit();
   bindSignupSubmit();
+}
+
+// ==========================================
+// 🏠 [거주지 자동완성] /grids/?is_legal_dong=true 를 한 번 받아서
+// sido + gu + dong_group + dong 을 합친 문자열로 포함(부분일치) 검색한다.
+// 항목을 고르면 그 '법정동'의 grid_id(숫자)를 hidden input(#signup-grid_id)에 저장.
+// - 실거주지 인증(verified_grid)은 반드시 is_legal_dong=True Grid만 허용되므로
+//   애초에 법정동만 받아와서 저장 대상이 항상 법정동이 되도록 한다.
+// - 데이터가 21건뿐이라 전체를 한 번 받아 클라이언트에서 필터링 (명세서 5-8 권장).
+// ==========================================
+
+// 여러 번 팝업을 열어도 네트워크는 한 번만 타도록 모듈 레벨에 캐시
+let _residenceGridsCache = null;
+let _residenceGridsPromise = null;
+
+function loadLegalDongGrids() {
+  if (_residenceGridsCache) return Promise.resolve(_residenceGridsCache);
+  if (_residenceGridsPromise) return _residenceGridsPromise;
+
+  _residenceGridsPromise = fetch("/grids/?is_legal_dong=true", {
+    method: "GET",
+    credentials: "same-origin",
+    headers: { Accept: "application/json" },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("grids 응답 오류: " + res.status);
+      return res.json();
+    })
+    .then((data) => {
+      // 응답 형태: {"grids": [{id, dong, dong_group, sido, gu, is_legal_dong, ...}, ...]}
+      const grids = Array.isArray(data?.grids) ? data.grids : [];
+      // 검색용 합친 문자열(haystack)을 미리 만들어 둔다.
+      _residenceGridsCache = grids.map((g) => ({
+        id: g.id,
+        dong: g.dong,
+        gu: g.gu,
+        sido: g.sido,
+        // 사용자가 "서울특별시 노원구 상계동", "노원구 상계동", "상계동" 등
+        // 어떤 형태로 쳐도 걸리도록 네 필드를 공백으로 합쳐 소문자화.
+        haystack: [g.sido, g.gu, g.dong_group, g.dong]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase(),
+        // 드롭다운에 보여줄 라벨 (예: "서울시 노원구 상계동")
+        label: [g.sido, g.gu, g.dong].filter(Boolean).join(" "),
+      }));
+      return _residenceGridsCache;
+    })
+    .catch((err) => {
+      console.error("🚨 거주지 목록(grids) 로드 실패:", err);
+      _residenceGridsPromise = null; // 실패 시 다음에 재시도 가능하도록
+      _residenceGridsCache = null;
+      return [];
+    });
+
+  return _residenceGridsPromise;
+}
+
+function bindResidenceAutocomplete() {
+  const input = document.getElementById("signup-residence");
+  const hidden = document.getElementById("signup-grid_id");
+  const list = document.getElementById("signup-residence-list");
+  if (!input || !hidden || !list) return;
+
+  // 팝업이 매번 새로 그려지므로 데이터는 미리(또는 최초 포커스 때) 당겨둔다.
+  let grids = [];
+  loadLegalDongGrids().then((data) => {
+    grids = data;
+  });
+
+  let activeIndex = -1; // 키보드 위/아래 선택용
+  let currentMatches = [];
+
+  function closeList() {
+    list.style.display = "none";
+    list.innerHTML = "";
+    activeIndex = -1;
+    currentMatches = [];
+  }
+
+  function pick(match) {
+    input.value = match.label; // 사람이 보는 값
+    hidden.value = match.id; // 서버로 보내는 실제 값(법정동 grid_id)
+    closeList();
+  }
+
+  function render(matches) {
+    if (!matches.length) {
+      closeList();
+      return;
+    }
+    list.innerHTML = matches
+      .map(
+        (m, i) =>
+          `<li class="residence-autocomplete-item${
+            i === activeIndex ? " is-active" : ""
+          }" data-idx="${i}">
+             <img src="./login/login-images/place.svg" alt="" class="residence-pin" />
+             <span>${m.label}</span>
+           </li>`,
+      )
+      .join("");
+    list.style.display = "block";
+  }
+
+  // 입력할 때마다 필터링. 사용자가 직접 타이핑하면 이전에 고른 grid_id는 무효화한다.
+  input.addEventListener("input", () => {
+    hidden.value = ""; // 확정 선택 전까지는 서버로 보낼 값 없음
+    const q = input.value.trim().toLowerCase();
+    if (!q) {
+      closeList();
+      return;
+    }
+    // 공백으로 나눠서 모든 토큰이 포함된 것만 (AND 매칭) — "노원 상계" 같은 검색 대응
+    const tokens = q.split(/\s+/).filter(Boolean);
+    currentMatches = grids
+      .filter((g) => tokens.every((t) => g.haystack.includes(t)))
+      .slice(0, 8); // 너무 길어지지 않게 상위 8개만
+    activeIndex = -1;
+    render(currentMatches);
+  });
+
+  // 마우스 클릭으로 선택
+  list.addEventListener("mousedown", (e) => {
+    // mousedown을 쓰는 이유: input의 blur보다 먼저 실행돼서 선택이 씹히지 않게 함
+    const li = e.target.closest(".residence-autocomplete-item");
+    if (!li) return;
+    e.preventDefault();
+    const idx = Number(li.dataset.idx);
+    if (currentMatches[idx]) pick(currentMatches[idx]);
+  });
+
+  // 키보드 조작 (↑ ↓ Enter Esc)
+  input.addEventListener("keydown", (e) => {
+    if (list.style.display === "none") return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, currentMatches.length - 1);
+      render(currentMatches);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      render(currentMatches);
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && currentMatches[activeIndex]) {
+        e.preventDefault();
+        pick(currentMatches[activeIndex]);
+      }
+    } else if (e.key === "Escape") {
+      closeList();
+    }
+  });
+
+  // 바깥 클릭 / 포커스 아웃 시 닫기
+  input.addEventListener("blur", () => {
+    // mousedown 처리가 끝난 뒤 닫히도록 살짝 지연
+    setTimeout(closeList, 120);
+  });
 }
 
 // ==========================================
@@ -288,6 +449,8 @@ function bindSignupSubmit() {
     const username = document.getElementById("signup-username")?.value.trim();
     const password1 = document.getElementById("signup-password1")?.value;
     const gender = document.getElementById("signup-gender")?.value;
+    // 🎯 거주지: 드롭다운에서 확정 선택했을 때만 값이 채워지는 법정동 grid_id
+    const gridId = document.getElementById("signup-grid_id")?.value;
     const agreePrivacy = document.getElementById("check-agree")?.checked;
 
     if (!nickname || !username || !password1) {
@@ -296,6 +459,12 @@ function bindSignupSubmit() {
     }
     if (!gender) {
       showAuthError("signup-error", "성별을 선택해주세요.");
+      return;
+    }
+    // 🎯 SignUpForm의 grid_id가 required=True 라서, 목록에서 고르지 않으면 서버가 거부한다.
+    //    직접 타이핑만 하고 드롭다운을 안 고른 경우 hidden 값이 비어 있으므로 여기서 막는다.
+    if (!gridId) {
+      showAuthError("signup-error", "거주지를 목록에서 선택해주세요.");
       return;
     }
     if (!agreePrivacy) {
@@ -318,6 +487,7 @@ function bindSignupSubmit() {
         username,
         password1,
         gender,
+        grid_id: gridId,
         agree_privacy: "on",
       }),
     })

@@ -256,15 +256,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 12px 16px;        /* Figma 값으로 */
+  width: 266px;
+  padding: 12px 18px;
   border-radius: 10px;
   border: 2.5px solid var(--Color-Blue900, #1077FF);
   background: #fff;
+  margin: 5px 0 0 0;
   box-sizing: border-box;
+  flex-shrink: 0;        /* wrapper가 눌러서 찌그러뜨리지 않게 */
 }
-
-
 
 .leftPanel-searchInput {
   border: none;
@@ -272,6 +272,12 @@
   font-family: "Pretendard", sans-serif;
   font-size: 16px;
   flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  box-sizing: border-box;
 }
 
 /* ===== 동 검색 자동완성 드롭다운 ===== */

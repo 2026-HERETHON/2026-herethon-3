@@ -141,6 +141,7 @@
 }
 
 .login-inputBox input {
+  font-size: 14px;
   height: 30px;
   width: 330px;
   border: none;
@@ -688,4 +689,53 @@
 
   margin-bottom: 2px;
   margin-top: 77px;
+}
+
+
+
+/* 거주지 자동완성 드롭다운
+   - login.css 맨 아래에 붙여넣으면 됩니다.
+   - 부모 .login-infoInput 에 position: relative 가 걸려 있어야 위치가 맞습니다
+     (login.html에서 이미 inline으로 넣어둠). */
+
+.residence-autocomplete {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  margin: 6px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.residence-autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.residence-autocomplete-item:hover,
+.residence-autocomplete-item.is-active {
+  background: #f2f6ff;
+  color: #1077ff;
+}
+
+.residence-pin {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
 }

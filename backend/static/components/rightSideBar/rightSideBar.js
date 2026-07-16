@@ -19,6 +19,42 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
+// 💡 [공용] 로그인 팝업 열기.
+// 우측 사이드바의 로그인 버튼 클릭, 그리고 비로그인 상태에서 찜하기 등
+// 로그인이 필요한 동작을 시도했을 때 공통으로 호출한다.
+// (기존 .rightSB-auth-loginBtn 핸들러에 있던 팝업 로드 로직을 그대로 함수로 뺀 것)
+function openLoginPopup() {
+  const overlay = document.getElementById("loginPopupOverlay");
+  const contentBox = document.getElementById("loginPopupContent");
+  if (!overlay || !contentBox) {
+    console.error("🚨 로그인 팝업 요소를 찾을 수 없습니다.");
+    return;
+  }
+
+  fetch("./login/login.html")
+    .then((response) => response.text())
+    .then((htmlData) => {
+      contentBox.innerHTML = htmlData;
+      contentBox.style.width = "518px";
+      contentBox.style.height = "689px";
+      overlay.classList.remove("popup-hide");
+
+      // HTML 삽입 직후 login.js의 이벤트 연결
+      if (typeof initAuthEvents === "function") {
+        initAuthEvents();
+      }
+
+      // [X] 닫기 버튼 기능 연결
+      const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
+      closeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          overlay.classList.add("popup-hide");
+        });
+      });
+    })
+    .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
+}
+
 function renderSafetyChart(fields) {
   if (!fields) return;
 
@@ -423,6 +459,68 @@ function bindAnswerSubmit() {
   });
 }
 
+// =====================================================================
+// 🎯 [Q&A] 검색창 - 질문 제목(question_content)만 클라이언트에서 필터링
+// 카드 자체는 서버가 렌더링해서 그대로 옮겨 붙이는 구조라, 검색은 새로
+// fetch하지 않고 이미 그려진 카드들을 보이기/숨기기만 한다. 입력창 자체는
+// innerHTML로 교체되는 요소가 아니라서 DOMContentLoaded에서 한 번만
+// 바인딩하면 되고(bindAnswerSubmit과 동일한 패턴), 필터링 함수는 실행될
+// 때마다 그 시점에 렌더링돼 있는 카드들을 querySelectorAll로 새로 읽으므로
+// refreshQnaSection이 카드 목록을 통째로 갈아끼워도 계속 잘 동작한다.
+// =====================================================================
+function bindQnaSearch() {
+  const wrapper = document.querySelector(".rightSB-qnaSearchWrapper");
+  const input = wrapper?.querySelector("input");
+  const btn = wrapper?.querySelector(".rightSB-qnaSearchBtn");
+  if (!input || input.dataset.searchBound === "true") return;
+  input.dataset.searchBound = "true";
+
+  const applyQnaSearch = () => {
+    const keyword = input.value.trim().toLowerCase();
+    const container = document.getElementById("rightSB-qnaCardContainer");
+    if (!container) return;
+
+    const cards = container.querySelectorAll(".rightSB-qnaCard");
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const titleText =
+        card.querySelector(".rightSB-qnaQuestion")?.textContent || "";
+      const isMatch = !keyword || titleText.toLowerCase().includes(keyword);
+      card.style.display = isMatch ? "" : "none";
+      if (isMatch) visibleCount += 1;
+    });
+
+    // 검색어가 있는데 매칭되는 카드가 하나도 없으면 안내 문구 표시
+    // ("등록된 질문 없음" 빈 상태와 안 겹치도록 카드가 원래 있었을 때만 표시)
+    let emptyNotice = container.querySelector(".rightSB-qnaSearchEmpty");
+    if (keyword && visibleCount === 0 && cards.length > 0) {
+      if (!emptyNotice) {
+        emptyNotice = document.createElement("div");
+        emptyNotice.className = "rightSB-qnaSearchEmpty";
+        emptyNotice.style.cssText =
+          "text-align:center; color:#7b7578; padding:24px 0;";
+        emptyNotice.textContent = "검색 결과가 없습니다.";
+        container.appendChild(emptyNotice);
+      }
+    } else if (emptyNotice) {
+      emptyNotice.remove();
+    }
+  };
+
+  input.addEventListener("input", applyQnaSearch);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      applyQnaSearch();
+    }
+  });
+  btn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    applyQnaSearch();
+  });
+}
+
 // 🎯 [공용] Q&A 목록 새로고침 (refreshReviewSection의 Q&A 버전)
 //
 // 💡 [진짜 MTV로 전환] 예전엔 .qna-data-item에서 값만 뽑아 JS가
@@ -757,6 +855,7 @@ document.addEventListener("DOMContentLoaded", () => {
   checkAuthAndToggleTabs();
   updateBottomButtons();
   bindAnswerSubmit();
+  bindQnaSearch();
 
   // --- [C] 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
   function updateIndicator(target) {
@@ -976,7 +1075,9 @@ document.addEventListener("DOMContentLoaded", () => {
         })
           .then((res) => {
             if (res.url.includes("/accounts/login/")) {
-              alert("로그인이 필요해요.");
+              // 비로그인 상태: 서버가 로그인 페이지로 redirect시킨 것.
+              // alert 대신 로그인 팝업을 띄운다.
+              openLoginPopup();
               return null;
             }
             return res.json();
@@ -1229,42 +1330,106 @@ document.addEventListener("DOMContentLoaded", () => {
       ?.classList.toggle("sidebar-collapsed");
   });
 
+  // =====================================================================
+  // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서
+  // .rightSB-aside "바깥" 형제로 빠져나와 있어서(패널이 한 번도 안 열린 상태에서도
+  // 항상 보이도록), 패널이 열리고/접힐 때 옆에 붙어서 같이 이동하려면 별도로
+  // 위치를 맞춰줘야 한다.
+  // .rightSB-aside의 "open" 클래스와 #rightSideBar-container의 "sidebar-collapsed"
+  // 클래스는 kakaoMap.js/leftPanel.js/mapOverlay.js/rightSideBar.js 여러 곳에서
+  // 토글되고 있어서, 그 호출부를 전부 찾아 고치는 대신 MutationObserver로 두
+  // 요소의 class 변화를 감지해 이 한 곳에서만 GPS 버튼 위치를 다시 계산한다.
+  // =====================================================================
+
+  //GPS 버튼 기능 구현
+
+  const locBtn = document.querySelector(".mapOverlay-locationBtn");
+console.log("현재위치 버튼 찾음?:", locBtn); // null이면 셀렉터가 틀린 것
+
+locBtn?.addEventListener("click", () => {
+  console.log("버튼 클릭됨!");
+
+  if (!navigator.geolocation) {
+    alert("이 브라우저에서는 위치 기능을 사용할 수 없어요.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      const map = window.map; // kakaoMap.js에서 window.map으로 노출됨
+      if (!map) {
+        console.error("지도 인스턴스를 아직 찾을 수 없습니다.");
+        alert("지도가 아직 준비되지 않았어요. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+
+      const moveLatLng = new kakao.maps.LatLng(lat, lng);
+      map.panTo(moveLatLng);
+
+      // 현재 위치 마커 표시 (원치 않으면 이 블록 삭제)
+      new kakao.maps.Marker({
+        position: moveLatLng,
+        map: map,
+      });
+    },
+    (err) => {
+      console.error("위치 정보를 가져오지 못했습니다:", err);
+      alert("위치 정보를 가져오지 못했어요. 위치 권한을 확인해주세요.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    },
+  );
+});
+
+
+// =====================================================================
+  (function initGpsButtonSync() {
+    const gpsBtn = document.querySelector(".mapOverlay-locationBtn");
+    const aside = document.querySelector(".rightSB-aside");
+    const container = document.getElementById("rightSideBar-container");
+    if (!gpsBtn || !aside || !container) return;
+
+    const syncGpsButtonPosition = () => {
+      const isOpen = aside.classList.contains("open");
+      const isCollapsed = container.classList.contains("sidebar-collapsed");
+
+      if (!isOpen) {
+        // 패널이 한 번도 안 열린 상태 -> 기본 위치(오른쪽 상단 고정) 유지
+        gpsBtn.classList.remove("rightSB-gpsShifted", "rightSB-gpsCollapsed");
+      } else if (isCollapsed) {
+        // 패널이 열려있지만 접힌 상태(35px 탭만 보임) -> 그만큼만 이동
+        gpsBtn.classList.add("rightSB-gpsCollapsed");
+        gpsBtn.classList.remove("rightSB-gpsShifted");
+      } else {
+        // 패널이 완전히 펼쳐진 상태(545px) -> 패널 왼쪽에 딱 붙게 이동
+        gpsBtn.classList.add("rightSB-gpsShifted");
+        gpsBtn.classList.remove("rightSB-gpsCollapsed");
+      }
+    };
+
+    const observer = new MutationObserver(syncGpsButtonPosition);
+    observer.observe(aside, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(container, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    syncGpsButtonPosition(); // 초기 상태 반영
+  })();
+
   // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
   const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn");
 
   if (openLoginBtn) {
     openLoginBtn.addEventListener("click", (e) => {
       e.preventDefault(); // 기본 a태그 이동 기능 막기
-
-      const overlay = document.getElementById("loginPopupOverlay");
-      const contentBox = document.getElementById("loginPopupContent");
-
-      // 2. 외부 login.html 파일 가져오기
-      fetch("./login/login.html")
-        .then((response) => response.text())
-        .then((htmlData) => {
-          // 3. 팝업 상자 안에 소스 삽입
-          contentBox.innerHTML = htmlData;
-
-          // 4. 숨겨진 팝업 노출 및 기본 로그인 크기로 초기 설정 보장
-          contentBox.style.width = "518px";
-          contentBox.style.height = "689px";
-          overlay.classList.remove("popup-hide");
-
-          // 5. ⭐️ 중요: HTML이 삽입된 직후에 login.js에 정의된 이벤트들 연결시키기!
-          if (typeof initAuthEvents === "function") {
-            initAuthEvents();
-          }
-
-          // 6. [X] 닫기 버튼 기능 연결
-          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              overlay.classList.add("popup-hide");
-            });
-          });
-        })
-        .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
+      openLoginPopup();   // 공용 함수로 팝업 열기
     });
   }
 

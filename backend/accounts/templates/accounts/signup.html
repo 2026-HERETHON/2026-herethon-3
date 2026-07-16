@@ -6,6 +6,17 @@
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
+
+    <p>
+      <label for="grid_id">거주지</label>
+      <select name="grid_id" id="grid_id" required>
+        <option value="">거주지를 선택해주세요</option>
+        {% for grid in grids %}
+          <option value="{{ grid.id }}">{{ grid.dong_group }}</option>
+        {% endfor %}
+      </select>
+    </p>
+
     <button type="submit">가입하기</button>
   </form>
 </body>

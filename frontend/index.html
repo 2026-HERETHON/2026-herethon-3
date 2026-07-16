@@ -83,7 +83,7 @@
                     <span>CCTV</span>
                   </div>
                   <label class="leftPanel-customCheckbox">
-                    <input type="checkbox" id="leftPanel-filter-cctv" checked />
+                    <input type="checkbox" id="leftPanel-filter-cctv" />
                     <span class="leftPanel-checkboxBox"></span>
                     <img
                       src="./components/leftPanel/leftPanel-images/check.svg"
@@ -351,13 +351,19 @@
             </div>
           </div>
 
-          <!-- 우상단 현재 위치 버튼 -->
-          <div class="mapOverlay-locationBtn">
-            <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
-          </div>
           <!-- ===== 지도 오버레이 끝 ===== -->
                     </div>
                   </main>
+
+        <!-- 🎯 [재구조화] rightSB-aside 자체가 열리기 전엔 translateX(100%)로
+             화면 밖에 가 있어서, 그 안에 두면 GPS 버튼도 같이 사라져버렸다.
+             그래서 aside "바깥" 형제로 빼서 항상 화면에 떠 있게 하고,
+             position:fixed + JS(rightSideBar.js의 syncGpsButtonPosition)가
+             .rightSB-aside/​#rightSideBar-container의 open/collapsed 상태를
+             지켜보다가 패널 폭만큼 왼쪽으로 이동시켜준다. -->
+        <div class="mapOverlay-locationBtn">
+          <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
+        </div>
 
         <!--우측 사이드바-->
         <aside class="rightSB-aside">
@@ -381,6 +387,11 @@
                 <div class="region-underline"></div>
 
                 <div class="rightSB-content">
+                <!-- 🎯 [노트북 화면 대응] 안심점수+영역별 만족도를 하나로 묶어서,
+                     짧은 화면에서 이 그룹 전체가 rightSB-content의 정확히 절반만
+                     차지하고 나머지 절반은 QnA/후기(rightSB-overlayWrapper, 이미
+                     flex:1로 남는 공간을 다 먹게 되어있음)가 갖도록 함. -->
+                <div class="rightSB-topInfoGroup">
                   <!--안심 점수 및 그래프-->
                   <div class="rightSB-safety">
                     <div class="rightSB-safetyScoreContainer">
@@ -469,6 +480,8 @@
                       </div>
                     </div>
                   </div>
+                </div>
+                <!-- /.rightSB-topInfoGroup -->
 
                   <!--오버레이용 div-->
                   <div class="rightSB-overlayWrapper">

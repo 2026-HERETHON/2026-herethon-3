@@ -309,10 +309,10 @@ infoHeader.addEventListener("click", () => {
   infoToggle.classList.toggle("mapOverlay-flipped"); // 화살표 방향 전환
 });
 
-// 하단 정보 박스의 개수를 현재 선택된 동의 실제 데이터(Grid)로 갱신
-function updateInfoBox() {
-  const grid = dongLookup[selected.dong];
-
+// 하단 정보 박스에 실제 개수를 그리는 공통 함수.
+// grid: cctv_count/light_count/police_count/bell_count를 가진 객체
+//       (법정동이든 행정동이든 상관없이 이 필드만 있으면 됨). 없으면 전부 "-"
+function renderInfoBox(grid) {
   const countMap = grid
     ? {
         cctv: grid.cctv_count,
@@ -327,4 +327,38 @@ function updateInfoBox() {
     const value = countMap[type];
 
     if (value === undefined || value === null) {
-      el.textCont
+      el.textContent = "-";
+      return;
+    }
+    el.textContent = type === "police" ? `${value}곳` : `${value}개`;
+  });
+}
+
+// 하단 정보 박스의 개수를 현재 선택된 동(드롭다운, 법정동)의 데이터로 갱신
+function updateInfoBox() {
+  renderInfoBox(dongLookup[selected.dong]);
+}
+
+// =====================================================================
+// 🎯 지도에서 "행정동 폴리곤"을 클릭했을 때 kakaoMap.js가 호출한다.
+// 클릭된 행정동 grid(cctv_count 등 포함)를 그대로 넘겨받아 하단 정보
+// 박스를 그 행정동 기준 개수로 바꾼다. (드롭다운/법정동 로직과 독립)
+// =====================================================================
+window.updateMapOverlayInfoBoxForAdminDong = function (adminGrid) {
+  renderInfoBox(adminGrid);
+};
+
+// ===== 초기 렌더링: 데이터 로딩과 무관하게 즉시 "-" 상태로 표시 =====
+renderList("sido");
+renderList("gu");
+renderList("dong");
+updateInfoBox();
+
+// ===== 실제 데이터 로딩 (구/동 실제 목록 채우기) =====
+(async function initMapOverlay() {
+  await loadMapOverlayRegionData();
+
+  // 로딩 완료 후, 사용자가 이미 시/도·구를 선택해둔 상태라면 최신 데이터로 다시 그려줌
+  renderList("gu");
+  renderList("dong");
+})();

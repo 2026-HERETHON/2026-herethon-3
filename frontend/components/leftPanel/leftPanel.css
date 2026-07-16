@@ -11,7 +11,7 @@
   min-height: calc(100vh - 60px);
   box-sizing: border-box;
   background: var(--GrayScale-White, #fff);
-  filter: drop-shadow(4px 4px 20px rgba(0, 0, 0, 0.1));
+   box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== 안전 정보 필터 ===== */
@@ -250,21 +250,26 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 266px;              /* 필터박스랑 같게? Figma 확인 */
-  padding: 12px 16px;        /* Figma 값으로 */
+  width: 266px;
+  padding: 12px 18px;
   border-radius: 10px;
   border: 2.5px solid var(--Color-Blue900, #1077FF);
   background: #fff;
-  margin: 25px 0 0 0;
+  margin: 5px 0 0 0;
   box-sizing: border-box;
+  flex-shrink: 0;        /* wrapper가 눌러서 찌그러뜨리지 않게 */
 }
 
-
-
 .leftPanel-searchInput {
-  border: none;
+   border: none;
   outline: none;
   font-family: "Pretendard", sans-serif;
   font-size: 16px;
   flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  box-sizing: border-box;
 }

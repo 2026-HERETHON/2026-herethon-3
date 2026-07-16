@@ -62,6 +62,18 @@ NavSelected.forEach((menu) => {
   });
 });
 
+// 🎯 [로고 클릭 -> 안심맵 이동] 로고는 어떤 탭(안심맵/제휴 서비스)을 보고 있든
+// 눌렀을 때 항상 안심맵 탭으로 돌아가야 한다. activateTab을 그대로 재사용해서
+// navbar-safetyMap 메뉴를 직접 클릭한 것과 완전히 동일하게(밑줄 이동, 주소창
+// ?tab= 정리까지) 동작시킨다.
+const logoImg = document.querySelector(".navbar-logoImg");
+if (logoImg) {
+  logoImg.addEventListener("click", () => {
+    const safetyMapMenu = document.querySelector(".navbar-safetyMap");
+    if (safetyMapMenu) activateTab(safetyMapMenu);
+  });
+}
+
 // 초기 로드 시 활성화된 메뉴 밑줄 정렬
 const activeMenu = document.querySelector(".navbar-menu.beBold");
 if (activeMenu) {

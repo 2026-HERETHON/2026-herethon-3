@@ -8,11 +8,7 @@ document.querySelector(".leftPanel-resetBtn").addEventListener("click", () => {
   const checkboxes = document.querySelectorAll(".leftPanel-customCheckbox input");
 
   checkboxes.forEach((checkbox) => {
-    if (checkbox.id === "leftPanel-filter-cctv") {
-      checkbox.checked = true;
-    } else {
-      checkbox.checked = false;
-    }
+    checkbox.checked = false;
   });
 });
 
@@ -139,12 +135,19 @@ if (leftPanelSearchInput) {
     }
 
     const list = await fetchLeftPanelLegalDongList();
-    const filtered = list.filter(
-      (grid) =>
-        (grid.dong || "").includes(query) ||
-        (grid.dong_group || "").includes(query),
-    );
+    // 🎯 login.js의 bindResidenceAutocomplete()와 동일한 방식으로 통일:
+    // sido/gu/dong_group/dong을 합친 haystack + 공백 토큰 AND 매칭
+    const q = query.toLowerCase();
+    const tokens = q.split(/\s+/).filter(Boolean);
 
+    const filtered = list.filter((grid) => {
+      const haystack = [grid.sido, grid.gu, grid.dong_group, grid.dong]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return tokens.every((t) => haystack.includes(t));
+    });
+    
     renderLeftPanelSearchResults(filtered, query);
   });
 
