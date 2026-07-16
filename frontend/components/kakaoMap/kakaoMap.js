@@ -309,4 +309,310 @@ async function fetchAdminDongList() {
 // 🎯 [지도 오버레이 정리] 검색이 바뀌거나 화면을 초기화할 때 기존에 그려둔
 // 법정동/행정동 폴리곤과 라벨, 인포윈도우를 전부 지운다.
 // =====================================================================
-fun
+function clearAdminOverlays() {
+    currentAdminOverlays.forEach(({ polygon, labelOverlay }) => {
+        polygon.setMap(null);
+        labelOverlay?.setMap(null);
+    });
+    currentAdminOverlays = [];
+    // 폴리곤/라벨을 통째로 지우는 거라, 숨겨뒀던 라벨을 따로 복원할 필요도 없어짐
+    currentHiddenAdminLabel = null;
+}
+
+function clearAllMapOverlays() {
+    cancelHoverRevert();
+    if (currentLegalPolygon) {
+        currentLegalPolygon.setMap(null);
+        currentLegalPolygon = null;
+    }
+    clearAdminOverlays();
+    if (infowindow) infowindow.close();
+    currentLegalDongName = null;
+}
+
+function cancelHoverRevert() {
+    if (hoverRevertTimer) {
+        clearTimeout(hoverRevertTimer);
+        hoverRevertTimer = null;
+    }
+}
+
+// 행정동 폴리곤에서 마우스가 완전히 빠져나갔을 때(인접한 다른 행정동 폴리곤으로
+// 옮겨간 게 아니라 진짜로 영역 밖으로 나갔을 때만) 법정동 뷰로 되돌리기 위해
+// 약간의 지연을 두고 되돌린다. 다른 행정동 폴리곤에 바로 마우스가 올라가면
+// mouseover 핸들러가 cancelHoverRevert()를 호출해서 이 되돌리기를 취소시킨다.
+function scheduleHoverRevert(legalDongName) {
+    cancelHoverRevert();
+    hoverRevertTimer = setTimeout(() => {
+        revertToLegalDongView(legalDongName);
+    }, 150);
+}
+
+// =====================================================================
+// 🎯 [2-2번 스펙] 행정동 폴리곤 아웃 -> 법정동 폴리곤 + 법정동 안심점수로 복귀
+// =====================================================================
+function revertToLegalDongView(legalDongName) {
+    clearAdminOverlays();
+
+    const grid = legalDongGridCache[legalDongName];
+    if (!grid || !currentLegalPolygon) return;
+
+    currentLegalPolygon.setMap(map);
+    const path = geoJsonToKakaoPath(grid.boundary ?? grid.boundary_geojson);
+    openLegalDongInfoWindow(grid, path);
+}
+
+// 🎯 path를 넘기면 폴리곤 도형의 실제 중심(centroid)에, path가 없거나 계산 실패 시엔
+// grid.latitude/longitude(DB 대표 좌표)로 폴백해서 인포윈도우를 띄운다.
+function openLegalDongInfoWindow(grid, path) {
+    const centroid = getPolygonCentroid(path);
+    const position =
+        centroid ??
+        (grid.latitude != null && grid.longitude != null
+            ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
+            : null);
+    if (!position) return;
+
+    const content = `
+      <div class="kakaoMap-pointerContainer">
+        <div style="margin-left:16px;">
+            <div class="kakaoMap-pointerRegion">${grid.dong}</div>
+            <div class="kakaoMap-pointerScoreTitle">안심점수</div>
+            <div style="display:flex; align-items:flex-end;">
+                <div class="kakaoMap-pointerScore">${grid.safety_score}</div>
+                <span>/100</span>
+            </div>
+        </div>
+      </div>
+    `;
+
+    infowindow.setContent(content);
+    infowindow.setPosition(position);
+    infowindow.open(map);
+}
+
+// =====================================================================
+// 🎯 [1번 스펙] 검색으로 법정동이 선택됐을 때 호출된다.
+// (leftPanel.js 검색 결과 클릭 / mapOverlay.js 드롭다운 선택에서 호출)
+// 법정동 폴리곤 + 법정동 안심점수 인포윈도우만 그리고, 그 폴리곤에
+// hover-in/out 이벤트를 걸어서 2-1/2-2 스펙을 준비한다.
+// =====================================================================
+window.showLegalDongOnMap = async function (legalDongName) {
+    // 🎯 map/infowindow 초기화 + 법정동·행정동 캐싱이 끝날 때까지 기다린다.
+    // (페이지 로딩 직후 바로 검색해도 안전하게 동작하도록)
+    await mapReadyPromise;
+
+    clearAllMapOverlays();
+
+    const grid = legalDongGridCache[legalDongName];
+    if (!grid) {
+        console.warn(`⚠️ 법정동 캐시에서 "${legalDongName}"을(를) 찾지 못했습니다.`);
+        return;
+    }
+
+    const path = geoJsonToKakaoPath(grid.boundary ?? grid.boundary_geojson);
+    if (path.length === 0) return;
+
+    currentLegalDongName = legalDongName;
+
+    currentLegalPolygon = new kakao.maps.Polygon({
+        map: map,
+        path: path,
+        strokeWeight: 2,
+        strokeColor: "#0C447C",
+        strokeOpacity: 0.6,
+        fillColor: getColorBySafetyScore(grid.safety_score),
+        fillOpacity: 0.45,
+    });
+
+    // 🎯 [검색 시 화면 중심 = 폴리곤 실제 중심] DB에 박제된 grid.latitude/longitude가
+    // 아니라, 방금 그린 폴리곤 도형의 centroid로 지도 중심을 이동시킨다.
+    // (leftPanel.js/mapOverlay.js는 더 이상 자체적으로 이동시키지 않고 여기서만 처리)
+    const centroid =
+        getPolygonCentroid(path) ??
+        (grid.latitude != null && grid.longitude != null
+            ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
+            : null);
+
+    if (centroid) {
+        const currentLevel = map.getLevel();
+        if (currentLevel > 6) {
+            // 🎯 [버그 수정] setLevel의 anchor 옵션은 "줌하는 동안 화면상 그 지점을
+            // 고정시키는" 용도라, 초기 화면(레벨 8, 서울 중심)처럼 목표 지점이
+            // 현재 화면에서 한참 벗어나 있을 때는 계산이 꼬여서 줌 후 panTo가 무시되고
+            // 정중앙에 안 오는 경우가 있었다. anchor에 기대는 대신 center를 먼저
+            // 확정시켜놓고 나서 레벨만 애니메이션으로 줄이도록 순서를 바꿨다.
+            map.setCenter(centroid);
+            map.setLevel(6, { animate: { duration: 350 } });
+        } else {
+            const bounds = map.getBounds();
+            if (bounds.contain(centroid)) {
+                map.panTo(centroid);
+            } else {
+                map.setCenter(centroid);
+            }
+        }
+    }
+
+    openLegalDongInfoWindow(grid, path);
+
+    // 🎯 [2-1번 스펙] 법정동 폴리곤 인(hover-in) -> 행정동 분류로 전환
+    kakao.maps.event.addListener(currentLegalPolygon, "mouseover", function () {
+        cancelHoverRevert();
+        showAdminDongGroup(legalDongName);
+    });
+
+    // 🎯 [2-2번 스펙] 법정동 폴리곤 아웃(hover-out) -> 다시 법정동 뷰로 복귀
+    kakao.maps.event.addListener(currentLegalPolygon, "mouseout", function () {
+        scheduleHoverRevert(legalDongName);
+    });
+};
+
+// =====================================================================
+// 🎯 [2-1번 스펙] 법정동 폴리곤에 마우스가 올라갔을 때, 그 법정동(dong_group)에
+// 속한 행정동들만 걸러서 폴리곤 + 이름 라벨을 그린다.
+// =====================================================================
+function showAdminDongGroup(legalDongName) {
+    if (currentAdminOverlays.length > 0) return; // 이미 표시 중이면 중복 실행 방지
+
+    if (infowindow) infowindow.close();
+    if (currentLegalPolygon) currentLegalPolygon.setMap(null);
+
+    const matches = adminDongList.filter(
+        (grid) => grid.dong_group === legalDongName,
+    );
+
+    matches.forEach((grid) => {
+        const path = geoJsonToKakaoPath(grid.boundary ?? grid.boundary_geojson);
+        if (path.length === 0) return;
+
+        const polygon = new kakao.maps.Polygon({
+            map: map,
+            path: path,
+            strokeWeight: 2,
+            strokeColor: "#0C447C",
+            strokeOpacity: 0.6,
+            fillColor: getColorBySafetyScore(grid.safety_score),
+            fillOpacity: 0.45,
+        });
+
+        // 🎯 폴리곤 구역 안에 행정동 이름 표시 (폴리곤 도형의 실제 중심에, 계산 실패 시 DB 좌표로 폴백)
+        let labelOverlay = null;
+        const labelPosition =
+            getPolygonCentroid(path) ??
+            (grid.latitude != null && grid.longitude != null
+                ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
+                : null);
+        if (labelPosition) {
+            labelOverlay = new kakao.maps.CustomOverlay({
+                map: map,
+                position: labelPosition,
+                content: `<div class="kakaoMap-adminDongLabel">${grid.dong}</div>`,
+                yAnchor: 0.5,
+            });
+        }
+
+        kakao.maps.event.addListener(polygon, "mouseover", function () {
+            cancelHoverRevert();
+            polygon.setOptions({ fillOpacity: 0.7 });
+        });
+
+        kakao.maps.event.addListener(polygon, "mouseout", function () {
+            polygon.setOptions({ fillOpacity: 0.45 });
+            // 법정동 영역을 완전히 벗어났을 때만(인접 행정동으로 옮겨간 게 아니라면)
+            // 법정동 뷰로 되돌아가도록 디바운스를 건다.
+            scheduleHoverRevert(legalDongName);
+        });
+
+        kakao.maps.event.addListener(polygon, "click", function (mouseEvent) {
+            cancelHoverRevert();
+            openAdminDongDetail(grid, legalDongName, mouseEvent.latLng, labelOverlay);
+        });
+
+        currentAdminOverlays.push({ polygon, labelOverlay, grid });
+    });
+}
+
+// =====================================================================
+// 🎯 [2-1번 스펙] 행정동 폴리곤 클릭 -> 행정동 안심점수 인포윈도우 +
+// 폴리곤 구역 내 이름 라벨 삭제 + 우측 사이드바(행정동 점수/그래프, 단
+// 영역별 만족도·후기·QnA는 법정동 기준) 갱신
+// =====================================================================
+function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
+    // 🎯 [버그 수정] 예전엔 클릭한 행정동의 라벨만 지우고, 그 전에 다른 행정동을
+    // 클릭해서 숨겨뒀던 라벨은 복원을 안 해줘서 계속 사라진 채로 남아있었다
+    // (예: 삼성동 클릭 -> 이름 삭제, 대학동 클릭 -> 삼성동 이름이 안 돌아옴).
+    // 새 라벨을 숨기기 전에, 이전에 숨겨뒀던 라벨이 있으면 먼저 복원한다.
+    if (currentHiddenAdminLabel && currentHiddenAdminLabel !== labelOverlay) {
+        currentHiddenAdminLabel.setMap(map);
+    }
+
+    // 클릭한 행정동의 이름 라벨은 지운다 (스펙: "폴리곤 구역 내 행정동 이름은 삭제")
+    if (labelOverlay) labelOverlay.setMap(null);
+    currentHiddenAdminLabel = labelOverlay || null;
+
+    const content = `
+      <div class="kakaoMap-pointerContainer">
+        <div style="margin-left:16px;">
+            <div class="kakaoMap-pointerRegion">${grid.dong}</div>
+            <div class="kakaoMap-pointerScoreTitle">안심점수</div>
+            <div style="display:flex; align-items:flex-end;">
+                <div class="kakaoMap-pointerScore">${grid.safety_score}</div>
+                <span>/100</span>
+            </div>
+        </div>
+      </div>
+    `;
+
+    infowindow.setContent(content);
+    infowindow.setPosition(latLng);
+    infowindow.open(map);
+
+    // 🎯 [버그 수정] 클릭한 좌표로 지도 중심을 그대로 옮기면, 마우스는 화면상 같은
+    // 픽셀에 그대로 있는데 그 밑의 지도만 이동해버려서 마우스 커서가 가리키는 실제
+    // 좌표가 법정동 폴리곤 밖으로 밀려날 수 있었다(그래서 가만히 있어도 mouseout이
+    // 발생해 행정동 인포윈도우가 바로 사라짐). 완전히 안 옮기는 대신, 커서 밑 좌표가
+    // 법정동 폴리곤 안에 머무르는 한도까지만 클릭 좌표 쪽으로 이동시킨다.
+    const currentLevel = map.getLevel();
+    const targetLatLng = latLng;
+
+    if (currentLevel > 6) {
+        // (showLegalDongOnMap과 동일한 이유로 anchor 대신 center를 먼저 확정)
+        map.setCenter(targetLatLng);
+        map.setLevel(6, { animate: { duration: 350 } });
+    } else {
+        const legalPolygonPath = currentLegalPolygon
+            ? currentLegalPolygon.getPath()
+            : null;
+        const clampedTarget = getClampedPanTarget(
+            map.getCenter(),
+            targetLatLng,
+            legalPolygonPath,
+        );
+        map.panTo(clampedTarget);
+    }
+
+    const sidebar = document.querySelector(".rightSB-aside");
+    if (sidebar) {
+        sidebar.classList.add("open");
+    }
+
+    // ====================================================
+    // 🎯 행정동(detailDongName) + 그 부모 법정동(legalDongName) 둘 다 전달.
+    // updateSidebarTitle 쪽에서 detailDongName !== legalDongName이면
+    // "행정동 안심점수/그래프"로 판단해서 행정동 기준으로 조회한다.
+    // (영역별 만족도/후기/QnA는 legalDongId 기준 그대로 유지)
+    // ====================================================
+    const legalDongId = legalDongCache[legalDongName] || grid.id;
+
+    if (window.updateSidebarTitle) {
+        window.updateSidebarTitle(grid.dong, legalDongName, legalDongId);
+    }
+
+    // 🎯 하단 "지도 정보 보기" 박스(CCTV/가로등/파출소/비상벨 개수)를
+    // 클릭한 행정동 기준 개수로 갱신한다. grid에는 이미 이 행정동의
+    // cctv_count/light_count/police_count/bell_count가 들어있다.
+    if (window.updateMapOverlayInfoBoxForAdminDong) {
+        window.updateMapOverlayInfoBoxForAdminDong(grid);
+    }
+}

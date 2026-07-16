@@ -608,4 +608,11 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     if (window.updateSidebarTitle) {
         window.updateSidebarTitle(grid.dong, legalDongName, legalDongId);
     }
+
+    // 🎯 하단 "지도 정보 보기" 박스(CCTV/가로등/파출소/비상벨 개수)를
+    // 클릭한 행정동 기준 개수로 갱신한다. grid에는 이미 이 행정동의
+    // cctv_count/light_count/police_count/bell_count가 들어있다.
+    if (window.updateMapOverlayInfoBoxForAdminDong) {
+        window.updateMapOverlayInfoBoxForAdminDong(grid);
+    }
 }
