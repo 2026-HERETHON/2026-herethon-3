@@ -144,14 +144,7 @@ def profile_view(request):
 def saved_grid_toggle(request, grid_id):
     grid = get_object_or_404(Grid, pk=grid_id)
 
-    if grid.is_legal_dong:
-        target_grid = grid
-    else:
-        target_grid = get_object_or_404(
-            Grid, dong_group=grid.dong_group, is_legal_dong=True
-        )
-
-    saved, created = SavedGrid.objects.get_or_create(user=request.user, grid=target_grid)
+    saved, created = SavedGrid.objects.get_or_create(user=request.user, grid=grid)
 
     if created:
         is_saved = True
@@ -239,3 +232,8 @@ def profile_saved_view(request):
         'saved_grids': SavedGrid.objects.filter(user=request.user).select_related('grid'),
     }
     return render(request, 'accounts/profile_saved.html', context)
+
+@login_required
+def check_saved_grid(request, grid_id):
+    is_saved = SavedGrid.objects.filter(user=request.user, grid_id=grid_id).exists()
+    return JsonResponse({'saved': is_saved})

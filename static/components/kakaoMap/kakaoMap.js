@@ -603,7 +603,7 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     const legalDongId = legalDongCache[legalDongName] || grid.id;
 
     if (window.updateSidebarTitle) {
-        window.updateSidebarTitle(grid.dong, legalDongName, legalDongId);
+        window.updateSidebarTitle(grid.dong, legalDongName, legalDongId, grid.id);
     }
 
     // 하단 "지도 정보 보기" 박스(CCTV/가로등/파출소/비상벨 개수)를

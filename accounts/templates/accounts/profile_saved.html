@@ -1,7 +1,13 @@
 <h2>찜한 동네</h2>
 <ul>
 {% for saved in saved_grids %}
-    <li>{{ saved.grid.dong }} ({{ saved.grid.sigungu }}) — 안심점수 {{ saved.grid.safety_score }}</li>
+    <li>
+        {{ saved.grid.sido }} {{ saved.grid.gu }} {{ saved.grid.dong }}
+        — 안심점수 {{ saved.grid.safety_score }}
+        {% if not saved.grid.is_legal_dong %}
+            <span class="badge">세부 행정동</span>
+        {% endif %}
+    </li>
 {% empty %}
     <li>찜한 동네가 없어요.</li>
 {% endfor %}
