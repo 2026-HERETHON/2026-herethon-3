@@ -19,6 +19,42 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
+// 💡 [공용] 로그인 팝업 열기.
+// 우측 사이드바의 로그인 버튼 클릭, 그리고 비로그인 상태에서 찜하기 등
+// 로그인이 필요한 동작을 시도했을 때 공통으로 호출한다.
+// (기존 .rightSB-auth-loginBtn 핸들러에 있던 팝업 로드 로직을 그대로 함수로 뺀 것)
+function openLoginPopup() {
+  const overlay = document.getElementById("loginPopupOverlay");
+  const contentBox = document.getElementById("loginPopupContent");
+  if (!overlay || !contentBox) {
+    console.error("🚨 로그인 팝업 요소를 찾을 수 없습니다.");
+    return;
+  }
+
+  fetch("./login/login.html")
+    .then((response) => response.text())
+    .then((htmlData) => {
+      contentBox.innerHTML = htmlData;
+      contentBox.style.width = "518px";
+      contentBox.style.height = "689px";
+      overlay.classList.remove("popup-hide");
+
+      // HTML 삽입 직후 login.js의 이벤트 연결
+      if (typeof initAuthEvents === "function") {
+        initAuthEvents();
+      }
+
+      // [X] 닫기 버튼 기능 연결
+      const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
+      closeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          overlay.classList.add("popup-hide");
+        });
+      });
+    })
+    .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
+}
+
 function renderSafetyChart(fields) {
   if (!fields) return;
 
@@ -976,7 +1012,9 @@ document.addEventListener("DOMContentLoaded", () => {
         })
           .then((res) => {
             if (res.url.includes("/accounts/login/")) {
-              alert("로그인이 필요해요.");
+              // 비로그인 상태: 서버가 로그인 페이지로 redirect시킨 것.
+              // alert 대신 로그인 팝업을 띄운다.
+              openLoginPopup();
               return null;
             }
             return res.json();
@@ -1328,36 +1366,7 @@ locBtn?.addEventListener("click", () => {
   if (openLoginBtn) {
     openLoginBtn.addEventListener("click", (e) => {
       e.preventDefault(); // 기본 a태그 이동 기능 막기
-
-      const overlay = document.getElementById("loginPopupOverlay");
-      const contentBox = document.getElementById("loginPopupContent");
-
-      // 2. 외부 login.html 파일 가져오기
-      fetch("./login/login.html")
-        .then((response) => response.text())
-        .then((htmlData) => {
-          // 3. 팝업 상자 안에 소스 삽입
-          contentBox.innerHTML = htmlData;
-
-          // 4. 숨겨진 팝업 노출 및 기본 로그인 크기로 초기 설정 보장
-          contentBox.style.width = "518px";
-          contentBox.style.height = "689px";
-          overlay.classList.remove("popup-hide");
-
-          // 5. ⭐️ 중요: HTML이 삽입된 직후에 login.js에 정의된 이벤트들 연결시키기!
-          if (typeof initAuthEvents === "function") {
-            initAuthEvents();
-          }
-
-          // 6. [X] 닫기 버튼 기능 연결
-          const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
-          closeBtns.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              overlay.classList.add("popup-hide");
-            });
-          });
-        })
-        .catch((err) => console.error("팝업 로드 중 에러 발생:", err));
+      openLoginPopup();   // 공용 함수로 팝업 열기
     });
   }
 
@@ -1437,5 +1446,3 @@ qnaDetailSub
 
   // =====================================================================
   // 🎯 [GPS 버튼 위치 동기화] GPS 버튼(.mapOverlay-locationBtn)은 이제 home.html에서
-
-  
