@@ -26,9 +26,8 @@ class SignUpForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 🎯 [단순화] 프론트 회원가입 화면엔 비밀번호 입력칸이 1개뿐이라
-        # password2(비밀번호 확인) 필드는 폼에서 아예 제거하고, clean()에서
-        # password1 값을 그대로 password2 자리에 채워 넣어 검증을 통과시킨다.
+        # 프론트 회원가입 화면엔 비밀번호 입력칸이 1개뿐이라 password2
+        # 필드는 제거하고, clean()에서 password1 값을 복사해 넣는다.
         del self.fields['password2']
 
     def clean_nickname(self):
@@ -39,8 +38,7 @@ class SignUpForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        # 🎯 [단순화] 이메일은 선택 입력이라, 비워뒀을 땐 중복 체크를 건너뛴다.
-        # (안 그러면 이메일을 안 적은 두 번째 사용자가 "이미 가입된 이메일"로 막힘)
+        # 이메일은 선택 입력이라 비워뒀을 땐 중복 체크를 건너뛴다.
         if not email:
             return email
         if User.objects.filter(email=email).exists():
@@ -55,8 +53,8 @@ class SignUpForm(UserCreationForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        # 🎯 UserCreationForm._post_clean()이 비밀번호 강도 검증을 할 때
-        # cleaned_data["password2"]를 읽으므로, password1 값을 그대로 복사해둔다.
+        # UserCreationForm._post_clean()이 비밀번호 강도 검증 시
+        # cleaned_data["password2"]를 읽으므로 password1 값을 복사해둔다.
         cleaned_data['password2'] = cleaned_data.get('password1')
         return cleaned_data
 

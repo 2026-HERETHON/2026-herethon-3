@@ -107,14 +107,10 @@ def facility_list(request):
 
 # 판정로직
 #
-# 🎯 [502 버그 수정] accounts.views.confirm_residence가 예전엔 이 판정을
-# requests.post()로 "자기 자신"(/grids/verify-location/)에게 HTTP 요청을 보내는
-# 방식으로 재사용했었다. Render 무료 티어처럼 gunicorn worker가 1개뿐인
-# 환경에서는, 요청 A가 그 하나뿐인 worker를 붙잡은 채로 자기 서버에 요청 B를
-# 보내는 셈이라 B를 처리할 여유 worker가 없어 영원히 응답을 못 받고
-# timeout=3 뒤 502로 죽어버렸다(자기 자신과의 교착상태).
-# 그래서 판정 로직 자체를 순수 함수로 분리해, HTTP 왕복 없이 파이썬에서
-# 직접 호출할 수 있게 했다 — worker 개수와 완전히 무관해진다.
+# accounts.views.confirm_residence가 예전엔 이 판정을 requests.post()로
+# 자기 자신(/grids/verify-location/)에게 호출했는데, gunicorn worker가
+# 1개뿐인 환경에서는 그 worker가 자기 응답을 기다리며 막혀 502로 죽었다.
+# 그래서 판정 로직을 순수 함수로 분리해 HTTP 왕복 없이 직접 호출한다.
 def check_dong_contains_point(dong, lat, lon):
     """GPS 좌표가 지정한 법정동 경계 안에 있는지 판정 (내부 재사용용).
     반환: (is_verified: bool|None, error: dict|None)"""

@@ -375,10 +375,9 @@
                     </div>
                   </main>
 
-        <!-- 🎯 [재구조화] rightSB-aside 자체가 열리기 전엔 translateX(100%)로
-             화면 밖에 가 있어서, 그 안에 두면 GPS 버튼도 같이 사라져버렸다.
-             그래서 aside "바깥" 형제로 빼서 항상 화면에 떠 있게 하고,
-             position:fixed + JS(rightSideBar.js의 syncGpsButtonPosition)가
+        <!-- rightSB-aside는 열리기 전엔 translateX(100%)로 화면 밖에 있어서,
+             그 안에 두면 GPS 버튼도 같이 사라진다. 그래서 aside 바깥 형제로 빼서
+             항상 화면에 떠 있게 하고, position:fixed + JS(syncGpsButtonPosition)가
              .rightSB-aside/​#rightSideBar-container의 open/collapsed 상태를
              지켜보다가 패널 폭만큼 왼쪽으로 이동시켜준다. -->
         <div class="mapOverlay-locationBtn">
@@ -407,10 +406,9 @@
                 <div class="region-underline"></div>
 
                 <div class="rightSB-content">
-                <!-- 🎯 [노트북 화면 대응] 안심점수+영역별 만족도를 하나로 묶어서,
-                     짧은 화면에서 이 그룹 전체가 rightSB-content의 정확히 절반만
-                     차지하고 나머지 절반은 QnA/후기(rightSB-overlayWrapper, 이미
-                     flex:1로 남는 공간을 다 먹게 되어있음)가 갖도록 함. -->
+                <!-- 노트북 화면 대응: 안심점수+영역별 만족도를 묶어서, 짧은
+                     화면에서 이 그룹이 rightSB-content의 절반만 차지하고
+                     나머지 절반은 QnA/후기(flex:1)가 갖도록 함. -->
                 <div class="rightSB-topInfoGroup">
                   <!--안심 점수 및 그래프-->
                   <div class="rightSB-safety">
@@ -781,10 +779,9 @@
       </div>
 
       <!--제휴서비스 페이지-->
-      <!-- 🎯 [진짜 SPA 탭 전환] 예전엔 별도 페이지(/commercial/)로 진짜 이동해서
-           안심맵으로 돌아올 때 화면이 뚝 끊기며 새로고침됐는데, 이제 home.html의
-           다른 탭(안심맵)과 똑같이 이 안에 내용을 통째로 넣어서 nav바는 그대로
-           유지한 채 콘텐츠 영역만 바뀌게 한다. (main.js의 기존 탭 전환 로직 재사용) -->
+      <!-- 예전엔 별도 페이지(/commercial/)로 이동해서 안심맵으로 돌아올 때
+           화면이 새로고침됐는데, 이제 다른 탭과 같이 이 안에 내용을 통째로
+           넣어서 nav는 유지한 채 콘텐츠만 바뀌게 한다. -->
       <div id="page-commercial" class="main-page-group main-page-hide">
         <div class="commercial-container">
           <!-- 1. 왼쪽 사이드바 -->

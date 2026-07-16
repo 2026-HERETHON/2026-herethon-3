@@ -20,23 +20,23 @@
       /* 사이드바는 고정 높이, 안 스크롤 */
       .myPage-sidebar { height: 100%; overflow: hidden; flex-shrink: 0; }
 
-      /* 🎯 오른쪽 메인만 세로 스크롤 허용 */
+      /* 오른쪽 메인만 세로 스크롤 허용 */
       .myPage-main { height: 100%; overflow-y: auto; }
     </style>
   </head>
   <body>
-    <!-- 🎯 [진짜 MTV] home.html과 같은 nav 마크업을 그대로 써서 로그인 상태가
-         이어져 보이도록 함. 다만 이 페이지는 home.html의 SPA 탭이 아니라
-         완전히 별도의 페이지라서, 안심맵/제휴 서비스 클릭은 실제 페이지 이동으로 처리한다. -->
+    <!-- home.html과 같은 nav 마크업을 그대로 써서 로그인 상태가 이어져 보이게
+         함. 다만 이 페이지는 SPA 탭이 아니라 별도 페이지라 안심맵/제휴 서비스
+         클릭은 실제 페이지 이동으로 처리한다. -->
     <nav>
       <div id="navbar-container">
         <a href="/" style="text-decoration: none; color: inherit;">
           <div class="navbar-logoImg"><img src="{% static 'accounts/mypage-images/logo.svg' %}"/></div>
         </a>
         <div class="navbar-Select">
-          <!-- 🎯 home.html에선 이 자리가 <div>라 nav의 폰트/색을 그대로 물려받는데,
-               여기는 실제 페이지 이동이 필요해서 <a>를 써야 했다. <a> 태그는 브라우저
-               기본 스타일(파란 글씨 등)이 있어서 nav와 똑같은 폰트/색을 인라인으로 다시 줌. -->
+          <!-- home.html에선 이 자리가 <div>인데, 여기는 페이지 이동이 필요해
+               <a>를 씀. <a>의 기본 스타일(파란 글씨 등)을 덮으려 폰트/색을
+               인라인으로 다시 줌. -->
           <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
             안심맵
           </a>
@@ -45,20 +45,18 @@
           </a>
         </div>
         <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
-          <!-- 🎯 마이페이지 페이지에서는 이 자리(아이콘+"마이페이지")가 항상 "현재 탭"이므로,
-               home.html의 navbar-underline과 동일한 두께/색으로 이 라벨 밑에만 그어준다.
-               home.html의 .navbar-Select .navbar-menu(height:60px)와 똑같이 이 래퍼도
-               nav 높이(60px)를 그대로 채워서, 밑줄(bottom:0)이 정확히 같은 y축(navbar 맨 아래)에 오게 함.
-               트랜지션은 여기서 필요 없어서 꺼둠(전환 애니메이션 없이 항상 고정 위치). -->
+          <!-- 마이페이지에서는 이 자리가 항상 "현재 탭"이므로 navbar-underline과
+               동일한 두께/색으로 이 라벨 밑에만 그어준다. nav 높이(60px)를
+               그대로 채워 밑줄이 같은 y축(navbar 맨 아래)에 오게 함.
+               트랜지션 없음: 항상 고정 위치. -->
           <div style="position: relative; height: 60px; display: flex; align-items: center; margin-right:37px; padding-left:13px;">
             <div style="display:flex; gap: 9px; align-items:center;">
               <img src="{% static 'main-images/account.svg' %}" alt="마이페이지" />
               <span class="navbar-mypage" style="font-weight: 600;">마이페이지</span>
             </div>
-            <!-- 🎯 main.css의 .navbar-underline은 `.navbar-Select .navbar-underline`로
-                 스코프돼 있어서(navbar-Select 밑에서만 적용) 여기서는 그 클래스가
-                 아예 안 먹는다 — position/height가 안 붙어서 안 보였던 것.
-                 그래서 클래스에 의존하지 않고 필요한 스타일을 전부 인라인으로 직접 줌. -->
+            <!-- main.css의 .navbar-underline은 .navbar-Select 밑에서만
+                 스코프돼 있어서 여기선 안 먹는다. 그래서 클래스 대신
+                 스타일을 전부 인라인으로 줌. -->
             <div style="position: absolute; bottom: 0; left: 3px; width: 123px; height: 3px; background-color: #21a8ff; transition: none;"></div>
           </div>
           <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>

@@ -142,18 +142,17 @@ USE_L10N = True #한국 날짜, 숫자 형식
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# 🎯 프론트 정적 파일(main.css/main.js/components 등) 위치.
-# 특정 앱 소유가 아닌 공용 자산이라 앱별 static/이 아니라
-# 프로젝트 루트의 backend/static/ 에 모아둠.
+# 프론트 정적 파일(main.css/main.js/components 등) 위치.
+# 앱별 자산이 아닌 공용 자산이라 프로젝트 루트 static/에 모아둠.
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-# 🎯 collectstatic이 모든 정적 파일을 모아둘 배포용 경로 (Render 등 배포 환경 필수).
+# collectstatic이 정적 파일을 모아둘 배포용 경로 (Render 배포 시 필수)
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# 🎯 DEBUG=False인 프로덕션에서는 Django가 정적 파일을 직접 서빙하지 않으므로,
-# whitenoise가 collectstatic 결과물을 압축/캐싱해서 직접 서빙하도록 함.
+# DEBUG=False 프로덕션에서는 Django가 정적 파일을 직접 서빙하지 않아서
+# whitenoise가 collectstatic 결과물을 압축/캐싱해 서빙하도록 함
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

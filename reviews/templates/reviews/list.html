@@ -14,9 +14,8 @@
   {% endif %}
 
 <!-- 영역별 만족도 -->
-<!-- 🎯 [프론트 연동용] 차트/게이지를 그리는 데 필요한 집계 숫자 3개만 data-* 로 내려줌.
-     (카드 목록과 달리 이건 사용자 콘텐츠가 아니라 평균 통계치라, JS가 숫자를
-     읽어 별점 위젯을 그리는 건 일반적인 MTV+JS 프론트에서도 흔한 패턴) -->
+<!-- 차트/게이지에 필요한 집계 숫자 3개만 data-*로 내려줌
+     (평균 통계치라 JS가 읽어서 별점 위젯을 그림) -->
   <div
     id="rating-summary"
     data-night="{{ rating_summary.rating_night }}"
@@ -35,15 +34,13 @@
     <a href="?sort=likes">공감순</a>
   </div>
 
-  <!-- 🎯 [진짜 MTV] 후기 카드: 프론트 사이드바에 실제로 보이는 마크업(class="rightSB-reviewCard" 등)을
-       서버가 그대로 렌더링함. 프론트 JS는 이 마크업의 값만 뽑아 재조립하지 않고,
-       #rightSB-reviewCardContainer의 innerHTML을 통째로 옮겨 붙이기만 한다. -->
+  <!-- 후기 카드: 사이드바에 실제로 보이는 마크업을 서버가 그대로 렌더링.
+       프론트 JS는 값만 재조립하지 않고 #rightSB-reviewCardContainer의
+       innerHTML을 통째로 옮겨 붙이기만 한다. -->
   <div id="rightSB-reviewCardContainer" data-count="{{ reviews|length }}">
     {% if is_empty %}
-      <!-- 🎯 rightSideBar.css의 .rightSB-tabContent.rightSB-activeContent ~
-           #rightSB-reviewCardContainer 까지 height:100% 체인을 만들어뒀으므로,
-           이 안에서 flex 중앙 정렬하면 rightSB-reviewNav를 뺀 나머지 영역
-           정중앙에 뜬다. -->
+      <!-- rightSideBar.css에 height:100% 체인이 있어서, 여기서 flex 중앙
+           정렬하면 rightSB-reviewNav를 뺀 나머지 영역 정중앙에 뜬다. -->
       <div style="display:flex; align-items:center; justify-content:center; height:100%; text-align:center; color:#7b7578;">첫 번째 후기를 남겨보세요!</div>
     {% else %}
       {% for review in reviews %}

@@ -13,7 +13,7 @@
   box-sizing: border-box;
 }
 
-/* 💡 회원가입 상태일 때 알맹이들 투명도 제어 */
+/* 회원가입 상태일 때 알맹이들 투명도 제어 */
 .login-card.is-signup .login-section {
   opacity: 0;
   pointer-events: none;

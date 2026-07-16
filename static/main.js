@@ -10,9 +10,8 @@ function updateUnderline(target) {
   NavUnderline.style.transform = `translateX(${target.offsetLeft}px)`;
 }
 
-// 🎯 [SPA 탭 전환] 클릭했을 때뿐 아니라, 다른 페이지(예: 마이페이지)에서
-// "제휴 서비스"를 눌러 /?tab=commercial 로 들어왔을 때도 똑같이 써야 해서
-// 탭 전환 로직 자체를 함수로 빼둠 (밑줄 이동 + pageGroups 보이기/숨기기).
+// SPA 탭 전환: 클릭했을 때뿐 아니라 마이페이지에서 /?tab=commercial로
+// 들어왔을 때도 써야 해서 함수로 빼둠 (밑줄 이동 + pageGroups 토글).
 function activateTab(currentMenu) {
   if (!currentMenu) return;
 
@@ -44,10 +43,9 @@ function activateTab(currentMenu) {
     }
   }
 
-  // 🎯 [버그 수정] 탭을 눌러도 주소창의 ?tab= 값이 안 바뀌어서, 제휴 서비스로
-  // 갔다가 안심맵으로 되돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸다.
-  // 탭이 바뀔 때마다 현재 보이는 탭에 맞게 주소창도 같이 갱신해준다
-  // (history 쌓지 않도록 replaceState만 사용).
+  // 탭을 눌러도 주소창의 ?tab= 값이 안 바뀌어서, 제휴 서비스로 갔다가
+  // 안심맵으로 돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸다.
+  // 탭이 바뀔 때마다 주소창도 갱신 (history 안 쌓게 replaceState만 사용).
   const newUrl = targetPageId === "page-commercial" ? "/?tab=commercial" : "/";
   if (window.location.pathname + window.location.search !== newUrl) {
     history.replaceState(null, "", newUrl);
@@ -62,10 +60,9 @@ NavSelected.forEach((menu) => {
   });
 });
 
-// 🎯 [로고 클릭 -> 안심맵 이동] 로고는 어떤 탭(안심맵/제휴 서비스)을 보고 있든
-// 눌렀을 때 항상 안심맵 탭으로 돌아가야 한다. activateTab을 그대로 재사용해서
-// navbar-safetyMap 메뉴를 직접 클릭한 것과 완전히 동일하게(밑줄 이동, 주소창
-// ?tab= 정리까지) 동작시킨다.
+// 로고 클릭 -> 안심맵 이동: 어떤 탭을 보고 있든 로고를 누르면 항상 안심맵
+// 탭으로 돌아가야 한다. activateTab을 재사용해 navbar-safetyMap을 직접
+// 클릭한 것과 동일하게 동작시킨다.
 const logoImg = document.querySelector(".navbar-logoImg");
 if (logoImg) {
   logoImg.addEventListener("click", () => {
@@ -80,9 +77,8 @@ if (activeMenu) {
   setTimeout(() => updateUnderline(activeMenu), 50);
 }
 
-// 🎯 [마이페이지 -> 제휴 서비스 이동] 마이페이지는 완전히 별도 페이지라
-// home.html의 탭을 직접 누를 수 없으므로, /?tab=commercial 쿼리로 들어오면
-// 도착하자마자 제휴 서비스 탭을 활성화해준다.
+// 마이페이지는 별도 페이지라 home.html의 탭을 직접 누를 수 없으므로,
+// /?tab=commercial 쿼리로 들어오면 도착하자마자 제휴 서비스 탭을 활성화한다.
 const requestedTab = new URLSearchParams(window.location.search).get("tab");
 if (requestedTab === "commercial") {
   const commercialMenu = document.querySelector(".navbar-commercial");
@@ -151,11 +147,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 🎯 로그인 상태(마이페이지/로그아웃 vs 로그인 버튼)는 이제 JS 가짜 토큰이 아니라
-  // home.html을 렌더링하는 Django의 request.user.is_authenticated가 그대로 결정해서 내려준다.
-  // (진짜 MTV: 서버가 처음 렌더링할 때부터 올바른 상태로 나오므로 JS가 따로 바꿀 필요가 없다)
+  // 로그인 상태는 이제 JS 가짜 토큰이 아니라 Django의
+  // request.user.is_authenticated가 결정해서 내려준다.
 
-  // 🎯 메인페이지 네비바 로그인 버튼 팝업 바인딩
+  // 메인페이지 네비바 로그인 버튼 팝업 바인딩
   const mainNavLoginBtn = document.getElementById("main-nav-login-btn");
 
   if (mainNavLoginBtn) {
@@ -180,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
           contentBox.style.height = "689px";
           overlay.classList.remove("popup-hide");
 
-          // ⭐️ login.js 파일에 등록된 초기 은닉 및 토글 전환 스크립트(initAuthEvents) 활성화!
+          // login.js에 등록된 초기 은닉 및 토글 전환 스크립트(initAuthEvents) 활성화
           if (typeof initAuthEvents === "function") {
             initAuthEvents();
           } else {

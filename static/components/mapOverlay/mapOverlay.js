@@ -201,10 +201,9 @@ function moveMapToSelectedDong() {
   const grid = dongLookup[selected.dong];
   if (!grid) return;
 
-  // 🎯 [지도 이동] 예전엔 여기서 grid.latitude/longitude(DB 대표 좌표)로 직접
-  // 이동시켰는데, 이제는 window.showLegalDongOnMap()이 폴리곤을 그리면서
-  // 그 도형의 실제 중심(centroid)으로 이동까지 처리해준다. 그래서 여기서는
-  // 더 이상 따로 이동시키지 않는다 (아래 showLegalDongOnMap 호출 참고).
+  // 예전엔 여기서 grid.latitude/longitude로 직접 이동시켰는데, 이제는
+  // window.showLegalDongOnMap()이 폴리곤 중심(centroid)으로 이동까지
+  // 처리해준다 (아래 호출 참고).
 
   const sidebar = document.querySelector(".rightSB-aside");
   if (sidebar) sidebar.classList.add("open");
@@ -213,7 +212,7 @@ function moveMapToSelectedDong() {
     window.updateSidebarTitle(grid.dong, grid.dong, grid.id);
   }
 
-  // 🎯 [1번 스펙] 드롭다운으로 선택된 법정동도 검색과 동일하게 취급해서
+  // 드롭다운으로 선택된 법정동도 검색과 동일하게 취급해서
   // 폴리곤 + 법정동 안심점수 인포윈도우를 지도 위에 표시한다.
   if (window.showLegalDongOnMap) {
     window.showLegalDongOnMap(grid.dong);
@@ -221,7 +220,7 @@ function moveMapToSelectedDong() {
 }
 
 // =====================================================================
-// 🎯 [0번 스펙] leftPanel.js의 검색창에서 검색 결과를 선택했을 때, 이 드롭다운
+// leftPanel.js의 검색창에서 검색 결과를 선택했을 때, 이 드롭다운
 // (시/도-구-동)도 같은 지역으로 동기화되도록 외부에서 호출할 수 있는 함수.
 // =====================================================================
 window.syncMapOverlaySelection = function (sido, gu, dong) {
@@ -340,7 +339,7 @@ function updateInfoBox() {
 }
 
 // =====================================================================
-// 🎯 지도에서 "행정동 폴리곤"을 클릭했을 때 kakaoMap.js가 호출한다.
+// 지도에서 "행정동 폴리곤"을 클릭했을 때 kakaoMap.js가 호출한다.
 // 클릭된 행정동 grid(cctv_count 등 포함)를 그대로 넘겨받아 하단 정보
 // 박스를 그 행정동 기준 개수로 바꾼다. (드롭다운/법정동 로직과 독립)
 // =====================================================================

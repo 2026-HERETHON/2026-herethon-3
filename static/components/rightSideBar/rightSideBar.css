@@ -1,20 +1,15 @@
-/* 🎯 [재구조화] home.html에서 .rightSB-aside "바깥" 형제로 옮김 (aside 자체가
-   열리기 전엔 translateX(100%)로 화면 밖에 있어서, 그 안에 두면 패널이 한 번도
-   안 열린 상태에서 GPS 버튼도 같이 사라져버렸음). position:fixed로 뷰포트
-   기준 고정해서 패널 상태와 무관하게 항상 보이게 하고, rightSideBar.js의
-   syncGpsButtonPosition()이 .rightSB-aside/#rightSideBar-container의 open/
-   collapsed 클래스를 지켜보다가 아래 두 modifier 클래스를 붙였다 뗐다 하면서
-   패널 폭만큼 오른쪽 offset을 다시 계산해준다.
+/* home.html에서 .rightSB-aside 바깥 형제로 옮김 (aside가 닫혀있을 땐
+   translateX(100%)로 화면 밖에 있어서, 안에 두면 GPS 버튼도 같이 사라짐).
+   position:fixed로 항상 보이게 하고, rightSideBar.js의
+   syncGpsButtonPosition()이 패널 open/collapsed 상태에 맞춰 아래 두
+   modifier 클래스로 오른쪽 offset을 다시 계산해준다.
 
    좌표 계산 근거:
-   - top: navbar(#navbar-container) 높이 60px + 23px = 83px
-   - right: "현재 화면에 보이는 패널의 왼쪽 끝"으로부터 45px 떨어진 지점
-     · 패널 완전히 펼쳐짐(rightSB-gpsShifted): rightSB-body 왼쪽 끝이 뷰포트
-       오른쪽에서 506px 지점(rightSB-wholeContainer 545px - rightSB-close
-       35px - 두 자식 사이 여백 4px) → 506 + 45 = 551px
-     · 패널 열려있지만 접힘(rightSB-gpsCollapsed, 35px 탭만 보임): 탭 왼쪽 끝이
-       뷰포트 오른쪽에서 35px 지점 → 35 + 45 = 80px
-     · 패널이 한 번도 안 열린 기본 상태: 보이는 부분이 없음(0) → 0 + 45 = 45px */
+   - top: navbar 높이 60px + 23px = 83px
+   - right: 보이는 패널 왼쪽 끝에서 45px 떨어진 지점
+     · 완전히 펼쳐짐(rightSB-gpsShifted): 506 + 45 = 551px
+     · 접힘(rightSB-gpsCollapsed, 35px 탭만 보임): 35 + 45 = 80px
+     · 기본 상태(안 열림): 0 + 45 = 45px */
 .mapOverlay-locationBtn {
   position: fixed;
   top: 83px;
@@ -478,9 +473,9 @@
 }
 
 .rightSB-tabContent.rightSB-activeContent {
-  /* 🎯 [빈 후기 중앙 정렬용] display:block이면 자식들이 내용 높이만큼만 차지해서
-     .rightSB-tabContentWrapper가 남는 공간을 안 채운다. flex column + height:100%로
-     바꿔서 아래 .rightSB-reviewListSubPage 등이 남은 공간을 끝까지 채우게 함. */
+  /* 빈 후기 중앙 정렬용: display:block이면 자식이 내용 높이만큼만 차지해서
+     남는 공간을 안 채운다. flex column + height:100%로 아래 요소가 남은
+     공간을 끝까지 채우게 함. */
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -499,15 +494,14 @@
   overflow-y: auto; /* 자리가 남으면 다 보여주고, 내용이 넘칠 때만 스크롤바 생성! */
   overflow-x: hidden;
   box-sizing: border-box;
-  /* 🎯 [빈 후기 중앙 정렬용] .rightSB-reviewContainer(flex column, 고정 404px)
-     안에서 .rightSB-reviewNav가 쓰고 남은 공간을 전부 차지하도록 함.
-     (min-height:0은 flex 안에서 overflow-y:auto가 제대로 동작하게 하는 필수 설정) */
+  /* 빈 후기 중앙 정렬용: .rightSB-reviewNav가 쓰고 남은 공간을 전부
+     차지하도록 함 (min-height:0은 overflow-y:auto 동작에 필수) */
   flex: 1;
   min-height: 0;
 }
 
-/* 🎯 [빈 후기 중앙 정렬용] 후기 리스트 영역이 탭 콘텐츠의 전체 높이를 채우도록 함.
-   실제 카드가 있을 때는 내용이 이 높이를 넘기면 그냥 평소처럼 스크롤됨. */
+/* 빈 후기 중앙 정렬용: 후기 리스트가 탭 콘텐츠의 전체 높이를 채우도록 함.
+   카드가 있을 때는 내용이 넘치면 평소처럼 스크롤됨. */
 .rightSB-reviewListSubPage {
   height: 100%;
 }
@@ -1130,8 +1124,8 @@
   letter-spacing: -0.24px;
 }
 
-/* 🎯 [검색창 고정 + 리스트만 스크롤] qnaDetailSubPage(질문+답변 고정/스크롤)와
-   동일한 패턴: 이 페이지 자체를 flex column + height:100%로 만들고,
+/* 검색창 고정 + 리스트만 스크롤: qnaDetailSubPage(질문+답변 고정/스크롤)와
+   동일한 패턴. 페이지를 flex column + height:100%로 만들고,
    검색창(.rightSB-qnaSearchWrapper, flex-shrink:0)은 자기 높이만큼만 고정으로
    차지하고, 카드 목록(#rightSB-qnaCardContainer)이 flex:1 + overflow-y:auto로
    남는 공간을 차지하면서 그 안에서만 스크롤되게 한다. */
@@ -1667,30 +1661,22 @@
 }
 
 /* =====================================================================
-   🎯 [노트북 화면 대응] 1920×1080 기준으로 짜여있던 레이아웃이라, 1440×900처럼
-   세로가 짧은 화면(약 200px 부족)에서는 안심점수/영역별 만족도 쪽도 전부 고정
-   px라 하나도 안 줄어들고, 그 밑 QnA/후기(.rightSB-reviewContainer)만 남는
-   공간을 받다 보니 거의 안 남아서 심하게 눌리는 문제가 있었다.
+   노트북 화면 대응: 1920×1080 기준 레이아웃이라 1440×900처럼 세로가 짧은
+   화면에서는 고정 px인 안심점수/만족도 영역이 안 줄어들고, 그 밑 QnA/후기가
+   거의 안 남는 공간을 받아 심하게 눌리는 문제가 있었다.
 
-   처음엔 .rightSB-topInfoGroup(안심점수+영역별 만족도)만 zoom을 줬는데,
-   그 아래 QnA/후기 영역이랑 region 타이틀은 원본 크기 그대로라 패널 안에서
-   비율이 안 맞았음. 그래서 우측 사이드바 패널 전체(.rightSB-wholeContainer:
-   region 타이틀 + 안심점수/만족도 + QnA/후기 + 닫기 탭까지 전부)를 같은
-   고정 배율(zoom: 0.8824 = 900/1020)로 통째로 줄여서 비율을 통일한다.
-   zoom은 transform과 달리 부모 레이아웃에서 차지하는 공간(flex 배분 등)도
-   같이 줄어들기 때문에, 안쪽 flex:1(.rightSB-overlayWrapper)이 남는 공간을
-   다시 정상적으로 계산해서 가져간다.
+   패널 전체(.rightSB-wholeContainer)를 고정 배율(zoom: 0.8824 = 900/1020)로
+   통째로 줄여서 비율을 통일한다. zoom은 transform과 달리 부모 레이아웃이
+   차지하는 공간도 같이 줄어들어서, 안쪽 flex:1이 남는 공간을 다시 정상
+   계산해서 가져간다.
 
-   ⚠️ 참고: GPS 버튼 오른쪽 offset(551px/80px)이나 사이드바 접힘 상태의 35px
-   탭 노출 폭은 원래(비축소) 크기 기준으로 계산해둔 값이라, 패널이 실제로 이
-   배율만큼 좁아지면 몇 px 정도 어긋나 보일 수 있음 -> 눈으로 보고 어긋나면
-   알려주면 그 값들만 따로 미세 조정하면 됨.
+   참고: GPS 버튼 offset(551px/80px)은 비축소 크기 기준값이라 배율만큼
+   몇 px 어긋나 보일 수 있음 — 어긋나면 그 값만 미세 조정하면 됨.
 
-   높이는 너비랑 다르게, 네비바(60px) 제외한 나머지 화면을 그대로 다 채워야
-   함(줄어들면 안 됨). 근데 zoom이 세로도 같이 축소해버려서 그냥 두면 패널
-   밑에 빈 공간이 생김 -> zoom 적용 "전" 로컬 높이값을 1/0.8824배만큼 미리
-   더 크게 잡아둬서, zoom으로 축소되고 난 뒤 실제 화면에 보이는 높이가
-   다시 정확히 (100vh - 60px)이 되도록 보정한다. */
+   높이는 너비와 달리 네비바(60px) 제외 나머지를 그대로 다 채워야 하는데,
+   zoom이 세로도 축소해버려서 빈 공간이 생긴다. zoom 적용 전 로컬 높이값을
+   1/0.8824배로 미리 크게 잡아둬서, 축소 후 실제 높이가 다시 정확히
+   (100vh - 60px)이 되도록 보정한다. */
 @media (max-height: 950px) {
   .rightSB-wholeContainer {
     zoom: 0.8824; /* 900 / 1020, 고정 배율 (너비는 이 배율 그대로 줄어듦) */

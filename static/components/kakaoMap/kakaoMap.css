@@ -103,7 +103,7 @@ img[src*="bt_close.gif"] {
   letter-spacing: -0.32px;
 }
 
-/* 🎯 [2-1번 스펙] 법정동 hover-in 시, 행정동 폴리곤 구역 안에 뜨는 이름 라벨 */
+/* 법정동 hover-in 시, 행정동 폴리곤 구역 안에 뜨는 이름 라벨 */
 .kakaoMap-adminDongLabel {
   padding: 3px 10px;
   border-radius: 20px;

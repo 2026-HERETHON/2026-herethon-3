@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <!-- 🎯 [진짜 연동용] 로그인 실패 시(아이디/비밀번호 불일치 등) 에러 메시지 표시 영역 -->
+      <!-- 로그인 실패 시(아이디/비밀번호 불일치 등) 에러 메시지 표시 영역 -->
       <div
         class="login-errorMsg"
         id="login-error"
@@ -112,7 +112,7 @@
               </div>
             </div>
 
-            <!-- 🎯 [단순화] 이메일/비밀번호 확인 입력칸은 백엔드에서 선택값·단일 비밀번호로
+            <!-- 이메일/비밀번호 확인 입력칸은 백엔드에서 선택값·단일 비밀번호로
                  처리하기로 해서 뺐음 (accounts/forms.py의 SignUpForm 참고) -->
 
             <div class="login-infoInput">
@@ -158,7 +158,7 @@
                   <span>남성</span>
                 </button>
               </div>
-              <!-- 🎯 [진짜 연동용] 버튼 클릭으로는 스타일만 바뀌므로, 실제 전송값은
+              <!-- 버튼 클릭으로는 스타일만 바뀌므로, 실제 전송값은
                    이 hidden input에 담아서 login.js가 클릭할 때마다 채워준다. -->
               <input type="hidden" id="signup-gender" name="gender" />
             </div>
@@ -174,7 +174,7 @@
                   placeholder="거주지를 입력해주세요 (예: 상계동)"
                 />
               </div>
-              <!-- 🎯 [연동용] 실제 서버로 보내는 값은 선택한 '법정동'의 grid_id(숫자).
+              <!-- 실제 서버로 보내는 값은 선택한 '법정동'의 grid_id(숫자).
                    위 텍스트 입력은 사람이 검색용으로만 쓰고, 드롭다운에서 항목을 고르면
                    login.js가 이 hidden input에 grid_id를 채운다. SignUpForm이
                    grid_id=required 라서 이 값이 없으면 회원가입이 서버에서 거부된다. -->
@@ -208,7 +208,7 @@
         </div>
       </div>
 
-      <!-- 🎯 [진짜 연동용] 회원가입 실패 시(닉네임 중복 등) 에러 메시지 표시 영역 -->
+      <!-- 회원가입 실패 시(닉네임 중복 등) 에러 메시지 표시 영역 -->
       <div
         class="login-errorMsg"
         id="signup-error"
@@ -291,9 +291,8 @@
       <div class="login-infoInputWrapper">
 
       <div style="display: flex; gap: 14px; flex-direction: column">
-        <!-- 🎯 회원가입 시점에 서버가 이미 로그인까지 시켜주므로(accounts.signup_view의
-             login(request, user)), 이 버튼은 "로그인 폼 다시 보여주기"가 아니라
-             그냥 새로고침해서 로그인된 nav 상태로 반영되게 한다. -->
+        <!-- 회원가입은 자동 로그인을 시키지 않으므로, 이 버튼은 로그인 폼으로
+             이동시켜 직접 로그인하게 한다. -->
         <button type="button" class="login-loginBtn signup-success-continueBtn">로그인하러 가기</button>
         <div class="login-joinRecommend signup-success-skipBtn" style="cursor: pointer;">
           나중에 하기

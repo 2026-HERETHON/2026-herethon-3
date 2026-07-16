@@ -39,11 +39,9 @@ def signup_view(request):  # AUTH-001
             user.verified_at = None
             user.save()
 
-            # 🎯 [프론트 요청 반영] 예전엔 여기서 회원가입 직후 바로 login()으로
-            # 세션을 만들어서 자동 로그인시켰는데, 프론트의 "회원가입 완료" 팝업
-            # 흐름상 회원가입 = 로그인이 아니라, "로그인하러 가기" 버튼을 눌러
-            # 로그인 폼에서 직접 로그인해야 로그인 상태가 되도록 바꿈.
-            # (그래서 회원가입 성공 직후에도 request.user.is_authenticated는 False.)
+            # 예전엔 회원가입 직후 바로 login()으로 자동 로그인시켰는데,
+            # 프론트의 "회원가입 완료" 팝업 흐름상 회원가입 = 로그인이 아니라
+            # "로그인하러 가기"를 눌러 직접 로그인해야 하도록 바꿈.
             return redirect('home')
 
         return render(request, 'accounts/signup.html', {
@@ -82,9 +80,8 @@ def logout_view(request):  # AUTH-003
 
 def _star_fill_width(score):
     """
-    🎯 [진짜 MTV용] reviews/views.py의 동일 헬퍼와 같은 계산식.
-    마이페이지의 '내가 작성한 후기' 카드도 서버가 별점 위젯 너비를 미리 계산해서
-    내려주므로, 여기서도 그대로 복제해서 씀 (앱 간 private 함수 import는 피함).
+    reviews/views.py의 동일 헬퍼와 같은 계산식.
+    앱 간 private 함수 import를 피하려고 그대로 복제해서 씀.
     """
     score = float(score or 0)
     rounded = round(score * 2) / 2
@@ -112,12 +109,10 @@ def _safety_grade_label(score):
 @login_required
 def profile_view(request):
     """
-    🎯 [진짜 MTV / SPA 유지] 원래 목업(mypage.html)은 좌측 메뉴 6개를 클릭하면
-    페이지 이동 없이 JS가 보이기/숨기기만 하는 구조였다. 백엔드는 이걸 4개의
-    별도 뷰(profile/profile_residence/profile_posts/profile_saved)로 나눠뒀었는데,
-    각각 페이지 이동을 시키면 메뉴 전환마다 화면이 새로고침되어 원래 UX가 깨진다.
-    그래서 이 뷰 하나에서 4개 뷰가 만들던 데이터를 전부 모아 한 번에 렌더링하고,
-    프론트는 기존 mypage.js의 탭 전환(순수 클래스 토글, 새 요청 없음)을 그대로 쓴다.
+    원래 목업(mypage.html)은 메뉴 클릭 시 JS가 보이기/숨기기만 하는 SPA
+    구조였다. 이걸 4개 뷰로 나누면 메뉴 전환마다 새로고침되어 UX가 깨지므로,
+    이 뷰 하나에서 4개 뷰의 데이터를 모아 한 번에 렌더링하고 프론트는 기존
+    mypage.js의 탭 전환(클래스 토글만, 새 요청 없음)을 그대로 쓴다.
     """
     reviews = list(
         Review.objects.filter(user=request.user).select_related('grid')
@@ -191,13 +186,10 @@ def set_residence(request):  # 실거주지 "설정" (인증 아님, 선언만)
 @login_required
 @require_POST
 def confirm_residence(request):  # GPS 인증
-    # 🎯 [502 버그 수정] 예전엔 requests.post()로 같은 서버의
-    # /grids/verify-location/을 "자기 자신"에게 HTTP로 호출했었다.
-    # Render 무료 티어처럼 gunicorn worker가 1개뿐인 환경에서는, 이 요청이
-    # 그 하나뿐인 worker를 붙잡은 채로 자기 서버에 또 요청을 보내는 셈이라
-    # 처리할 여유 worker가 없어 영원히 응답을 못 받고 timeout 뒤 502로
-    # 죽어버렸다. grids.views.check_dong_contains_point를 직접 호출해서
-    # 네트워크 왕복 자체를 없앴다 — worker 개수와 완전히 무관해진다.
+    # 예전엔 requests.post()로 자기 자신의 /grids/verify-location/을
+    # 호출했는데, gunicorn worker 1개뿐인 환경에서 그 worker가 자기 응답을
+    # 기다리며 막혀 502로 죽었다. check_dong_contains_point를 직접 호출해
+    # 네트워크 왕복 자체를 없앴다.
     user = request.user
     if not user.verified_grid:
         return JsonResponse({'error': '먼저 실거주지를 설정해주세요.'}, status=400)

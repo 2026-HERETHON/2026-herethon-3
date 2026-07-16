@@ -13,10 +13,9 @@ document.querySelector(".leftPanel-resetBtn").addEventListener("click", () => {
 });
 
 // =====================================================================
-// 🎯 [동 검색 자동완성] 좌측 패널 검색창에 법정동 이름으로 검색 시
+// 동 검색 자동완성: 좌측 패널 검색창에 법정동 이름으로 검색 시
 // "시/도 구 동" 형태로 후보를 드롭다운에 보여주고, 클릭하면
 // 지도 이동 + 우측 사이드바 오픈까지 처리한다.
-// (kakaoMap.js의 fetchLegalDongCache / 폴리곤 클릭 로직과 동일한 패턴 재사용)
 // =====================================================================
 let leftPanelLegalDongList = [];
 let leftPanelLegalDongLoaded = false;
@@ -98,10 +97,9 @@ function selectLeftPanelSearchResult(grid) {
   }
   leftPanelSearchResults?.classList.add("leftPanel-hide");
 
-  // 🎯 [지도 이동] 예전엔 여기서 grid.latitude/longitude(DB 대표 좌표)로 직접
-  // 이동시켰는데, 이제는 window.showLegalDongOnMap()이 폴리곤을 그리면서
-  // 그 도형의 실제 중심(centroid)으로 이동까지 처리해준다. 그래서 여기서는
-  // 더 이상 따로 이동시키지 않는다 (아래 ===== 3. ===== 참고).
+  // 예전엔 여기서 grid.latitude/longitude로 직접 이동시켰는데, 이제는
+  // window.showLegalDongOnMap()이 폴리곤 중심(centroid)으로 이동까지
+  // 처리해준다.
 
   // ===== 2. 우측 사이드바 오픈 =====
   const sidebar = document.querySelector(".rightSB-aside");
@@ -135,7 +133,7 @@ if (leftPanelSearchInput) {
     }
 
     const list = await fetchLeftPanelLegalDongList();
-    // 🎯 login.js의 bindResidenceAutocomplete()와 동일한 방식으로 통일:
+    // login.js의 bindResidenceAutocomplete()와 동일한 방식:
     // sido/gu/dong_group/dong을 합친 haystack + 공백 토큰 AND 매칭
     const q = query.toLowerCase();
     const tokens = q.split(/\s+/).filter(Boolean);

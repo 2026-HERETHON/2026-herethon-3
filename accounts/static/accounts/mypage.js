@@ -1,6 +1,6 @@
 // accounts/static/accounts/mypage.js
 //
-// 🎯 [진짜 MTV] 예전 static 목업의 mypage.js는 상계동/신림동 데이터를 하드코딩해서
+// 예전 static 목업의 mypage.js는 상계동/신림동 데이터를 하드코딩해서
 // 차트 2개만 그렸는데, 이제는 서버(accounts/profile.html)가 실제 찜한 동네 카드를
 // 전부 렌더링하고 각 카드의 canvas에 data-* 속성으로 실제 grid 수치만 실어서 내려준다.
 // (마크업 자체는 서버가 렌더링 — 차트 좌표값 같은 순수 집계 수치만 JS가 읽어서

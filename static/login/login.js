@@ -19,7 +19,7 @@ function initAuthEvents() {
   const scoreSec = authCard.querySelector(".scoreInfo-section");
   const successSec = authCard.querySelector(".signUpSuccess-section")
 
-  // 🎯 강제 초기화: 로그인 화면만 켜고 '점수 창'을 포함한 나머지는 무조건 숨김!
+  // 강제 초기화: 로그인 화면만 켜고 나머지(점수 창 포함)는 숨김
   if (loginSec) loginSec.style.display = "block";
   if (signupSec) signupSec.style.display = "none";
   if (infoSec) infoSec.style.display = "none";
@@ -77,21 +77,19 @@ function initAuthEvents() {
     });
   }
 
-  // 🎯 [수정] '가입하기' 클릭 시 무조건 성공 창을 띄우면, 서버가 실제로 거절해도
-  // (닉네임 중복 등) 성공 화면이 떠버린다. 그래서 여기서 미리 띄우지 않고,
-  // bindSignupSubmit()이 서버 응답을 확인한 뒤 진짜 성공했을 때만 띄우도록 옮김.
+  // '가입하기' 클릭 시 무조건 성공 창을 띄우면 서버가 실제로 거절해도
+  // (닉네임 중복 등) 성공 화면이 떠버린다. bindSignupSubmit()이 서버 응답을
+  // 확인한 뒤 진짜 성공했을 때만 띄우도록 함.
 
   // 회원가입 성공 창의 버튼들
-  // 🎯 [수정] 회원가입 = 로그인이 아니다 (accounts/views.py의 signup_view가
-  // 더 이상 자동 로그인을 시키지 않음). 그래서 여기서 새로고침하지 않고,
+  // 회원가입 = 로그인이 아니다 (signup_view가 자동 로그인시키지 않음).
   // 로그인 폼을 보여줘서 방금 만든 계정으로 직접 로그인하게 한다.
   const continueBtn = successSec?.querySelector(".signup-success-continueBtn");
   if (continueBtn) {
     continueBtn.addEventListener("click", () => {
-      // 🎯 [버그 수정] is-signup 클래스를 안 지워서, login-section이 display:block이
-      // 돼도 .login-card.is-signup .login-section{opacity:0} 규칙 때문에 안 보이고
-      // 빈 화면만 떴었다. "회원가입하러 가기" 버튼을 누를 때 붙는 클래스라서,
-      // 로그인 폼으로 돌아가는 다른 버튼(goToLoginBtns)들과 똑같이 지워줘야 한다.
+      // is-signup 클래스를 안 지우면 login-section이 display:block이 돼도
+      // .login-card.is-signup .login-section{opacity:0} 때문에 안 보인다.
+      // 다른 버튼(goToLoginBtns)들과 똑같이 지워줘야 한다.
       authCard.classList.remove("is-signup");
       popupContent.style.width = "518px";
       popupContent.style.height = "689px";
@@ -127,7 +125,7 @@ function initAuthEvents() {
   });
 
   // ==========================================
-  // 👫 [🎯 제자리 이동] 성별 개별 선택 기능 (남/여 디자인 분리)
+  // 성별 개별 선택 기능 (남/여 디자인 분리)
   // ==========================================
   if (signupSec) {
     const genderButtons = signupSec.querySelectorAll(".login-genderBox");
@@ -138,22 +136,22 @@ function initAuthEvents() {
         const currentBtn = e.target.closest(".login-genderBox");
         if (!currentBtn) return;
 
-        // 💡 1. 모든 성별 버튼에서 활성화 클래스를 전부 제거
+        // 1. 모든 성별 버튼에서 활성화 클래스를 전부 제거
         genderButtons.forEach((otherBtn) => {
           otherBtn.classList.remove("is-selected", "is-female", "is-male");
         });
 
-        // 💡 2. 클릭한 버튼 내부의 글자(여성/남성)를 추출
+        // 2. 클릭한 버튼 내부의 글자(여성/남성)를 추출
         const genderText = currentBtn.querySelector("span").textContent.trim();
 
-        // 💡 3. 성별 텍스트에 따라 개별 디자인용 클래스 부여!
+        // 3. 성별 텍스트에 따라 개별 디자인용 클래스 부여
         if (genderText === "여성") {
           currentBtn.classList.add("is-selected", "is-female");
         } else if (genderText === "남성") {
           currentBtn.classList.add("is-selected", "is-male");
         }
 
-        // 🎯 [진짜 연동용] 실제 전송값(F/M)은 hidden input에 채워둔다.
+        // 실제 전송값(F/M)은 hidden input에 채워둔다.
         if (genderHiddenInput) {
           if (genderText === "여성") genderHiddenInput.value = "F";
           else if (genderText === "남성") genderHiddenInput.value = "M";
@@ -162,11 +160,11 @@ function initAuthEvents() {
     });
   }
 
-  // 🎯 [연동용] 거주지 자동완성 드롭다운 바인딩 (회원가입 폼 전용)
+  // 거주지 자동완성 드롭다운 바인딩 (회원가입 폼 전용)
   bindResidenceAutocomplete();
 
-  // 🎯 [진짜 연동용] 로그인/회원가입 제출 버튼을 실제 accounts 앱과 연결한다.
-  // (팝업이 열릴 때마다 innerHTML이 통째로 새로 그려지므로 매번 다시 바인딩해야 함)
+  // 로그인/회원가입 제출 버튼을 실제 accounts 앱과 연결한다.
+  // (팝업이 열릴 때마다 innerHTML이 새로 그려지므로 매번 다시 바인딩해야 함)
   bindLoginSubmit();
   bindSignupSubmit();
 }
@@ -342,7 +340,7 @@ function initScoreInfoEvent() {
   const scoreSec = authCard.querySelector(".scoreInfo-section");
   const successSec = authCard.querySelector(".signUpSuccess-section");
 
-  // 🎯 점수 기준창을 켰을 때는 로그인, 회원가입, 개인정보를 확실하게 숨김
+  // 점수 기준창을 켰을 때는 로그인, 회원가입, 개인정보를 숨김
   if (loginSec) loginSec.style.display = "none";
   if (signupSec) signupSec.style.display = "none";
   if (infoSec) infoSec.style.display = "none";
@@ -415,8 +413,8 @@ function bindLoginSubmit() {
       body: new URLSearchParams({ username, password }),
     })
       .then((res) => {
-        // 🎯 로그인 성공: Django가 302로 홈(or ?next=)으로 리다이렉트하고, fetch가
-        // 그 리다이렉트를 그대로 따라가므로 최종 res.url이 /accounts/login/이 아니게 된다.
+        // 로그인 성공: Django가 302로 홈으로 리다이렉트하고 fetch가 그걸
+        // 따라가므로 최종 res.url이 /accounts/login/이 아니게 된다.
         // 실패: 같은 로그인 폼을 에러와 함께 200으로 재렌더링.
         if (res.redirected || !res.url.includes("/accounts/login/")) {
           window.location.reload(); // 세션 쿠키가 잡혔으니 새로고침해서 nav도 실제 상태로 갱신
@@ -443,13 +441,13 @@ function bindSignupSubmit() {
     e.preventDefault();
     hideAuthError("signup-error");
 
-    // 🎯 [단순화] 이메일/비밀번호 확인 입력칸은 뺐음 — 서버(SignUpForm)도
-    // 이메일은 선택값으로, password2는 password1을 그대로 복사해서 처리함.
+    // 이메일/비밀번호 확인 입력칸은 뺐음 — 서버(SignUpForm)도 이메일은
+    // 선택값으로, password2는 password1을 그대로 복사해서 처리함.
     const nickname = document.getElementById("signup-nickname")?.value.trim();
     const username = document.getElementById("signup-username")?.value.trim();
     const password1 = document.getElementById("signup-password1")?.value;
     const gender = document.getElementById("signup-gender")?.value;
-    // 🎯 거주지: 드롭다운에서 확정 선택했을 때만 값이 채워지는 법정동 grid_id
+    // 거주지: 드롭다운에서 확정 선택했을 때만 값이 채워지는 법정동 grid_id
     const gridId = document.getElementById("signup-grid_id")?.value;
     const agreePrivacy = document.getElementById("check-agree")?.checked;
 
@@ -461,8 +459,8 @@ function bindSignupSubmit() {
       showAuthError("signup-error", "성별을 선택해주세요.");
       return;
     }
-    // 🎯 SignUpForm의 grid_id가 required=True 라서, 목록에서 고르지 않으면 서버가 거부한다.
-    //    직접 타이핑만 하고 드롭다운을 안 고른 경우 hidden 값이 비어 있으므로 여기서 막는다.
+    // SignUpForm의 grid_id가 required=True라서, 목록에서 고르지 않으면 서버가 거부한다.
+    // 직접 타이핑만 하고 드롭다운을 안 고르면 hidden 값이 비어 있으므로 여기서 막는다.
     if (!gridId) {
       showAuthError("signup-error", "거주지를 목록에서 선택해주세요.");
       return;
@@ -493,9 +491,8 @@ function bindSignupSubmit() {
     })
       .then((res) => {
         if (res.redirected || !res.url.includes("/accounts/signup/")) {
-          // 🎯 [진짜 성공 시에만] 서버가 회원가입을 마쳤을 때만 여기로 온다
-          // (자동 로그인은 하지 않음). 예전엔 여기서 바로 새로고침했는데,
-          // 이제 "회원가입 완료" 팝업(signUpSuccess-section)을 먼저 보여주고,
+          // 서버가 회원가입을 마쳤을 때만 여기로 온다 (자동 로그인은 안 함).
+          // 예전엔 바로 새로고침했는데, 이제 "회원가입 완료" 팝업을 먼저 보여주고,
           // "로그인하러 가기"를 눌러야 로그인 폼에서 직접 로그인하게 한다.
           const authCard = document.getElementById("auth-card");
           const popupContent = document.getElementById("loginPopupContent");

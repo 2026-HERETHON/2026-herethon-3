@@ -15,10 +15,9 @@ from accounts.decorators import verified_residence_required
 
 def _star_fill_width(score):
     """
-    🎯 [진짜 MTV용] 별점 위젯의 '채워진 별' 영역 너비(px)를 서버에서 미리 계산.
-    예전엔 이 계산을 프론트 JS가 review.score(숫자)만 받아서 직접 했었는데,
-    이제는 카드 마크업 자체를 서버가 렌더링하므로 너비도 서버가 계산해서 내려준다.
-    (프론트 rightSideBar.js의 기존 계산식과 동일하게 맞춤)
+    별점 위젯의 '채워진 별' 너비(px)를 서버에서 미리 계산.
+    카드 마크업 자체를 서버가 렌더링하므로 너비도 서버에서 계산해 내려준다.
+    (프론트 rightSideBar.js의 기존 계산식과 동일)
     """
     score = float(score or 0)
     rounded = round(score * 2) / 2  # 0.5 단위로 반올림
@@ -69,9 +68,9 @@ def review_list(request, grid_id):  # REV-001, REV-004
         ).values_list('review_id', flat=True)
         is_saved = SavedGrid.objects.filter(user=request.user, grid=grid).exists()
 
-    # 🎯 [진짜 MTV용] 각 후기 카드에 별점 위젯 너비를 미리 계산해서 붙여둠
-    # (템플릿에서 바로 style="width: {{ review.star_width }}px" 로 사용)
-    # -> 리스트로 굳혀서 인스턴스에 속성을 얹어야 하므로 aggregate/exists 이후에 실행
+    # 각 후기 카드에 별점 위젯 너비를 미리 계산해서 붙여둠
+    # (템플릿에서 style="width: {{ review.star_width }}px"로 사용)
+    # 리스트로 굳혀 인스턴스에 속성을 얹어야 해서 aggregate/exists 이후에 실행
     reviews = list(reviews)
     for review in reviews:
         review.star_width = _star_fill_width(review.average_rating)

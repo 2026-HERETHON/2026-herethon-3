@@ -1,7 +1,6 @@
 /* 기본 여백 초기화 및 기본 스타일 설정함 */
-/* 🎯 [SPA 병합] 예전엔 독립 페이지라 *, body에 걸어도 안전했는데,
-   이제 home.html 안의 다른 탭(안심맵 등)과 같은 페이지를 공유하므로
-   .commercial-container 스코프 안에서만 적용되게 좁혀둠. */
+/* 예전엔 독립 페이지라 *, body에 걸어도 안전했는데, 이제 home.html의
+   다른 탭과 페이지를 공유하므로 .commercial-container 스코프로 좁혀둠. */
 .commercial-container,
 .commercial-container * {
   margin: 0;
@@ -349,7 +348,7 @@ background: #E4F7FF;
 }
 
 /* 두 번째 카드 원형 아이콘 스타일임
-   ⚠️ icon-home.svg는 원이 포함된 이미지라 래퍼 배경을 투명 처리해 이중 원 방지 */
+   icon-home.svg는 원이 포함된 이미지라 래퍼 배경을 투명 처리해 이중 원 방지 */
 .service-card.theme-housing .circle-light-blue {
   background-color: transparent;
 }
