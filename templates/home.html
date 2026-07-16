@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <base href="{% get_static_prefix %}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>헤레톤 3팀</title>
+    <title>안심맵</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="stylesheet" href="main.css" />
     <link rel="stylesheet" href="./components/rightSideBar/rightSideBar.css" />
@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="./components/mapOverlay/mapOverlay.css" />
     <link rel="stylesheet" href="./components/kakaoMap/kakaoMap.css" />
     <link rel="stylesheet" href="commercial/commercial.css" />
+    <link rel="icon" href="{% static 'favicon.svg' %}">
   </head>
   <body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}">
     <!--nav-->
