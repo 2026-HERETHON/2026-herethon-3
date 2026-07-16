@@ -439,8 +439,19 @@ function bindAnswerSubmit() {
           alert("로그인이 필요해요. 다시 로그인해주세요.");
           return;
         }
+        // 🎯 accounts.decorators.verified_residence_required가 실거주지
+        // 인증이 안 됐거나(또는 인증한 동네와 이 질문의 동네가 다르면)
+        // accounts/verification_required.html을 403으로 내려준다.
+        if (res.status === 403) {
+          alert("실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.");
+          return;
+        }
+        if (!res.ok) {
+          alert("답변 등록 중 오류가 발생했어요.");
+          return;
+        }
         input.value = "";
-        // 방금 등록한(혹은 조용히 실패한) 답변까지 반영된 최신 상세를 다시 그림
+        // 방금 등록한 답변까지 반영된 최신 상세를 다시 그림
         openQuestionDetail(questionId);
         alert("답변이 등록되었습니다.");
       })
@@ -1175,6 +1186,13 @@ document.addEventListener("DOMContentLoaded", () => {
           body,
         })
           .then((res) => {
+            // 🎯 accounts.decorators.verified_residence_required가 실거주지
+            // 인증이 안 됐거나 인증한 동네와 이 grid가 다르면 403으로 막는다.
+            if (res.status === 403) {
+              throw new Error(
+                "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.",
+              );
+            }
             // 성공하면 서버가 reviews:list로 redirect하고, fetch가 그걸 따라가서
             // 최종 res.url이 .../create/ 없이 끝남. 폼 검증 실패 시엔 redirect 없이
             // 같은 create 페이지(에러 포함)를 그대로 200으로 돌려준다.
@@ -1213,7 +1231,8 @@ document.addEventListener("DOMContentLoaded", () => {
           .catch((err) => {
             console.error("🚨 후기 등록 실패:", err);
             alert(
-              "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
+              err.message ||
+                "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
             );
           })
           .finally(() => {

@@ -1,6 +1,5 @@
 # Create your views here.
 import json
-import requests
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
@@ -8,6 +7,7 @@ from .forms import SignUpForm, LoginForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from grids.models import Grid
+from grids.views import check_dong_contains_point
 from .models import SavedGrid
 from django.utils import timezone
 
@@ -190,7 +190,14 @@ def set_residence(request):  # 실거주지 "설정" (인증 아님, 선언만)
 
 @login_required
 @require_POST
-def confirm_residence(request):  # GPS 인증 (BE1의 grids API 호출)
+def confirm_residence(request):  # GPS 인증
+    # 🎯 [502 버그 수정] 예전엔 requests.post()로 같은 서버의
+    # /grids/verify-location/을 "자기 자신"에게 HTTP로 호출했었다.
+    # Render 무료 티어처럼 gunicorn worker가 1개뿐인 환경에서는, 이 요청이
+    # 그 하나뿐인 worker를 붙잡은 채로 자기 서버에 또 요청을 보내는 셈이라
+    # 처리할 여유 worker가 없어 영원히 응답을 못 받고 timeout 뒤 502로
+    # 죽어버렸다. grids.views.check_dong_contains_point를 직접 호출해서
+    # 네트워크 왕복 자체를 없앴다 — worker 개수와 완전히 무관해진다.
     user = request.user
     if not user.verified_grid:
         return JsonResponse({'error': '먼저 실거주지를 설정해주세요.'}, status=400)
@@ -204,22 +211,14 @@ def confirm_residence(request):  # GPS 인증 (BE1의 grids API 호출)
 
     dong = user.verified_grid.dong  # 클라이언트 값 안 믿고 DB 저장값 사용
 
-    try:
-        resp = requests.post(
-            request.build_absolute_uri('/grids/verify-location/'),
-            json={'latitude': lat, 'longitude': lng, 'dong': dong},
-            timeout=3
-        )
-    except requests.RequestException:
-        return JsonResponse({'error': '위치 인증 서버에 연결할 수 없어요.'}, status=502)
+    is_verified, error = check_dong_contains_point(dong, lat, lng)
 
-    if resp.status_code == 404:
-        return JsonResponse({'error': f'"{dong}"은 인증 대상 법정동이 아니에요.'}, status=400)
-    if resp.status_code != 200:
+    if error:
+        if error["status"] == 404:
+            return JsonResponse({'error': f'"{dong}"은 인증 대상 법정동이 아니에요.'}, status=400)
         return JsonResponse({'error': '위치 인증 처리 중 오류가 발생했어요.'}, status=502)
 
-    result = resp.json()
-    if result.get('is_verified'):
+    if is_verified:
         user.is_verified = True
         user.verified_at = timezone.now()
         user.save()
