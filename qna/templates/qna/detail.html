@@ -84,39 +84,29 @@
     </style>
   </head>
   <body>
-    <!-- 🎯 profile.html과 동일한 네비 마크업. SPA 탭이 아니라 완전히 별도
-         페이지라서 안심맵/제휴 서비스/마이페이지 클릭은 실제 페이지 이동. -->
     <nav>
       <div id="navbar-container">
         <a href="/" style="text-decoration: none; color: inherit;">
-          <div class="navbar-logoImg"><img src="{% static 'main-images/logo.svg' %}" /></div>
+          <div class="navbar-logoImg"><img src="{% static 'accounts/mypage-images/logo.svg' %}"/></div>
         </a>
         <div class="navbar-Select">
-          <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
+          <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
             안심맵
           </a>
-          <a href="/?tab=commercial" class="navbar-menu navbar-commercial" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
+          <a href="/?tab=commercial" class="navbar-menu navbar-commercial" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
             제휴 서비스
           </a>
         </div>
-        {% if request.user.is_authenticated %}
         <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
-          <a href="{% url 'accounts:profile' %}" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
+          <div style="position: relative; height: 60px; display: flex; align-items: center; margin-right:37px; padding-left:13px;">
             <div style="display:flex; gap: 9px; align-items:center;">
               <img src="{% static 'main-images/account.svg' %}" alt="마이페이지" />
-              <span class="navbar-mypage" style="cursor: pointer;">{{ request.user.nickname }}</span>
+              <span class="navbar-mypage" style="font-weight: 600;">마이페이지</span>
             </div>
-          </a>
+            <div style="position: absolute; bottom: 0; left: 3px; width: 123px; height: 3px; background-color: #21a8ff; transition: none;"></div>
+          </div>
           <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
         </div>
-        {% else %}
-        <a href="{% url 'accounts:login' %}" class="navbar-ahref" style="text-decoration:none;">
-          <div class="navbar-login" style="cursor:pointer;">
-            <img class="navbar-loginImg" src="{% static 'main-images/goToLogin.svg' %}" alt="로그인하기" />
-            로그인
-          </div>
-        </a>
-        {% endif %}
       </div>
     </nav>
 
@@ -127,12 +117,6 @@
       </div>
 
       <h3 class="qnaDetail-sectionTitle">답변 ({{ answers.count }})</h3>
-      <!-- 🎯 [진짜 MTV] 답변 카드: 사이드바 실제 마크업(class="rightSB-answerCard" 등)을
-           서버가 그대로 렌더링함. 프론트 JS는 값만 뽑아 재조립하지 않고,
-           #qnaAnswerContainer의 innerHTML을 통째로 옮겨 붙이기만 한다.
-           data-count는 "답변 N" 배지 표시용 숫자 하나일 뿐, 콘텐츠 자체는 아니다.
-           ⚠️ 이 id/구조는 rightSideBar.js의 openQuestionDetail()이 fetch로 그대로
-           파싱해가는 부분이라 그대로 유지해야 한다 (아래 페이지 셸만 새로 둘렀음). -->
       <div id="qnaAnswerContainer" data-count="{{ answers.count }}">
         {% if not answers %}
           <div style="text-align:center; color:#7b7578; padding:12px 0;">아직 답변이 없어요.</div>

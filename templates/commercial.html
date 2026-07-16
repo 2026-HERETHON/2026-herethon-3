@@ -27,7 +27,7 @@
       <a href="../mypage/mypage.html" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
         <div style="display:flex; gap: 9px; align-items:center;">
           <img src="../main-images/account.svg" alt="마이페이지" />
-          <span class="navbar-mypage" style="cursor: pointer;">{{ request.user.nickname }}</span>
+          <span class="navbar-mypage" style="cursor: pointer;">마이페이지</span>
         </div>
       </a>
       <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
