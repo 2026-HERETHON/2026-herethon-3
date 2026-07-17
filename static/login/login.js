@@ -422,6 +422,21 @@ function bindLoginSubmit() {
         // 로그인 성공: Django가 302로 홈으로 리다이렉트
         // 실패: 같은 로그인 폼을 에러와 함께 200으로 재렌더링
         if (res.redirected || !res.url.includes("/accounts/login/")) {
+          // 🎯 로그인 전에 보고 있던 동네(사이드바) 상태를 저장해뒀다가,
+          // 새로고침 후 rightSideBar.js가 그대로 복원해줌.
+          // (rightSideBar.js가 로드 안 된 페이지에서 로그인 팝업을 썼을 수도
+          //  있으니 getCurrentSidebarState가 없을 수 있음 -> optional chaining)
+          try {
+            const state = window.getCurrentSidebarState?.();
+            if (state && state.legalDongId) {
+              sessionStorage.setItem(
+                "hereton_pendingDongRestore",
+                JSON.stringify(state),
+              );
+            }
+          } catch (e) {
+            console.warn("로그인 전 동네 상태 저장 실패:", e);
+          }
           window.location.reload(); // 세션 쿠키가 잡혔으니 새로고침해서 nav도 실제 상태로 갱신
           return null;
         }

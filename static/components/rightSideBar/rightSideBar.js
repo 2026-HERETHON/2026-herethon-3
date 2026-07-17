@@ -13,6 +13,11 @@ let currentSidebarState = {
   currentQuestionId: null,
 };
 
+// 🎯 login.js 등 다른 스크립트에서도 "지금 보고 있는 동네" 상태를 읽을 수 있도록
+// 전역에 getter를 노출해둠 (로그인 성공 후 location.reload() 하기 전에 이 상태를
+// sessionStorage에 저장해뒀다가, 리로드 후 이 파일 하단에서 복원함).
+window.getCurrentSidebarState = () => currentSidebarState;
+
 // Django CSRF 토큰을 쿠키에서 꺼내는 헬퍼 (list.html의 getCookie와 동일한 로직)
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -1506,6 +1511,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 마이페이지에서 인증 후 다시 지도 페이지(이 스크립트)가 로드될 때 여기서
   // 그 내용을 그대로 불러와 후기 작성 폼에 다시 채워준다.
   // =====================================================================
+  let didRestorePendingReview = false;
   (function restorePendingReview() {
     const raw = sessionStorage.getItem("hereton_pendingReview");
     if (!raw) return;
@@ -1518,6 +1524,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (!draft || !draft.legalDongId) return;
+    didRestorePendingReview = true;
 
     // 1. 지도 클릭과 동일한 진입점으로 해당 동네 사이드바를 다시 연다.
     if (typeof window.updateSidebarTitle === "function") {
@@ -1577,6 +1584,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     alert(
       "실거주지 인증이 완료돼서, 작성 중이던 후기를 다시 불러왔어요. 확인하고 등록해주세요!",
+    );
+  })();
+
+  // =====================================================================
+  // 🎯 로그인/회원가입 성공 시 login.js가 window.location.reload()를 하는데,
+  // 그 전에 "지금 보고 있던 동네" 상태를 sessionStorage에 저장해두면
+  // (login.js의 bindLoginSubmit 참고) 여기서 그대로 다시 열어준다.
+  // 위 restorePendingReview가 이미 실행됐다면(=더 구체적인 복원) 중복으로
+  // 또 열 필요 없으니 그 경우엔 건너뜀.
+  // =====================================================================
+  (function restorePendingDongAfterLogin() {
+    if (didRestorePendingReview) return; // 위에서 이미 더 구체적인 복원을 했음
+    const raw = sessionStorage.getItem("hereton_pendingDongRestore");
+    if (!raw) return;
+    sessionStorage.removeItem("hereton_pendingDongRestore");
+
+    let state;
+    try {
+      state = JSON.parse(raw);
+    } catch (e) {
+      return;
+    }
+    if (!state || !state.legalDongId) return;
+    if (typeof window.updateSidebarTitle !== "function") return;
+
+    window.updateSidebarTitle(
+      state.detailDongName || state.legalDongName,
+      state.legalDongName,
+      state.legalDongId,
+      state.detailDongId || state.legalDongId,
     );
   })();
 });
