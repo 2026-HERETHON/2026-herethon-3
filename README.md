@@ -1,6 +1,5 @@
-# 2026-herethon-3
+# 2026-herethon-3: 🏠 안심콕 (AnsimKok)
 2026 여기톤 : HE:REthon 3팀
-# 🏠 안심콕 (AnsimKok)
 
 🔗 **배포 URL** : https://safetymap-ufnb.onrender.com/
 
