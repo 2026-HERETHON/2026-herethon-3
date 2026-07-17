@@ -4,7 +4,9 @@
 
 .myPage-sidebar {
   width: 341px;
-  min-height: calc(100vh - 60px);
+  /* nav가 uiZoom.js로 화면 높이에 맞춰 줄어드는 만큼 반영
+     (profile.html의 .myPage-layout height 계산과 동일한 이유) */
+  min-height: calc(100vh - 60px * var(--ui-zoom, 1));
   background: var(--GrayScale-White, #fff);
   box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -436,6 +438,18 @@ font-style: normal;
 font-weight: 400;
 line-height: 150%; /* 30px */
 letter-spacing: -0.4px;
+
+  /* .myPage-qnaItem이 display:flex인데 이 요소는 flex/min-width 지정이
+     없어서, 500자 넘는 긴 질문/답변 내용이 들어오면 줄바꿈 없이 한 줄로
+     쭉 늘어나 옆의 .myPage-qnaRight(답변 N + 화살표)를 카드 밖으로
+     밀어냈음. flex:1 + min-width:0으로 실제로 줄어들 수 있게 하고,
+     너무 길면 rightSB-qnaQuestion과 같은 방식으로 1줄 말줄임 처리함 */
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Q 아이콘 (파란 원) */

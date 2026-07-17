@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="{% static 'main.css' %}" />
     <link rel="stylesheet" href="{% static 'components/rightSideBar/rightSideBar.css' %}" />
     <link rel="stylesheet" href="{% static 'components/modals/infoModal.css' %}" />
+    <!-- home.html/마이페이지와 같은 비율로 nav가 화면 높이에 맞춰
+         줄어들게 하는 공용 스크립트. 자세한 설명은 static/uiZoom.js 참고 -->
+    <script src="{% static 'uiZoom.js' %}"></script>
 
     <style>
       .qnaDetail-wrap { max-width: 640px; margin: 40px auto 80px; padding: 0 20px; }
@@ -18,7 +21,18 @@
         padding: 28px 30px; margin-bottom: 24px; box-sizing: border-box;
       }
       .qnaDetail-questionUser { font-size: 14px; color: #7b7578; margin: 0 0 8px 0; }
-      .qnaDetail-questionText { font-size: 20px; font-weight: 600; line-height: 140%; margin: 0; white-space: pre-line; }
+      .qnaDetail-questionText {
+        color: #000;
+        text-align: right;
+        font-family: Pretendard;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 150%; /* 24px */
+        letter-spacing: -0.32px;
+        margin: 0;
+        white-space: pre-line;
+      }
       .qnaDetail-sectionTitle { font-size: 18px; font-weight: 600; margin: 0 0 16px 4px; }
       .qnaDetail-answerForm { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
       .qnaDetail-answerForm textarea {
@@ -96,6 +110,12 @@
               <img src="{% static 'main-images/account.svg' %}" alt="마이페이지" />
               <span class="navbar-mypage" style="font-weight: 600;">마이페이지</span>
             </div>
+            <!-- 마이페이지(profile.html)의 "내가 작성한 글" 목록에서 이 질문
+                 상세 페이지로 들어오면, 원래 마이페이지에 있던 이 파란
+                 밑줄이 없어서 갑자기 사라진 것처럼 보였음. profile.html과
+                 똑같은 마크업으로 맞춰서 마이페이지에서 온 흐름임을
+                 계속 보여줌 -->
+            <div style="position: absolute; bottom: 0; left: 3px; width: 123px; height: 3px; background-color: #21a8ff; transition: none;"></div>
           </div>
           <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
         </div>

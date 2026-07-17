@@ -1003,12 +1003,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    ratingBox.addEventListener("mousemove", (e) => {
+    // 클릭 시점의 좌표로 직접 별점을 계산함 (mousemove가 미리 채워둔
+    // hoveredRating을 그대로 믿지 않음). 예전엔 click 핸들러가
+    // "hoveredRating === 0이면 무시"했는데, 트랙패드 탭이나 빠른 클릭처럼
+    // click 이벤트가 mousemove보다 먼저(또는 mousemove 없이) 발생하면
+    // hoveredRating이 아직 0으로 남아있어서 별을 눌러도 data-score가
+    // 실제로는 안 채워지는 경우가 있었음(시각적으로는 채워진 것처럼
+    // 보여서 "다 눌렀는데 오류난다"는 문제로 이어짐)
+    const computeRatingFromEvent = (e) => {
       const rect = ratingBox.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const width = rect.width;
       const value = Math.ceil((x / width) * RATING_COUNT * 2) / 2;
-      hoveredRating = Math.min(Math.max(value, 0.5), RATING_COUNT);
+      return Math.min(Math.max(value, 0.5), RATING_COUNT);
+    };
+
+    ratingBox.addEventListener("mousemove", (e) => {
+      hoveredRating = computeRatingFromEvent(e);
       updateStars(hoveredRating);
     });
 
@@ -1017,9 +1028,8 @@ document.addEventListener("DOMContentLoaded", () => {
       updateStars(currentRating);
     });
 
-    ratingBox.addEventListener("click", () => {
-      if (hoveredRating === 0) return;
-      currentRating = hoveredRating;
+    ratingBox.addEventListener("click", (e) => {
+      currentRating = computeRatingFromEvent(e);
       updateStars(currentRating);
       ratingBox.setAttribute("data-score", currentRating);
     });
@@ -1174,7 +1184,10 @@ document.addEventListener("DOMContentLoaded", () => {
           scores.convenience === 0 ||
           scores.atmosphere === 0
         ) {
-          alert("모든 항목의 만족도 별점을 선택해주세요.");
+          window.showInfoModal?.({
+            title: "별점을 <span>선택</span>해주세요",
+            desc: "모든 항목의 만족도 별점을 선택해주세요.",
+          });
           return;
         }
         if (!text.trim()) {
