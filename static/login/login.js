@@ -131,6 +131,16 @@ function initAuthEvents() {
     });
   }
 
+  // 비밀번호 확인(재확인) 글자 수 카운팅 - 위 password1과 클래스가 겹치면
+  // querySelector가 첫 번째 것만 잡아서 따로 클래스(login-pw2Counting)를 씀
+  const password2Input = document.getElementById("signup-password2");
+  const pw2CountingEl = authCard.querySelector(".login-pw2Counting");
+  if (password2Input && pw2CountingEl) {
+    password2Input.addEventListener("input", (e) => {
+      pw2CountingEl.textContent = e.target.value.length;
+    });
+  }
+
   // ==========================================
   // 성별 개별 선택 기능 (남/여 디자인 분리)
   // ==========================================
@@ -472,17 +482,25 @@ function bindSignupSubmit() {
     e.preventDefault();
     hideAuthError("signup-error");
 
-    // 이메일/비밀번호 확인 입력칸은 뺐음
+    // 아이디 입력칸을 이메일로 교체함. User 모델은 username(고유)과
+    // email(고유)이 별도 컬럼이라 SignUpForm이 둘 다 필수로 요구하지만,
+    // 실제 로그인은 EmailBackend가 email 컬럼으로만 조회하므로(accounts/backends.py
+    // 참고) username에는 화면에 노출 안 하고 이메일 값을 그대로 채워 넣음
     const nickname = document.getElementById("signup-nickname")?.value.trim();
-    const username = document.getElementById("signup-username")?.value.trim();
+    const email = document.getElementById("signup-email")?.value.trim();
     const password1 = document.getElementById("signup-password1")?.value;
+    const password2 = document.getElementById("signup-password2")?.value;
     const gender = document.getElementById("signup-gender")?.value;
     // 거주지: 드롭다운에서 확정 선택했을 때만 값이 채워지는 법정동 grid_id
     const gridId = document.getElementById("signup-grid_id")?.value;
     const agreePrivacy = document.getElementById("check-agree")?.checked;
 
-    if (!nickname || !username || !password1) {
+    if (!nickname || !email || !password1 || !password2) {
       showAuthError("signup-error", "필수 항목을 모두 입력해주세요.");
+      return;
+    }
+    if (password1 !== password2) {
+      showAuthError("signup-error", "비밀번호가 일치하지 않아요. 다시 확인해주세요.");
       return;
     }
     if (!gender) {
@@ -512,8 +530,12 @@ function bindSignupSubmit() {
       },
       body: new URLSearchParams({
         nickname,
-        username,
+        email,
+        // SignUpForm이 username도 필수로 요구해서, 화면엔 없는 값이지만
+        // 이메일을 그대로 재사용해서 채움 (위 주석 참고)
+        username: email,
         password1,
+        password2,
         gender,
         grid_id: gridId,
         agree_privacy: "on",

@@ -78,12 +78,14 @@
     <div class="login-closeBtn">
       <img src="./login/login-images/close.svg" class="login-closeBtnImg"/>
     </div>
+
     <div>
       <div class="login-loginTitleWrapper">
         <div class="login-loginTitle">회원가입</div>
       </div>
 
       <div class="login-signupWrapper">
+
         <div class="login-contentWrapper">
           <div class="login-infoInputWrapper">
             <div class="login-infoInput">
@@ -100,23 +102,43 @@
             </div>
 
             <div class="login-infoInput">
-              <div class="login-inputTitle">아이디</div>
+              <div class="login-inputTitle">이메일</div>
               <div class="login-inputBox">
-                <img src="./login/login-images/account.svg" alt="아이디" />
+                <img src="./login/login-images/account.svg" alt="이메일" />
                 <input
-                  type="text"
-                  id="signup-username"
-                  name="username"
-                  placeholder="아이디를 입력해주세요"
+                  type="email"
+                  id="signup-email"
+                  name="email"
+                  placeholder="이메일을 입력해주세요"
                 />
               </div>
             </div>
 
-            <!-- 이메일/비밀번호 확인 입력칸은 백엔드에서 선택값·단일 비밀번호로
-                 처리하기로 해서 뺐음 (accounts/forms.py의 SignUpForm 참고) -->
-
             <div class="login-infoInput">
-              <div class="login-inputTitle">비밀번호</div>
+              <div class="login-inputTitle">성별</div>
+              <div class="login-chooseGender">
+                <button type="button" class="login-genderBox">
+                  <img src="./login/login-images/woman.svg" />
+                  <span>여성</span>
+                </button>
+                <button type="button" class="login-genderBox">
+                  <img src="./login/login-images/man.svg" />
+                  <span>남성</span>
+                </button>
+              </div>
+              <!-- 버튼 클릭으로는 스타일만 바뀌므로, 실제 전송값은
+                   이 hidden input에 담아서 login.js가 클릭할 때마다 채움 -->
+              <input type="hidden" id="signup-gender" name="gender" />
+            </div>
+          </div>
+        </div>
+
+        <div class="login-contentWrapper">
+          <div class="login-infoInputWrapper2">
+            <div class="login-infoInput">
+              <div class="login-inputTitle" style="display: flex; gap:15px; align-items:center;">비밀번호
+                <div class="login-passwordConditionMent">영문, 숫자, 특수문자 조합 8~20자</div>
+              </div>
               <div class="login-inputBox">
                 <div class="login-align">
                   <img src="./login/login-images/password.svg" alt="비밀번호" />
@@ -135,32 +157,37 @@
                 />
               </div>
               <div class="login-pwCondition">
-                <div>영문, 숫자, 특수문자 조합 8~20자</div>
                 <div>
                   <span class="login-pwCounting">0</span>/20
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="login-contentWrapper">
-          <div class="login-infoInputWrapper">
+            <!--비밀번호 재확인-->
             <div class="login-infoInput">
-              <div class="login-inputTitle">성별</div>
-              <div class="login-chooseGender">
-                <button type="button" class="login-genderBox">
-                  <img src="./login/login-images/woman.svg" />
-                  <span>여성</span>
-                </button>
-                <button type="button" class="login-genderBox">
-                  <img src="./login/login-images/man.svg" />
-                  <span>남성</span>
-                </button>
+              <div class="login-inputTitle">비밀번호 확인</div>
+              <div class="login-inputBox">
+                <div class="login-align">
+                  <img src="./login/login-images/password.svg" alt="비밀번호 확인" />
+                  <input
+                    type="password"
+                    id="signup-password2"
+                    name="password2"
+                    placeholder="비밀번호를 다시 입력해주세요"
+                    maxlength="20"
+                  />
+                </div>
+                <img
+                  class="login-seeImg"
+                  src="./login/login-images/see.svg"
+                  alt="비밀번호 보기"
+                />
               </div>
-              <!-- 버튼 클릭으로는 스타일만 바뀌므로, 실제 전송값은
-                   이 hidden input에 담아서 login.js가 클릭할 때마다 채움 -->
-              <input type="hidden" id="signup-gender" name="gender" />
+              <div class="login-pwCondition">
+                <div>
+                  <span class="login-pw2Counting">0</span>/20
+                </div>
+              </div>
             </div>
 
             <div class="login-infoInput" style="position: relative;">
@@ -183,7 +210,14 @@
               <ul id="signup-residence-list" class="residence-autocomplete" style="display:none;"></ul>
             </div>
 
-            <div class="login-personalInfo">
+            
+
+          </div>
+        </div>
+
+      </div>
+
+      <div class="login-personalInfo">
               <div class="login-personalInfoAgree">
                 <input
                   type="checkbox"
@@ -204,9 +238,6 @@
                 <span>자세히 보기</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
       <!-- 회원가입 실패 시(닉네임 중복 등) 에러 메시지 표시 영역 -->
       <div
