@@ -1,0 +1,279 @@
+.mapOverlay-locationSelect,
+.mapOverlay-infoBox {
+  pointer-events: auto;    /* 이 요소는 클릭 받기 */
+}
+
+.mapOverlay-locationSelect {
+  position: absolute;
+  /* top/left에 --ui-zoom을 직접 곱하지 않음: zoom은 요소 자신에게
+     걸리면 width/height 같은 크기뿐 아니라 그 요소 자신의 top/left/
+     bottom 같은 오프셋 값의 사용값(used value)도 같은 비율로 함께
+     줄여버림 (그래서 오프셋까지 따로 한 번 더 곱했더니 이중으로
+     줄어들어 위치가 완전히 어긋났었음). 그래서 아래 top/left는 원래
+     디자인값(줄지 않은 값) 그대로 두고, zoom 한 줄만으로 크기와
+     위치를 함께 비례 축소함 */
+  top: 28px;
+  left: 373px;
+  height: 57px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 32px 0 18px;
+  border-radius: 15px;
+  background: var(--GrayScale-White, #FFF);
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  /* width 제거 → 내용물에 맞게 */
+  zoom: var(--ui-zoom, 1);
+}
+
+.mapOverlay-pin {
+  margin-right: 18px;
+}
+
+/* 각 드롭다운 */
+.mapOverlay-dropdown {
+  position: relative;
+  margin-right: 26px;
+}
+.mapOverlay-dropdown:last-child {
+  margin-right: 0;
+}
+
+/* 텍스트 ↔ 화살표 간격: 30px */
+.mapOverlay-dropdownSelected {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  cursor: pointer;
+}
+
+.mapOverlay-dropdownText {
+  color: #000;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 150%;
+  letter-spacing: -0.32px;
+}
+
+/* 펼친 목록 (다음 단계에서 스타일링) */
+.mapOverlay-dropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+.mapOverlay-hide {
+  display: none;
+}
+
+/* 드롭다운 */
+
+.mapOverlay-dropdownList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  overflow: hidden;        /* 양 끝 항목 라운드 밖 안 삐져나오게 */
+}
+
+.mapOverlay-dropdownItem {
+  display: flex;
+  align-items: center;
+  padding: 7px 55px 7px 40px;
+  color: #000;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 150%;
+  letter-spacing: -0.32px;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* 체크 아이콘: 왼쪽 padding 영역(40px)에 위치, 기본 숨김 */
+.mapOverlay-checkIcon {
+  position: absolute;
+  left: 14px;              /* 왼쪽 여백 안에 배치, 값 조정 가능 */
+  display: none;
+}
+
+/* 드롭다운 닫힌 부분: 기본은 투명 테두리 (호버 시 크기 안 흔들리게) */
+.mapOverlay-dropdownSelected {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 4px 8px;        /* 여백 */
+  margin: -4px -8px;       /* 같은 값만큼 바깥으로 당겨서 상쇄 */
+  transition: border-color 0.15s ease;
+}
+
+/* 호버 시 파란 테두리 */
+.mapOverlay-dropdownSelected:hover {
+  border-color: #2F6FF0;           /* 파란색, Figma 값으로 교체 */
+}
+
+/* 선택된 항목: 배경 파랑 + 체크 표시 */
+.mapOverlay-dropdownItem.selected {
+  background: var(--Color-Blue200, #C4ECFE);
+}
+.mapOverlay-dropdownItem.selected .mapOverlay-checkIcon {
+  display: block;
+}
+
+/* 호버 (회색) */
+.mapOverlay-dropdownItem:hover {
+  background: #F5F5F5;
+}
+
+/* 데이터 없는 구: 이름+"(준비중)" 전부 회색으로 흐리게 표시 (선택은 여전히 가능) */
+.mapOverlay-dropdownItem--empty,
+.mapOverlay-dropdownItem--empty .mapOverlay-dropdownBadge {
+  color: #b3adaf;
+}
+
+/* "(준비중)" 표기 */
+.mapOverlay-dropdownBadge {
+  font-weight: 500;
+}
+
+/* 고를 항목이 아예 없을 때 표시하는 안내 문구 (클릭 대상 아님) */
+.mapOverlay-dropdownItem--message {
+  color: #7b7578;
+  font-weight: 400;
+  cursor: default;
+}
+.mapOverlay-dropdownItem--message:hover {
+  background: transparent;
+}
+
+/* 지도정보 보기 */
+.mapOverlay-infoBox {
+  position: absolute;
+  /* locationSelect와 같은 이유로 bottom/left에 --ui-zoom을 따로 곱하지
+     않음 (zoom 한 줄이 오프셋까지 같이 비례 축소함). 1920x1080 기준
+     실측값(브라우저 하단에서 37px)에 맞춰 bottom 값 자체를 보정함 */
+  bottom: 37px;
+  left: 368px;
+  z-index: 1000;
+  min-width: 622px;            /* 펼친 너비로 고정 (Figma 580 기준) */
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 15px 21px 16px 23px;
+  border-radius: 15px;
+  background: var(--GrayScale-White, #fff);
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  zoom: var(--ui-zoom, 1);
+}
+
+
+/* 헤더 (지도 정보 보기 + 화살표) */
+.mapOverlay-infoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+}
+
+/* 항목들 담는 곳: 가로 나란히 */
+.mapOverlay-infoList {
+  display: flex;
+  gap: 22px;               /* 항목끼리 간격 */
+}
+
+
+/* 항목 하나 */
+.mapOverlay-infoItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 118px;
+  height: 94px;
+  padding: 14px 19px 18px 14px;
+  gap: 10px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+}
+
+.mapOverlay-infoTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;                /* 원 ↔ 이름 간격, 조정 가능 */
+}
+
+.mapOverlay-infoIconCircle {
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: #C4ECFE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;          /* 원이 찌그러지지 않게 */
+}
+
+.mapOverlay-infoName {
+ font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #000;
+  white-space: nowrap;    /* 줄바꿈 방지 - 한 줄 유지 */
+}
+
+.mapOverlay-infoCount {
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;         /* Figma 값으로 교체 */
+  color: #000;
+  font-weight: 400;
+  line-height: 150%;
+  padding-left: 40px;
+  white-space: nowrap;
+}
+
+/* 파출소/지구대: 텍스트가 길어서 더 넓음 */
+.mapOverlay-infoItemWide {
+  width: 158px;
+  padding: 14px 17px 18px 14px;
+}
+
+/* 헤더 클릭 가능 표시 */
+.mapOverlay-infoHeader {
+  cursor: pointer;
+}
+
+/* 화살표 회전 (펼쳐졌을 때 ∧, 접혔을 때 ∨ 또는 반대) */
+.mapOverlay-infoToggle {
+  transition: transform 0.2s ease;
+}
+.mapOverlay-infoToggle.mapOverlay-flipped {
+  transform: rotate(180deg);
+}
+
+.mapOverlay-hide {
+  display: none !important;
+}
+
+/* .mapOverlay-locationBtn 스타일은 rightSideBar.css로 옮김 */
+
+
+   

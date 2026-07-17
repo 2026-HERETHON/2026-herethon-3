@@ -1,0 +1,327 @@
+* {
+  font-family: "Pretendard", -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+.leftPanel-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 341px;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+  background: var(--GrayScale-White, #fff);
+  filter: drop-shadow(4px 4px 20px rgba(0, 0, 0, 0.1));
+}
+
+/* ===== 안전 정보 필터 ===== */
+.leftPanel-filterBox {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  height: auto;
+  padding: 22px 15px 22px 16px;
+  align-items: flex-start;
+  gap: 20px; /* 필터 항목들끼리의 간격 */
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #d9d2d4);
+  background: var(--GrayScale-White, #fff);
+  margin: 25px 0 0 0;
+}
+
+.leftPanel-filterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px; /* 제목-필터항목 간격 */
+}
+
+.leftPanel-filterHeader h4 {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  margin: 0;
+}
+
+.leftPanel-resetBtn {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.24px;
+  color: #7b7578;
+  cursor: pointer;
+}
+
+.leftPanel-filterItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.leftPanel-filterItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leftPanel-filterItemLeft img {
+  width: 20px;
+  height: 20px;
+}
+
+.leftPanel-filterItemLeft span {
+  font-size: 14px;
+}
+
+/* ===== 체크박스 커스텀 ===== */
+.leftPanel-customCheckbox {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* 실제 체크박스는 숨김 */
+.leftPanel-customCheckbox input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* 체크 안 됐을 때: 빈 회색 네모 */
+.leftPanel-checkboxBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: #d9d2d4;
+}
+
+/* 체크 아이콘(svg)은 기본적으로 숨김 */
+.leftPanel-checkboxIcon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  display: none;
+  padding: 4px; /* 체크 아이콘이 박스 안에 여백 갖게 */
+  border-radius: 3px;
+  background: #1077ff;
+  box-sizing: border-box;
+}
+
+/* 체크됐을 때: 회색박스 숨기고 파란박스+svg 보임 */
+.leftPanel-customCheckbox input:checked ~ .leftPanel-checkboxBox {
+  display: none;
+}
+
+.leftPanel-customCheckbox input:checked ~ .leftPanel-checkboxIcon {
+  display: block;
+}
+
+/* ===== 안전 점수 범례 ===== */
+.leftPanel-legendBox {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  padding: 17px 15px 17px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #d9d2d4);
+  background: var(--GrayScale-White, #fff);
+  margin: 25px 0 0 0;
+}
+
+.leftPanel-legendBox h4 {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  margin: 0 0 20px 0; /* 제목 아래 20px */
+}
+
+.leftPanel-legendGradient {
+  display: flex;
+  width: 100%;
+  height: 18px;
+  border-radius: 3px;
+  overflow: hidden; /* 양 끝 칸 모서리가 부모 라운드에 맞춰 잘림 */
+}
+
+.leftPanel-legendCell {
+  flex: 1; /* 7칸 균등 분할 */
+  height: 100%;
+}
+
+.leftPanel-legendLabels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%; /* 그라데이션 바랑 같은 너비로 라벨 양끝 맞춤 */
+  margin-top: 6px; /* 바 ↔ 라벨 간격 */
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.24px;
+  color: #5b5658;
+}
+
+/* ===== 사용 가이드 ===== */
+.leftPanel-guideBox {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  padding: 17px 15px 18px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #d9d2d4);
+  background: var(--GrayScale-White, #fff);
+  margin: 25px 0 0 0;
+}
+
+.leftPanel-guideHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 7px; /* 제목 ↔ 안내문구 간격 */
+}
+
+.leftPanel-guideHeader h4 {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  margin: 0;
+}
+
+.leftPanel-closeIcon {
+  cursor: pointer;
+  font-size: 16px;
+  color: #000;
+}
+
+.leftPanel-guideBox p {
+  margin: 0;
+  font-size: 14px;
+  color: #000;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.28px;
+}
+
+/* ===== 안내 ===== */
+.leftPanel-noticeBox {
+  display: flex;
+  flex-direction: column;
+  width: 217px;
+  height: 115px;
+  padding: 15px 21px 18px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--GrayScale-200, #d9d2d4);
+  background: var(--GrayScale-White, #fff);
+  margin: auto 55px 20px 0px;
+  box-sizing: border-box; /* 패딩 포함해서 217px 유지 */
+}
+
+.leftPanel-noticeBox h4 {
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--GrayScale-800, #5b5658);
+  line-height: 150%;
+  letter-spacing: -0.28px;
+  margin: 0 0 8px 0; /* 제목 ↔ 문구 간격 */
+}
+
+.leftPanel-noticeBox p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--GrayScale-800, #5b5658);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.24px;
+}
+
+.leftPanel-searchWrapper {
+  position: relative;
+  width: 266px;
+  margin: 25px 0 0 0;
+}
+
+.leftPanel-searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 266px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 2.5px solid var(--Color-Blue900, #1077FF);
+  background: #fff;
+  margin: 5px 0 0 0;
+  box-sizing: border-box;
+  flex-shrink: 0;        /* wrapper가 눌러서 찌그러뜨리지 않게 */
+}
+
+.leftPanel-searchInput {
+  border: none;
+  outline: none;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+/* ===== 동 검색 자동완성 드롭다운 ===== */
+.leftPanel-searchResults {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  background: #fff;
+  border: 1px solid var(--GrayScale-200, #d9d2d4);
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+.leftPanel-searchResults.leftPanel-hide {
+  display: none;
+}
+
+.leftPanel-searchResultItem {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: var(--GrayScale-800, #5b5658);
+  cursor: pointer;
+}
+
+.leftPanel-searchResultItem:hover,
+.leftPanel-searchResultItem.is-active {
+  background: var(--GrayScale-100, #f0edee);
+}
+
+.leftPanel-searchResultDong {
+  font-weight: 600;
+  color: var(--Color-Blue900, #1077ff);
+}
+
+.leftPanel-searchResultEmpty {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #7b7578;
+}

@@ -1,0 +1,41 @@
+<h2>내가 작성한 글</h2>
+
+<h3>실거주 후기 ({{ reviews.count }})</h3>
+<ul>
+{% for r in reviews %}
+    <li>{{ r.grid.dong }} / 평점 {{ r.average_rating }} / {{ r.review_content }} / {{ r.created_at }}</li>
+{% empty %}
+    <li>작성한 후기가 없어요.</li>
+{% endfor %}
+</ul>
+
+
+<h3>Q&A</h3>
+
+<h4>내가 작성한 질문 ({{ questions.count }})</h4>
+<ul>
+{% for q in questions %}
+    <li>
+        <a href="{% url 'qna:detail' question_id=q.id %}">
+            {{ q.question_content }} ({{ q.grid.dong }})
+        </a>
+        — 답변 {{ q.answers.count }}개
+    </li>
+{% empty %}
+    <li>작성한 질문이 없어요.</li>
+{% endfor %}
+</ul>
+
+<h4>내가 작성한 답변 ({{ answers.count }})</h4>
+<ul>
+{% for a in answers %}
+    <li>
+        <a href="{% url 'qna:detail' question_id=a.question.id %}">
+            Q. {{ a.question.question_content }} ({{ a.question.grid.dong }})
+        </a>
+        <br>
+    </li>
+{% empty %}
+    <li>작성한 답변이 없어요.</li>
+{% endfor %}
+</ul>

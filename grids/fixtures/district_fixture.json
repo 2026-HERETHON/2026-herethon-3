@@ -1,0 +1,202 @@
+[
+  {
+    "model": "grids.district",
+    "pk": 1,
+    "fields": {
+      "name": "종로구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 2,
+    "fields": {
+      "name": "중구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 3,
+    "fields": {
+      "name": "용산구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 4,
+    "fields": {
+      "name": "성동구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 5,
+    "fields": {
+      "name": "광진구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 6,
+    "fields": {
+      "name": "동대문구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 7,
+    "fields": {
+      "name": "중랑구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 8,
+    "fields": {
+      "name": "성북구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 9,
+    "fields": {
+      "name": "강북구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 10,
+    "fields": {
+      "name": "도봉구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 11,
+    "fields": {
+      "name": "노원구",
+      "has_data": true
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 12,
+    "fields": {
+      "name": "은평구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 13,
+    "fields": {
+      "name": "서대문구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 14,
+    "fields": {
+      "name": "마포구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 15,
+    "fields": {
+      "name": "양천구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 16,
+    "fields": {
+      "name": "강서구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 17,
+    "fields": {
+      "name": "구로구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 18,
+    "fields": {
+      "name": "금천구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 19,
+    "fields": {
+      "name": "영등포구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 20,
+    "fields": {
+      "name": "동작구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 21,
+    "fields": {
+      "name": "관악구",
+      "has_data": true
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 22,
+    "fields": {
+      "name": "서초구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 23,
+    "fields": {
+      "name": "강남구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 24,
+    "fields": {
+      "name": "송파구",
+      "has_data": false
+    }
+  },
+  {
+    "model": "grids.district",
+    "pk": 25,
+    "fields": {
+      "name": "강동구",
+      "has_data": false
+    }
+  }
+]

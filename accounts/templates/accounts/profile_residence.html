@@ -1,0 +1,63 @@
+<h2>실거주지 인증</h2>
+
+{% if user.verified_grid %}
+    <p>설정된 실거주지: {{ user.verified_grid.dong }}</p>
+    <p>인증 상태:
+        {% if user.has_valid_verification %}
+            인증완료 ({{ user.verified_at }})
+        {% elif user.is_verified %}
+            인증 만료 (6개월 경과, 마지막 인증: {{ user.verified_at }})
+        {% else %}
+            미인증
+        {% endif %}
+    </p>
+    <button id="verify-residence-btn">현재 위치로 인증하기</button>
+    <p id="verify-result"></p>
+{% else %}
+    <p>실거주지가 아직 설정되지 않았어요.</p>
+    <form id="set-residence-form">
+        <select name="grid_id">
+            {% for grid in legal_grids %}
+                <option value="{{ grid.id }}">{{ grid.dong }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">설정</button>
+    </form>
+{% endif %}
+
+<script>
+function getCookie(name) {
+    let value = null;
+    document.cookie.split(';').forEach(c => {
+        const [k, v] = c.trim().split('=');
+        if (k === name) value = v;
+    });
+    return value;
+}
+
+document.getElementById('verify-residence-btn')?.addEventListener('click', () => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        const res = await fetch("{% url 'accounts:confirm_residence' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
+        });
+        const data = await res.json();
+        document.getElementById('verify-result').textContent = data.message || data.error;
+    }, () => {
+        document.getElementById('verify-result').textContent = '위치 권한을 허용해주세요.';
+    });
+});
+
+document.getElementById('set-residence-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const gridId = e.target.grid_id.value;
+    const res = await fetch("{% url 'accounts:set_residence' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        body: new URLSearchParams({ grid_id: gridId })
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+});
+</script>

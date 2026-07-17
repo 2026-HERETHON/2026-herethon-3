@@ -1,0 +1,714 @@
+.myPage-menuItem.active img {
+  filter: brightness(0) saturate(100%) invert(35%) sepia(99%) saturate(2000%) hue-rotate(200deg);
+}
+
+.myPage-sidebar {
+  width: 341px;
+  min-height: calc(100vh - 60px);
+  background: var(--GrayScale-White, #fff);
+  box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  padding: 40px 25px;          /* 사이드바 안쪽 여백, Figma 값으로 조정 */
+}
+
+/* "마이페이지" 제목 */
+.myPage-sidebarTitle {
+  color: #000;
+  font-family: "Pretendard", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -0.48px;
+  margin: 0 0 30px 0;          /* 제목 ↔ 첫 메뉴 간격, Figma 값으로 */
+}
+
+/* 메뉴 목록 */
+.myPage-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;                   /* 메뉴 항목끼리 마진 16px */
+}
+
+/* 메뉴 항목 하나 */
+.myPage-menuItem {
+  display: flex;               /* inline-flex보다 flex가 나음, 아래 참고 */
+  align-items: center;
+  gap: 16px;
+  width: 235px;                /* 모든 항목 235px */
+  height: 54px;                /* 모든 항목 54px */
+  padding: 12px 25px;
+  border-radius: 15px;         /* 파란 박스 둥글기, Figma 값으로 */
+  cursor: pointer;
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;
+  color: #000;
+  box-sizing: border-box;
+}
+
+/* 선택된 항목: 파란 배경만 추가 */
+.myPage-menuItem.active {
+  background: var(--Color-Blue100, #E4F7FF);  /* 파란색, Figma 값으로 */
+  color: #1077FF;                             /* 텍스트 파랑, Figma 값으로 */
+  font-weight: 600;
+}
+
+.myPage-layout {
+  display: flex;              /* 사이드바 | 메인 가로 배치 */
+}
+
+.myPage-main {
+  flex: 1;
+  padding: 25px 240px 0 54px;   /* 위25 오른쪽240 왼쪽54 */
+  box-sizing: border-box;
+}
+
+.myPage-mainTitle {
+  color: #000;
+  font-family: "Pretendard", sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -0.56px;
+  margin: 0;
+}
+
+.myPage-mainDesc {
+  font-family: "Pretendard", sans-serif;
+  font-size: 14px;            /* Figma 값으로 */
+  color: #7b7578;             /* 회색, Figma 값으로 */
+  margin: 8px 0 0 0;          /* 제목 아래 간격 */
+}
+
+
+
+/* 기본 정보 카드 */
+.myPage-infoCard {
+  width: 100%;
+  max-width: 1285px;
+  min-height: 522px;
+  border-radius: 20px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  box-sizing: border-box;
+  margin-top: 49px;
+  padding: 52px 51px;          /* 상하 52, 좌우 51 */
+}
+
+/* 제목 줄 */
+.myPage-infoCardHeader {
+  display: flex;
+  justify-content: space-between;  /* 기본정보 왼쪽, 수정하기 오른쪽 */
+  align-items: center;
+}
+
+.myPage-infoCardHeader h3 {
+  color: #000;
+
+/* Title/S-Bold */
+font-family: Pretendard;
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 33.6px */
+letter-spacing: -0.48px;
+  margin: 0;
+}
+
+.myPage-editBtn {
+  color: var(--Color-Blue900, #1077FF);
+
+/* Body/L-Bold */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+  cursor: pointer;
+}
+
+/* 제목 줄 ↔ 내용 사이 59px */
+.myPage-infoList {
+  margin-top: 59px;
+}
+
+.myPage-infoLabel {
+  width: 227px;        /* 라벨 영역 고정 (이게 값 정렬 맞춰줌) */
+  flex-shrink: 0;
+  color: #000;
+
+/* Body/L-Bold */
+    color: #000;
+
+/* Body/L */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+/* 각 항목 행 */
+.myPage-infoRow {
+  display: flex;
+  align-items: center;
+  padding: 23px 0;             /* 상하 23px (구분선과의 간격) */
+  border-bottom: 1px solid var(--GrayScale-200, #D9D2D4);  /* 구분선 */
+  color: #000;
+
+/* Body/L-Bold */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+/* 마지막 행은 구분선 제거 (선택) */
+.myPage-infoRow:last-child {
+  border-bottom: none;
+}
+
+.myPage-pwChange {
+  margin-left: auto;           /* 남는 공간 다 차지 → 오른쪽 끝으로 밀림 */
+  color: var(--Color-Blue900, #1077FF);
+
+/* Body/L */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+  cursor: pointer;
+}
+
+.myPage-hide {
+  display: none;
+}
+
+.myPage-residenceCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  /* gap 제거 - 개별 margin으로 관리 */
+}
+
+
+
+/* 제목: 이미지와 24px */
+.myPage-residenceTitle {
+ color: #000;
+text-align: center;
+
+/* Title/M-Bold */
+font-family: Pretendard;
+font-size: 28px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 39.2px */
+letter-spacing: -0.56px;
+  margin: 24px 0 0 0;      /* 위 24px */
+}
+
+/* 설명: 제목과 22px */
+.myPage-residenceDesc {
+  color: #000;
+text-align: center;
+
+/* Title/S */
+color: #000;
+text-align: center;
+
+/* Title/S */
+font-family: Pretendard;
+font-size: 24px;
+font-style: normal;
+font-weight: 400;
+line-height: 140%; /* 33.6px */
+letter-spacing: -0.48px;
+  margin: 22px 0 0 0;      /* 위 22px */
+}
+
+/* 버튼: 설명과 47px, 아래 안내와 22px */
+.myPage-residenceBtn {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 28px;
+  border: none;
+  border-radius: 15px;
+  background: #1077FF;
+  color: #fff;
+  color: var(--GrayScale-White, #FFF);
+
+/* Title/S-Bold */
+font-family: Pretendard;
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 33.6px */
+letter-spacing: -0.48px;
+  cursor: pointer;
+  margin: 47px 0 22px 0;   /* 위 47, 아래 22 */
+}
+
+/* 하단 안내 */
+.myPage-residenceNote {
+  color: var(--GrayScale-600, #7B7578);
+text-align: center;
+
+/* Body/M */
+font-family: Pretendard;
+font-size: 16px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 24px */
+letter-spacing: -0.32px;;
+  margin: 0;
+}
+
+/* 섹션 제목 */
+.myPage-sectionTitle {
+ color: #000;
+
+/* Title/S-Bold */
+font-family: Pretendard;
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 33.6px */
+letter-spacing: -0.48px;
+  margin: 44px 0 0 0;          /* 위 요소와 44px (첫 섹션 기준) */
+}
+
+/* 카드 */
+.myPage-reviewCard {
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  border-radius: 20px;         /* Figma 값으로 */
+  padding: 38px 56px 47px 42px;  /* 위38 우56 아47 좌42 */
+  margin-top: 15px;            /* 섹션제목과 15px */
+  box-sizing: border-box;
+}
+
+/* 카드 다음 섹션 제목은 45px */
+.myPage-reviewCard + .myPage-sectionTitle,
+.myPage-qnaCard + .myPage-sectionTitle {
+  margin-top: 45px;
+}
+
+/* 헤더 (프로필+닉네임+거주지+날짜) */
+.myPage-reviewHeader {
+  display: flex;
+  align-items: center;
+}
+
+/* 프로필 원 */
+.myPage-reviewProfile {
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  background: var(--GrayScale-100, #F0EDEE);
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* 아이콘 정가운데 */
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* 닉네임: 프로필과 16px */
+.myPage-reviewName {
+  margin-left: 16px;
+  color: #000;
+
+/* Body/L-Bold */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+/* 거주지: 닉네임과 12px */
+.myPage-reviewLocation {
+  margin-left: 12px;
+color: var(--GrayScale-600, #7B7578);
+
+/* Body/M */
+font-family: Pretendard;
+font-size: 16px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 24px */
+letter-spacing: -0.32px;
+}
+
+/* 날짜: 오른쪽 끝 (auto) */
+.myPage-reviewDate {
+  margin-left: auto;
+  color: var(--GrayScale-600, #7B7578);
+
+/* Body/M-Bold */
+font-family: Pretendard;
+font-size: 16px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 24px */
+letter-spacing: -0.32px;
+}
+
+/* 별점 줄: 프로필과 21px */
+/* 별점 줄: 별 ↔ 숫자 18px */
+.myPage-reviewRating {
+  display: flex;
+  align-items: center;
+  gap: 18px;                 /* 별 ↔ 숫자 18px */
+  margin-top: 21px;
+  color: var(--GrayScale-black, #1A1A1A);
+
+/* Body/L-Bold */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+/* 좋아요: 오른쪽 끝(auto) + 버튼 스타일 */
+.myPage-reviewBottom {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 19px;          /* 별점과 19px */
+}
+
+.myPage-reviewText {
+  margin: 0;                 /* bottom이 간격 담당하니 텍스트는 0 */
+  color: var(--GrayScale-black, #1A1A1A);
+
+/* Body/L */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+.myPage-reviewLike {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  margin-left: auto;         /* 오른쪽 끝 */
+  flex-shrink: 0;
+  border-radius: 20px;
+background: var(--GrayScale-100, #F0EDEE);
+}
+
+/* Q&A 카드 */
+.myPage-qnaCard {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  border-radius: 15px;       /* Figma 값으로 */
+  padding: 30px 56px 33px 42px;  /* 상30 우56 하33 좌42 */
+  margin-top: 15px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.myPage-qnaText {
+  margin-left: 25px;         /* 아이콘 ↔ 텍스트 25px */
+  color: #000;
+
+/* Body/L */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+/* Q 아이콘 (파란 원) */
+.myPage-qnaIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--Color-Blue200, #C4ECFE);  /* 연한 파랑, Figma 값으로 */
+  color: #1077FF;            /* Q 글자색, Figma 값으로 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Pretendard", sans-serif;
+  font-size: 20px;           /* Q 글자 크기, Figma 값으로 */
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* 질문 텍스트: 아이콘과 간격 */
+
+
+/* 오른쪽 (답변수 + 화살표): 오른쪽 끝 */
+.myPage-qnaRight {
+  display: flex;
+  align-items: center;
+  gap: 13px;                 /* 답변수 ↔ 화살표 13px */
+  margin-left: auto;
+}
+
+.myPage-qnaCount {
+  color: var(--GrayScale-600, #7B7578);
+
+/* Body/M-Bold */
+font-family: Pretendard;
+font-size: 16px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 24px */
+letter-spacing: -0.32px;
+}
+
+
+.myPage-qnaGroup {
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  border-radius: 15px;
+  margin-top: 15px;
+  overflow: hidden;
+  /* padding-bottom 제거! */
+  margin-bottom: 65px;
+
+}
+
+.myPage-qnaItem {
+  display: flex;
+  align-items: center;
+  padding: 30px 56px 33px 42px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.myPage-qnaDivider {
+  height: 1px;
+  background: #D9D2D4;
+  margin: 0 56px 0 43px;     /* 좌 43, 우 56 여백 */
+  /* width 제거 → margin 뺀 나머지 자동으로 꽉 참 */
+}
+
+.myPage-qnaItem:last-child {
+  padding-bottom: 33px;      /* 마지막 항목만 아래 65px */
+}
+
+/* 카드 */
+.myPage-savedCard {
+  display: flex;
+  height: 297px;
+max-width: 1200px;
+  padding: 28px 75px 28px 28px;  /* 상28 우75 하28 좌28 */
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  border-radius: 20px;
+  box-sizing: border-box;
+  margin-top: 46px;
+  align-items: flex-start;
+}
+
+/* 첫 카드는 위(설명)와 49px */
+.myPage-savedCard:first-of-type {
+  margin-top: 49px;
+}
+
+/* 동네 폴리곤 모양 썸네일 (실제 지도 캡처 없이 boundary_geojson 좌표로 그린 도형) */
+.myPage-savedMap {
+  width: 236px;
+  height: 236px;
+  background: #F0EDEE;        /* 폴리곤 데이터가 없을 때의 대체 배경 */
+  border-radius: 12px;        /* Figma 값으로 */
+  flex-shrink: 0;
+  margin-right: 32px;         /* 지도 ↔ 정보 간격 (아까 32) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  overflow: hidden;
+}
+
+.myPage-savedMapSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.myPage-savedMapSvg polygon {
+  fill: #1D9BFE;
+  fill-opacity: 0.45;
+  stroke: #0C447C;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+/* 정보 영역 */
+.myPage-savedInfo {           /* 임시 */
+  flex: 1;
+}
+
+/* 차트 박스 */
+.myPage-savedChartBox {
+  width: 200px;                /* 임시 */
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.myPage-savedName {
+  margin: 0;        
+  color: #000;
+
+/* Title/S-Bold */
+font-family: Pretendard;
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 33.6px */
+letter-spacing: -0.48px;
+}
+
+.myPage-savedRegion {
+  margin: 9px 0 0 0;         /* 위 9px */
+  font-family: "Pretendard", sans-serif;
+  font-size: 16px;           /* Figma 값으로 */
+  color: #7b7578;
+}
+
+/* "안심 점수" 라벨: 상세주소와 46px */
+.myPage-savedScoreLabel {
+  margin: 46px 0 0 0;        /* 위 46px */
+  color: #000;
+
+/* Body/L-Bold */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 600;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+.myPage-savedScore {
+  display: flex;
+  align-items: baseline;     /* 숫자 아랫선 맞춤 (82랑 /100) */
+  margin-top: 7px;           /* 라벨과 7px */
+}
+
+.myPage-scoreNum {
+  font-family: "Pretendard", sans-serif;
+ color: var(--GrayScale-black, #1A1A1A);
+text-align: center;
+
+/* Title/L-Bold */
+font-family: Pretendard;
+font-size: 32px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%; /* 44.8px */
+letter-spacing: -0.64px;
+}
+
+.myPage-scoreTotal {
+  margin-left: 8px;          /* 점수와 8px */
+  color: var(--GrayScale-800, #5B5658);
+text-align: center;
+
+/* Body/L */
+font-family: Pretendard;
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 30px */
+letter-spacing: -0.4px;
+}
+
+/* 현재 구역 뱃지: /100과 8px */
+.myPage-scoreBadge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 8px;
+  margin-left: 8px;          /* /100과 8px */
+  border-radius: 20px;
+border: 1px solid var(--Color-Blue800, #1789FF);
+background: var(--Color-Blue200, #C4ECFE);
+  color: #1077FF;            /* 글자색, Figma 값으로 */
+  font-family: "Pretendard", sans-serif;
+  font-size: 12px;           /* Figma 값으로 */
+  font-weight: 600;
+  white-space: nowrap;       /* 줄바꿈 방지 */
+
+}
+
+/* 내가 작성한 후기 카드의 별점 위젯.
+   reviews 앱 rightSideBar.css의 별점 오버레이 방식과 동일 —
+   빈 별 5개 위에 채워진 별 5개를 서버가 계산한
+   review.star_width 만큼만 잘라서 겹쳐 보여줌 */
+.myPage-cardStarsDisplay {
+  position: relative;
+  display: inline-flex;
+  width: 71px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.myPage-cardEmptyStars {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: 4px;
+  width: 100%;
+  height: 10px;
+  z-index: 1;
+}
+
+.myPage-cardFilledStars {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: 4px;
+  height: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+
+.myPage-cardStarIcon {
+  width: 11px;
+  height: 10px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+/* 실거주지 인증 카드 - 아직 실거주지를 설정하지 않은 경우의 드롭다운/버튼 */
+.myPage-residenceIcon {
+  width: 64px;
+  height: 64px;
+}
+
+.myPage-residenceSelect {
+  margin-top: 30px;
+  padding: 13px 20px;
+  border-radius: 15px;
+  border: 1px solid var(--GrayScale-200, #D9D2D4);
+  font-family: "Pretendard", sans-serif;
+  font-size: 18px;
+  color: #000;
+}
