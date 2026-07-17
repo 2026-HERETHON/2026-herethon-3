@@ -218,3 +218,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 }); // DOMContentLoaded의 마지막 닫는 괄호
+
+// 로그인 성공 시 login.js가 호출하는 함수. 예전엔 로그인 성공 후
+// location.reload()로 nav를 로그인 상태로 갱신했는데, 그러면 안심맵에서
+// 보고 있던 폴리곤/사이드바가 전부 날아가서 처음부터 다시 찾아야 했음.
+// 세션 쿠키는 로그인 응답의 Set-Cookie로 이미 반영돼 있으므로, 새로고침
+// 없이 nav의 "로그인" 버튼 부분만 마이페이지/로그아웃 링크로 바꿔치기함.
+window.applyLoggedInNav = function () {
+  document.body.dataset.authenticated = "true";
+
+  const loginBtn = document.getElementById("main-nav-login-btn");
+  if (!loginBtn) return; // 이미 로그인 상태로 렌더링돼 있던 경우
+
+  const profileUrl = document.body.dataset.profileUrl || "/accounts/profile/";
+  const logoutUrl = document.body.dataset.logoutUrl || "/accounts/logout/";
+
+  loginBtn.outerHTML = `
+    <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
+      <a href="${profileUrl}" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
+        <div style="display:flex; gap: 9px; align-items:center;">
+          <img src="main-images/account.svg" alt="마이페이지" />
+          <span class="navbar-mypage" style="cursor: pointer;">마이페이지</span>
+        </div>
+      </a>
+      <a href="${logoutUrl}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
+    </div>
+  `;
+};

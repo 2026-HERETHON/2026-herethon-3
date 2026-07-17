@@ -422,28 +422,39 @@ function bindLoginSubmit() {
         // 로그인 성공: Django가 302로 홈으로 리다이렉트
         // 실패: 같은 로그인 폼을 에러와 함께 200으로 재렌더링
         if (res.redirected || !res.url.includes("/accounts/login/")) {
-          // 🎯 로그인 전에 보고 있던 동네(사이드바) 상태를 저장해뒀다가,
-          // 새로고침 후 rightSideBar.js가 그대로 복원해줌.
-          // (rightSideBar.js가 로드 안 된 페이지에서 로그인 팝업을 썼을 수도
-          //  있으니 getCurrentSidebarState가 없을 수 있음 -> optional chaining)
-          try {
-            const state = window.getCurrentSidebarState?.();
-            if (state && state.legalDongId) {
-              sessionStorage.setItem(
-                "hereton_pendingDongRestore",
-                JSON.stringify(state),
-              );
-            }
-          } catch (e) {
-            console.warn("로그인 전 동네 상태 저장 실패:", e);
+          // 예전엔 여기서 새로고침을 해서 nav 로그인 상태를 갱신했는데,
+          // 그러면 안심맵에서 검색/클릭해서 보고 있던 폴리곤과 사이드바가
+          // 전부 날아가서 처음부터 다시 찾아야 했음. 세션 쿠키는 이 응답의
+          // Set-Cookie로 이미 반영됐으므로 새로고침 자체가 필요 없고,
+          // nav/사이드바 잠금 오버레이만 로그인 상태로 다시 계산해주면 됨.
+          document
+            .getElementById("loginPopupOverlay")
+            ?.classList.add("popup-hide");
+          window.applyLoggedInNav?.();
+          window.__checkAuthAndToggleTabs?.();
+          window.__updateBottomButtons?.();
+
+          // 지금 열려있는 동네가 있으면(예: 행정동 폴리곤 클릭해서 사이드바가
+          // 뜬 상태) 후기/QnA/찜 여부를 로그인된 세션 기준으로 다시 채워줌.
+          // 지도 위 폴리곤 자체는 건드리지 않으므로 그대로 유지됨.
+          const state = window.getCurrentSidebarState?.();
+          if (
+            state?.legalDongId &&
+            typeof window.updateSidebarTitle === "function"
+          ) {
+            window.updateSidebarTitle(
+              state.detailDongName || state.legalDongName,
+              state.legalDongName,
+              state.legalDongId,
+              state.detailDongId,
+            );
           }
-          window.location.reload(); // 세션 쿠키가 잡혔으니 새로고침해서 nav도 실제 상태로 갱신
           return null;
         }
         return res.text();
       })
       .then((htmlText) => {
-        if (htmlText == null) return; // 이미 리로드 처리됨
+        if (htmlText == null) return; // 이미 로그인 상태 갱신 처리됨
         showAuthError("login-error", extractDjangoFormError(htmlText));
       })
       .catch((err) => {

@@ -16,7 +16,11 @@
     <link rel="stylesheet" href="commercial/commercial.css" />
     <link rel="icon" href="{% static 'favicon.svg' %}">
   </head>
-  <body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}">
+  <body
+    data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+    data-profile-url="{% url 'accounts:profile' %}"
+    data-logout-url="{% url 'accounts:logout' %}"
+  >
     <!--nav-->
     <nav>
       <div id="navbar-container">
