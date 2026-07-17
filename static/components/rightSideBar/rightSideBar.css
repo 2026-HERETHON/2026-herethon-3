@@ -1365,6 +1365,17 @@
   font-weight: 600;
   line-height: 150%; /* 24px */
   letter-spacing: -0.32px;
+
+  /* 이 요소가 .rightSB-detailQuestionLine(display:flex)의 flex 아이템이라,
+     기본값인 min-width:auto 때문에 공백 없는 긴 텍스트(긴 단어/URL 등)가
+     들어오면 width:300px를 무시하고 내용 크기만큼 넓어져서 옆의 상위
+     컨테이너(overflow:hidden)에 그냥 잘려 보이던 문제가 있었음(스크롤도
+     안 생기고 잘림). min-width:0으로 강제로 줄어들 수 있게 하고,
+     word-break/white-space로 실제 줄바꿈이 일어나게 함 */
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .rightSB-detailQuestionMeta {
@@ -1519,6 +1530,14 @@
   font-weight: 400;
   line-height: 150%; /* 21px */
   letter-spacing: -0.28px;
+
+  /* 공백 없는 긴 텍스트(긴 단어/URL 등)가 줄바꿈 안 되고 카드 밖으로
+     삐져나가서, 부모(.rightSB-answerListWrapper)의 overflow-y:auto 때문에
+     (한쪽 축만 auto/hidden이면 다른 축도 auto로 계산되는 CSS 규칙 때문에)
+     원치 않는 가로 스크롤까지 생기던 문제 수정 */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 /* 하단 답변 고정 입력 박스 바 */

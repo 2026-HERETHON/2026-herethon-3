@@ -367,6 +367,8 @@ function openQuestionDetail(questionId) {
   currentSidebarState.currentQuestionId = questionId;
 
   const titleEl = document.getElementById("qnaDetailTitle");
+  const userEl = document.getElementById("qnaDetailUser");
+  const dateEl = document.getElementById("qnaDetailDate");
   const ansContainer = document.getElementById("qnaAnswerContainer");
   const ansCountEl = document.getElementById("qnaDetailAnsCount");
 
@@ -381,10 +383,25 @@ function openQuestionDetail(questionId) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 씀
+      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 씀.
+      // qna/detail.html에서 이 문단의 실제 id는 question-view-text인데
+      // (인라인 수정 토글용) 여기선 계속 존재하지 않는 qna-question-content를
+      // 찾고 있어서 항상 빈 문자열이 들어갔었음(질문 내역이 안 뜨던 원인)
       const questionText =
-        doc.getElementById("qna-question-content")?.textContent || "";
+        doc.getElementById("question-view-text")?.textContent.trim() || "";
       if (titleEl) titleEl.textContent = questionText;
+
+      // 사용자명/작성 일시: 사이드바의 #qnaDetailUser, #qnaDetailDate는
+      // "작성자"/"날짜" placeholder만 있고 실제 값을 채워주는 코드가
+      // 아예 없었음. detail.html에 새로 추가한 qna-question-user/
+      // qna-question-date를 읽어서 채움
+      const questionUser =
+        doc.getElementById("qna-question-user")?.textContent.trim() || "";
+      if (userEl && questionUser) userEl.textContent = questionUser;
+
+      const questionDate =
+        doc.getElementById("qna-question-date")?.textContent.trim() || "";
+      if (dateEl && questionDate) dateEl.textContent = questionDate;
 
       // 답변 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
       // Django가 렌더링한 #qnaAnswerContainer의 HTML을 그대로 옮겨 붙임
@@ -452,9 +469,11 @@ function bindAnswerSubmit() {
         // accounts.decorators.verified_residence_required가 실거주지 인증이
         // 안 됐거나 인증한 동네와 이 질문의 동네가 다르면 403으로 내려줌
         if (res.status === 403) {
-          alert(
-            "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.",
-          );
+          // 후기 쪽과 같은 공용 안내 모달(static/components/modals/infoModal.js) 재사용
+          window.showInfoModal?.({
+            title: "실거주지 <span>인증</span>이 필요해요",
+            desc: "마이페이지에서 실거주지 인증을 해주세요.",
+          });
           return;
         }
         if (!res.ok) {
@@ -464,7 +483,10 @@ function bindAnswerSubmit() {
         input.value = "";
         // 방금 등록한 답변까지 반영된 최신 상세를 다시 그림
         openQuestionDetail(questionId);
-        alert("답변이 등록되었습니다.");
+        window.showInfoModal?.({
+          title: "답변이 <span>등록</span>되었습니다!",
+          desc: "소중한 답변이 다른 사용자에게<br>큰 도움이 됩니다.",
+        });
       })
       .catch((err) => {
         console.error("답변 등록 중 오류:", err);
@@ -1212,9 +1234,15 @@ document.addEventListener("DOMContentLoaded", () => {
               } catch (e) {
                 console.warn("작성 중이던 후기 임시 저장 실패:", e);
               }
-              throw new Error(
+              // 이 케이스는 일반 실패가 아니라 "마이페이지 가서 인증하고
+              // 오면 이어서 쓸 수 있어요"라는 안내라, 아래 catch에서
+              // 평범한 alert 대신 안내 모달(showInfoModal)을 띄우도록
+              // 표시해둠 (구분 없이 catch로 넘어가면 그냥 alert가 뜸)
+              const err = new Error(
                 "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 하고 돌아오면 작성 중이던 후기가 그대로 남아있어요.",
               );
+              err.isResidenceRequired = true;
+              throw err;
             }
             // 성공하면 서버가 reviews:list로 redirect하고, fetch가 그걸 따라가서
             // 최종 res.url이 .../create/ 없이 끝남. 폼 검증 실패 시엔 redirect 없이
@@ -1256,10 +1284,19 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           .catch((err) => {
             console.error("후기 등록 실패:", err);
-            alert(
-              err.message ||
-                "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
-            );
+            if (err.isResidenceRequired) {
+              // 일반 실패 alert 대신, 후기 작성 완료 때 쓰는 것과 같은
+              // 안내 모달(static/components/modals/infoModal.js)을 재사용
+              window.showInfoModal?.({
+                title: "실거주지 <span>인증</span>이 필요해요",
+                desc: "마이페이지에서 실거주지 인증을 하고 돌아오면<br>작성 중이던 후기가 그대로 남아있어요.",
+              });
+            } else {
+              alert(
+                err.message ||
+                  "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
+              );
+            }
           })
           .finally(() => {
             if (submitBtn) submitBtn.disabled = false;
@@ -1305,7 +1342,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           })
           .then(() => {
-            alert("질문이 성공적으로 등록되었습니다!");
+            window.showInfoModal?.({
+              // "성공적으로"까지 넣으면 모달 너비(320px) 기준 한 줄에 안 들어가서
+              // "!"만 다음 줄로 밀려 잘려 보였음. 다른 모달 제목들(후기/답변
+              // 등록)과 길이를 맞춰서 한 줄에 들어오게 줄임
+              title: "질문이 <span>등록</span>되었습니다!",
+              desc: "궁금한 점을 이웃에게 물어보세요.",
+            });
 
             // Q&A 폼 초기화 코드
             // 1. 텍스트 영역 비우기 및 글자수 표기 리셋
@@ -1585,7 +1628,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (!draft || !draft.legalDongId) return;
 
-    // 1. 지도 클릭과 동일한 진입점으로 해당 동네 사이드바를 다시 연다.
+    // 1. 지도 클릭/검색 선택과 똑같이 사이드바를 열고 폴리곤을 그린다.
+    // updateSidebarTitle은 "이미 열려있는 사이드바"의 텍스트/데이터만
+    // 채워줄 뿐 사이드바를 열거나 지도에 폴리곤을 그려주지는 않아서,
+    // 이 두 줄이 빠지면 데이터는 다 채워지는데 화면엔 안 보여서
+    // 안심맵이 초기화된 것처럼 보이는 문제가 있었음
+    document.querySelector(".rightSB-aside")?.classList.add("open");
+    if (typeof window.showLegalDongOnMap === "function") {
+      window.showLegalDongOnMap(draft.legalDongName);
+    }
+
+    // 2. 지도 클릭과 동일한 진입점으로 사이드바 텍스트/데이터를 채운다.
     if (typeof window.updateSidebarTitle === "function") {
       window.updateSidebarTitle(
         draft.detailDongName || draft.legalDongName,
@@ -1595,17 +1648,17 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    // 2. 후기 탭으로 전환 (기존 클릭 핸들러 재사용)
+    // 3. 후기 탭으로 전환 (기존 클릭 핸들러 재사용)
     document
       .querySelector(".rightSB-navbar-menu.rightSB-reviewSelected")
       ?.click();
 
-    // 3. 탭 전환은 기본적으로 "목록" 화면을 보여주므로, 작성 폼으로 다시 전환
+    // 4. 탭 전환은 기본적으로 "목록" 화면을 보여주므로, 작성 폼으로 다시 전환
     reviewListSub?.classList.add("rightSB-hide");
     reviewFormSub?.classList.remove("rightSB-hide");
     updateBottomButtons();
 
-    // 4. 작성 중이던 텍스트/글자수 복원
+    // 5. 작성 중이던 텍스트/글자수 복원
     const textarea = reviewFormSub?.querySelector(".rightSB-reviewContent");
     if (textarea && draft.text) {
       textarea.value = draft.text;
@@ -1615,7 +1668,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (charSpan) charSpan.textContent = String(draft.text.length);
     }
 
-    // 5. 만족도 별점 복원 (handleStarRating의 clip-path 계산과 동일한 로직)
+    // 6. 만족도 별점 복원 (handleStarRating의 clip-path 계산과 동일한 로직)
     if (draft.scores) {
       Object.keys(draft.scores).forEach((type) => {
         const score = draft.scores[type];
@@ -1641,9 +1694,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    alert(
-      "실거주지 인증이 완료돼서, 작성 중이던 후기를 다시 불러왔어요. 확인하고 등록해주세요!",
-    );
+    // 이 안내도 후기 작성 완료/실거주지 인증 필요 안내와 같은
+    // 공용 모달(static/components/modals/infoModal.js)로 통일함
+    window.showInfoModal?.({
+      title: "실거주지 <span>인증</span>이 완료됐어요!",
+      desc: "작성 중이던 후기를 다시 불러왔어요.<br>확인하고 등록해주세요!",
+    });
   })();
 
 });

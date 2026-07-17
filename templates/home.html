@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="./components/kakaoMap/kakaoMap.css" />
     <link rel="stylesheet" href="commercial/commercial.css" />
     <link rel="icon" href="{% static 'favicon.svg' %}">
-    <link rel="stylesheet" href="./components/rightSideBar/reviewCompleteModal.css" />
+    <link rel="stylesheet" href="./components/modals/infoModal.css" />
   </head>
   <body
     data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
@@ -876,8 +876,13 @@
       <div id="loginPopupContent"></div>
     </div>
 
-    <!-- 후기 작성 완료 모달 -->
-    <div class="modal-overlay" id="postCompleteModal" style="display: none;">
+    <!-- 안내/확인 모달 (공용): 후기 작성 완료 안내, 실거주지 인증 필요/완료
+         안내, 삭제 확인처럼 "아이콘 + 제목 + 설명 + 버튼" 구조가 같은 팝업을
+         전부 이 하나의 DOM으로 재사용함. 제목/설명/버튼 텍스트는
+         static/components/modals/infoModal.js의 showInfoModal()(버튼 1개,
+         안내용) 또는 showConfirmModal()(버튼 2개, 브라우저 기본 confirm()
+         대체용)이 매번 상황에 맞게 채워 넣음 (기본 내용은 비워둠) -->
+    <div class="modal-overlay" id="infoModal" style="display: none;">
       <div class="modal-card">
         <button class="modal-close" aria-label="닫기" type="button">&times;</button>
         <div class="modal-icon">
@@ -887,9 +892,12 @@
             <circle cx="12" cy="11" r="2.5"/>
           </svg>
         </div>
-        <h2 class="modal-title">후기 작성이 <span>완료</span>되었습니다!</h2>
-        <p class="modal-desc">소중한 후기가 다른 사용자에게<br>큰 도움이 됩니다.</p>
-        <button class="modal-btn-primary" type="button">확인</button>
+        <h2 class="modal-title"></h2>
+        <p class="modal-desc"></p>
+        <div class="modal-btn-row">
+          <button class="modal-btn-secondary" type="button" style="display: none;">취소</button>
+          <button class="modal-btn-primary" type="button">확인</button>
+        </div>
       </div>
     </div>
 
@@ -903,7 +911,7 @@
     ></script>
 
     <script src="./login/login.js"></script>
-    <script src="./components/rightSideBar/reviewCompleteModal.js"></script>
+    <script src="./components/modals/infoModal.js"></script>
     <script src="./components/rightSideBar/rightSideBar.js"></script>
     <script src="./components/leftPanel/leftPanel.js"></script>
     <script src="./components/mapOverlay/mapOverlay.js"></script>
