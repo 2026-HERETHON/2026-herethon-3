@@ -1207,7 +1207,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           })
           .then(() => {
-            alert("후기가 성공적으로 등록되었습니다!");
+            window.showPostCompleteModal?.();
             // 후기 폼 초기화
             // 1. 텍스트 영역 비우기 및 글자수 표기(0/500) 리셋
             textarea.value = "";
