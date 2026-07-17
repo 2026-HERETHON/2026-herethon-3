@@ -19,7 +19,7 @@ class SignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'nickname', 'email', 'gender', 'password1', 'password2', 'profile_image']
+        fields = ['nickname', 'email', 'gender', 'password1', 'password2', 'profile_image']
         widgets = {
             'gender': forms.RadioSelect,  # choices는 모델 걸 그대로 씀
         }
@@ -68,3 +68,38 @@ class LoginForm(AuthenticationForm):
         label='비밀번호',
         widget=forms.PasswordInput(attrs={'placeholder': '비밀번호를 입력하세요'})
     )
+
+class ProfileEditForm(forms.ModelForm):
+    grid_id = forms.IntegerField(required=False)
+    new_password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='새 비밀번호')
+    new_password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='새 비밀번호 확인')
+
+    class Meta:
+        model = User
+        fields = ['nickname', 'email', 'gender']
+        widgets = {
+            'gender': forms.RadioSelect(choices=User.gender.field.choices),
+        }
+
+    def clean_nickname(self):
+        nickname = self.cleaned_data.get('nickname')
+        if User.objects.filter(nickname=nickname).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('이미 사용 중인 닉네임입니다.')
+        return nickname
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('이미 사용 중인 아이디(이메일)입니다.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get('new_password1')
+        p2 = cleaned_data.get('new_password2')
+        if p1 or p2:
+            if p1 != p2:
+                raise forms.ValidationError('새 비밀번호가 일치하지 않아요.')
+            if len(p1) < 8:
+                raise forms.ValidationError('비밀번호는 8자 이상이어야 해요.')
+        return cleaned_data

@@ -104,46 +104,112 @@
           <p class="myPage-mainDesc">회원님의 정보를 확인하고 수정할 수 있습니다.</p>
 
           <div class="myPage-infoCard">
-            <div class="myPage-infoCardHeader">
-              <h3>기본 정보</h3>
-              <span class="myPage-editBtn">수정하기</span>
-            </div>
+            <form method="post" action="{% url 'accounts:profile_edit' %}" id="profile-edit-form">
+              {% csrf_token %}
 
-            <div class="myPage-infoList">
-              <div class="myPage-infoRow">
-                <span class="myPage-infoLabel">닉네임</span>
-                <span class="myPage-infoValue">{{ request.user.nickname }}</span>
-              </div>
-              <div class="myPage-infoRow">
-                <span class="myPage-infoLabel">성별</span>
-                <span class="myPage-infoValue">{{ request.user.get_gender_display }}</span>
-              </div>
-              <div class="myPage-infoRow">
-                <span class="myPage-infoLabel">거주지</span>
-                <span class="myPage-infoValue">
-                  {% if request.user.verified_grid %}
-                    {{ request.user.verified_grid.sido }} {{ request.user.verified_grid.gu }} {{ request.user.verified_grid.dong }}
-                    {% if request.user.has_valid_verification %}
-                      (인증완료, ~{{ request.user.verification_expires_at|date:"Y.m.d" }})
-                    {% elif request.user.is_verified %}
-                      (인증 만료 - 재인증 필요, {{ request.user.verification_expires_at|date:"Y.m.d" }} 만료)
-                    {% else %}(인증 대기중){% endif %}
-                  {% else %}
-                    미설정
-                  {% endif %}
+              <div class="myPage-infoCardHeader">
+                <h3>기본 정보</h3>
+                <span class="myPage-editBtn" id="profile-edit-toggle-btn" onclick="toggleProfileEdit(true)">수정하기</span>
+                <span class="myPage-editBtn" id="profile-edit-actions" style="display:none;">
+                  <button type="submit" style="border:none;background:none;color:#1077ff;cursor:pointer;font-weight:600;">수정 완료</button>
+                  <span onclick="toggleProfileEdit(false)" style="cursor:pointer; margin-left:8px;">취소</span>
                 </span>
               </div>
-              <div class="myPage-infoRow">
-                <span class="myPage-infoLabel">아이디</span>
-                <span class="myPage-infoValue">{{ request.user.username }}</span>
+
+              {% if form.errors %}
+                <div style="color:#e04141; font-size: 13px; padding: 8px 0;">
+                  {{ form.non_field_errors }} {{ form.nickname.errors }} {{ form.email.errors }}
+                </div>
+              {% endif %}
+
+              <div class="myPage-infoList">
+                <div class="myPage-infoRow">
+                  <span class="myPage-infoLabel">닉네임</span>
+                  <span class="myPage-infoValue myPage-editViewValue">{{ request.user.nickname }}</span>
+                  <input type="text" name="nickname" class="myPage-infoValue myPage-editInputValue" value="{{ request.user.nickname }}" style="display:none;">
+                </div>
+
+                <div class="myPage-infoRow">
+                  <span class="myPage-infoLabel">성별</span>
+                  <span class="myPage-infoValue myPage-editViewValue">{{ request.user.get_gender_display }}</span>
+                  <span class="myPage-infoValue myPage-editInputValue" style="display:none;">
+                    <label><input type="radio" name="gender" value="F" {% if request.user.gender == 'F' %}checked{% endif %}> 여성</label>
+                    <label><input type="radio" name="gender" value="M" {% if request.user.gender == 'M' %}checked{% endif %}> 남성</label>
+                  </span>
+                </div>
+
+                <div class="myPage-infoRow">
+                  <span class="myPage-infoLabel">거주지</span>
+                  <span class="myPage-infoValue myPage-editViewValue">
+                    {% if request.user.verified_grid %}
+                      {{ request.user.verified_grid.sido }} {{ request.user.verified_grid.gu }} {{ request.user.verified_grid.dong }}
+                    {% else %}미설정{% endif %}
+                  </span>
+                  <select name="grid_id" class="myPage-infoValue myPage-editInputValue" style="display:none;">
+                    <option value="">변경하지 않음</option>
+                    {% for grid in legal_grids %}
+                      <option value="{{ grid.id }}" {% if request.user.verified_grid_id == grid.id %}selected{% endif %}>
+                        {{ grid.sido }} {{ grid.gu }} {{ grid.dong }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  {% if request.user.verified_grid %}
+                    <p style="font-size:12px; color:#e04141; margin-top:4px;">
+                      ※ 거주지를 변경하면 기존 실거주지 인증이 초기화돼요.
+                    </p>
+                  {% endif %}
+                </div>
+
+                <div class="myPage-infoRow">
+                  <span class="myPage-infoLabel">아이디</span>
+                  <span class="myPage-infoValue myPage-editViewValue">{{ request.user.email }}</span>
+                  <input type="email" name="email" class="myPage-infoValue myPage-editInputValue" value="{{ request.user.email }}" style="display:none;">
+                </div>
+
+                <div class="myPage-infoRow">
+                  <span class="myPage-infoLabel">비밀번호</span>
+                  <span class="myPage-infoValue">••••••••••</span>
+                  <span class="myPage-pwChange" id="pw-change-toggle-btn" style="display:none;" onclick="togglePasswordFields(true)">비밀번호 변경</span>
+                </div>
+
+                <div class="myPage-infoRow myPage-editInputValue" id="new-password-fields" style="display:none;">
+                  <span class="myPage-infoLabel">새 비밀번호</span>
+                  <input type="password" name="new_password1" placeholder="새 비밀번호">
+                  <input type="password" name="new_password2" placeholder="새 비밀번호 확인" style="margin-left:8px;">
+                </div>
               </div>
-              <div class="myPage-infoRow">
-                <span class="myPage-infoLabel">비밀번호</span>
-                <span class="myPage-infoValue">••••••••••</span>
-                <span class="myPage-pwChange">비밀번호 변경</span>
-              </div>
-            </div>
+            </form>
           </div>
+
+          <script>
+          function toggleProfileEdit(showEdit) {
+            document.querySelectorAll('.myPage-editViewValue').forEach(el => {
+              el.style.display = showEdit ? 'none' : '';
+            });
+            document.querySelectorAll('.myPage-editInputValue').forEach(el => {
+              if (el.id !== 'new-password-fields') {
+                el.style.display = showEdit ? '' : 'none';
+              }
+            });
+            document.getElementById('profile-edit-toggle-btn').style.display = showEdit ? 'none' : '';
+            document.getElementById('profile-edit-actions').style.display = showEdit ? '' : 'none';
+            document.getElementById('pw-change-toggle-btn').style.display = showEdit ? '' : 'none';
+
+            if (!showEdit) {
+              togglePasswordFields(false);
+              document.querySelector('input[name="new_password1"]').value = '';
+              document.querySelector('input[name="new_password2"]').value = '';
+            }
+          }
+
+          function togglePasswordFields(show) {
+            document.getElementById('new-password-fields').style.display = show ? 'flex' : 'none';
+          }
+
+          {% if edit_mode_error %}
+            toggleProfileEdit(true);
+          {% endif %}
+          </script>
         </div>
 
         <!-- ===== 실거주지 인증 ===== -->
