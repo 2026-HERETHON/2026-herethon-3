@@ -37,7 +37,13 @@ function activateTab(currentMenu) {
     if (ctx) {
       const existingChart = Chart.getChart(ctx);
       if (existingChart) {
-        existingChart.resize();
+        // resize()를 인자 없이 부르면 Chart.js가 부모 컨테이너 크기를
+        // 다시 재서 캔버스에 넣는데, 부모가 zoom이 걸린 사이드바 안에
+        // 있어서 그 측정값 자체가 이미 줄어든 값 - 여기다 또 넣으면
+        // zoom이 중복 적용돼 차트가 계속 작아짐. rightSideBar.js에서
+        // 캔버스를 고정 크기(212x174)로 만들어뒀으니 그 값 그대로
+        // 강제 지정해서 재측정 루프를 안 타게 함
+        existingChart.resize(212, 174);
         existingChart.update();
       }
     }
@@ -245,3 +251,72 @@ window.applyLoggedInNav = function () {
     </div>
   `;
 };
+
+// =====================================================================
+// 노트북 화면 대응 - 좌/우 사이드바를 실제 창 높이에 맞춰 실시간으로 축소.
+// 예전엔 "화면 높이 950px 이하면 무조건 zoom 0.8824"라는 고정 배율을
+// 미디어 쿼리로 박아놨는데, 이건 딱 그 특정 높이(약 900px)에만 맞는
+// 값이라 그보다 더 작은 화면(예: 800px대 노트북)에서는 여전히 사이드바
+// 내용이 잘려 보이는 문제가 있었음.
+//
+// 그래서 고정 배율 대신 매번 실제 window.innerHeight를 읽어서 zoom을
+// 계산하도록 바꿈. 기준 높이(DESIGN_HEIGHT=1020)는 기존 CSS에 있던
+// "900 / 1020" 배율에서 그대로 가져온 값 - 상단 네비바(60px)를 뺀
+// 나머지 영역이 1020px일 때를 "줄이지 않아도 되는 기준"으로 봄.
+//
+// nav 자체도 이제 같은 zoom으로 줄어들기 때문에("nav도 비율대로 줄어야
+// 함" 요청 반영), nav가 실제로 차지하는 높이는 60px이 아니라 60*zoom임.
+// 이전엔 availableHeight 계산에 NAV_HEIGHT를 고정 60으로 빼서, nav가
+// 줄어든 만큼(60 - 60*zoom) 빈 틈이 아래에 남아 사이드바가 화면 끝까지
+// 안 닿는 문제가 있었음.
+//
+// 그래서 "nav(60) + 사이드바 기준높이(1020) = 전체 기준높이(1080)"를
+// 기준으로 zoom부터 먼저 구하고, 그 zoom으로 줄어든 실제 nav 높이를
+// 뺀 나머지를 사이드바 사용가능높이로 씀 (연립방정식을 풀면 화면이
+// 작을 때 선언 height가 정확히 1020으로 수렴해서 이전과 동일하게
+// 동작하고, nav까지 포함해 딱 맞게 채워짐).
+//
+// 계산식: zoom = min(1, 창높이 / (60 + 1020))
+//        사용가능높이 = 창높이 - 60 * zoom
+//        선언 height = 사용가능높이 / zoom  (화면이 작을 땐 항상 1020)
+// =====================================================================
+const NAV_HEIGHT = 60;
+const SIDEBAR_DESIGN_HEIGHT = 1020;
+
+function applyResponsiveZoom() {
+  const zoom = Math.min(
+    1,
+    window.innerHeight / (NAV_HEIGHT + SIDEBAR_DESIGN_HEIGHT),
+  );
+  const availableHeight = window.innerHeight - NAV_HEIGHT * zoom;
+  const declaredHeight = availableHeight / zoom;
+
+  // nav, mapOverlay(드롭다운/정보박스/GPS버튼)처럼 JS가 직접 querySelector로
+  // 잡지 않는(또는 동적으로 다시 그려질 수 있는) 요소들은 CSS 쪽에서
+  // calc(px * var(--ui-zoom))로 스스로 오프셋/크기를 계산하게 함.
+  // 이렇게 하면 요소가 나중에 다시 렌더링돼도 별도 JS 재적용 없이
+  // 항상 최신 비율을 반영함.
+  document.documentElement.style.setProperty("--ui-zoom", zoom);
+
+  [".leftPanel-wrapper", ".rightSB-wholeContainer"].forEach((selector) => {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    el.style.zoom = zoom;
+    el.style.height = `${declaredHeight}px`;
+  });
+
+  // 우측 패널 폭이 zoom에 따라 바뀌므로, GPS 버튼 오프셋도 다시 맞춤
+  window.__syncGpsButtonPosition?.();
+
+  // nav도 줄어들면서 밑줄 위치/폭이 바뀌므로 다시 정렬
+  const currentMenu = document.querySelector(".navbar-menu.beBold");
+  if (currentMenu) updateUnderline(currentMenu);
+}
+
+document.addEventListener("DOMContentLoaded", applyResponsiveZoom);
+
+let zoomResizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(zoomResizeTimer);
+  zoomResizeTimer = setTimeout(applyResponsiveZoom, 150);
+});

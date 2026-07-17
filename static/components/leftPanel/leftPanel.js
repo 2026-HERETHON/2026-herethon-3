@@ -54,10 +54,21 @@ async function fetchLeftPanelLegalDongList() {
 const leftPanelSearchInput = document.querySelector(".leftPanel-searchInput");
 const leftPanelSearchResults = document.querySelector(".leftPanel-searchResults");
 
+// 회원가입 폼의 거주지 자동완성(login.js의 bindResidenceAutocomplete)과 같은
+// 방식으로 화살표 키 탐색을 지원하려면, 지금 렌더된 후보 목록과 그중
+// 몇 번째가 선택돼 있는지를 input의 keydown 핸들러에서도 봐야 해서
+// renderLeftPanelSearchResults 호출 쪽과 공유하는 상태로 뺌
+let leftPanelCurrentMatches = [];
+let leftPanelActiveIndex = -1;
+
 function renderLeftPanelSearchResults(items, query) {
   if (!leftPanelSearchResults) return;
 
   leftPanelSearchResults.innerHTML = "";
+  // 실제로 <li>가 그려지는 건 최대 8개(items.slice(0,8))뿐이라, 키보드
+  // 탐색용 인덱스도 그 잘린 목록 기준으로 맞춰야 화면에 없는 항목을
+  // 가리키는 어긋남이 없음
+  leftPanelCurrentMatches = items.slice(0, 8);
 
   if (!query) {
     leftPanelSearchResults.classList.add("leftPanel-hide");
@@ -73,9 +84,10 @@ function renderLeftPanelSearchResults(items, query) {
     return;
   }
 
-  items.slice(0, 8).forEach((grid) => {
+  items.slice(0, 8).forEach((grid, i) => {
     const li = document.createElement("li");
     li.className = "leftPanel-searchResultItem";
+    if (i === leftPanelActiveIndex) li.classList.add("is-active");
 
     const locationPrefix = [grid.sido, grid.gu].filter(Boolean).join(" ");
     li.innerHTML = `${locationPrefix ? locationPrefix + " " : ""}<span class="leftPanel-searchResultDong">${grid.dong}</span>`;
@@ -126,6 +138,7 @@ function selectLeftPanelSearchResult(grid) {
 if (leftPanelSearchInput) {
   leftPanelSearchInput.addEventListener("input", async (e) => {
     const query = e.target.value.trim();
+    leftPanelActiveIndex = -1; // 새로 타이핑하면 이전 선택 위치는 무효화
 
     if (!query) {
       renderLeftPanelSearchResults([], "");
@@ -145,8 +158,38 @@ if (leftPanelSearchInput) {
         .toLowerCase();
       return tokens.every((t) => haystack.includes(t));
     });
-    
+
     renderLeftPanelSearchResults(filtered, query);
+  });
+
+  // 화살표 위/아래로 후보 탐색, Enter로 선택, Esc로 닫기
+  // (login.js의 bindResidenceAutocomplete 키보드 조작과 동일한 패턴 -
+  // 그쪽은 자체 목록 상태를 가진 별도 함수라 그대로 재사용은 못 하고
+  // leftPanel 쪽 상태(leftPanelCurrentMatches/leftPanelActiveIndex)로
+  // 똑같이 구현함)
+  leftPanelSearchInput.addEventListener("keydown", (e) => {
+    if (leftPanelSearchResults?.classList.contains("leftPanel-hide")) return;
+    if (!leftPanelCurrentMatches.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      leftPanelActiveIndex = Math.min(
+        leftPanelActiveIndex + 1,
+        leftPanelCurrentMatches.length - 1,
+      );
+      renderLeftPanelSearchResults(leftPanelCurrentMatches, leftPanelSearchInput.value.trim());
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      leftPanelActiveIndex = Math.max(leftPanelActiveIndex - 1, 0);
+      renderLeftPanelSearchResults(leftPanelCurrentMatches, leftPanelSearchInput.value.trim());
+    } else if (e.key === "Enter") {
+      if (leftPanelActiveIndex >= 0 && leftPanelCurrentMatches[leftPanelActiveIndex]) {
+        e.preventDefault();
+        selectLeftPanelSearchResult(leftPanelCurrentMatches[leftPanelActiveIndex]);
+      }
+    } else if (e.key === "Escape") {
+      renderLeftPanelSearchResults([], "");
+    }
   });
 
   // 검색창/결과 바깥을 클릭하면 드롭다운 닫기
