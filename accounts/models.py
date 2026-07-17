@@ -12,6 +12,7 @@ RESIDENCE_VERIFICATION_VALID_DAYS = 180
 
 class User(AbstractUser):
     nickname = models.CharField(max_length=30, unique=True)
+    email = models.EmailField(unique=True)
     gender = models.CharField(
         max_length=10,
         choices=[('F', '여성'), ('M', '남성')],

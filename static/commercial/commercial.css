@@ -20,6 +20,15 @@
   height: calc(100vh - 60px); /* 80px은 네비바 높이 — 실제 높이에 맞게 조정 */
 }
 
+/* main.css의 전역 main/aside { pointer-events: none } 규칙(안심맵 페이지에서
+   클릭을 지도로 통과시키기 위한 것)을 이 탭은 그대로 물려받으면 안 되므로
+   여기서 다시 활성화함. 이게 없으면 커서 스타일이 적용돼 있어도 이 영역
+   자체가 마우스 이벤트를 안 받아서 호버/클릭이 전혀 동작하지 않음. */
+.commercial-container .sidebar,
+.commercial-container .content-area {
+  pointer-events: auto;
+}
+
 /* 왼쪽 사이드바 스타일링함 */
 .sidebar {
   width: 230px;

@@ -14,16 +14,28 @@ document.addEventListener("DOMContentLoaded", () => {
       // 그 외(제휴 서비스)는 현재 페이지이므로 활성 스타일만 갱신
       menuItems.forEach((m) => m.classList.remove("active"));
       item.classList.add("active");
+
+      // "제휴 문의"는 아직 실제로 연결된 페이지/폼이 없어서, 눌러도
+      // 아무 일도 안 일어나는 것처럼 보이던 걸 안내 모달로 알려줌
+      if (target === "inquiry") {
+        window.showInfoModal?.({
+          title: "서비스 <span>준비</span> 중입니다.",
+          desc: "제휴 문의 기능을 준비하고 있어요.<br>조금만 기다려주세요!",
+        });
+      }
     });
   });
 
-  // 상세보기 버튼 (추후 상세 페이지/모달 연결용 자리)
+  // 상세보기 버튼: 실제 상세 페이지/모달이 아직 없어서 준비 중 안내로 대체
   const detailBtns = document.querySelectorAll(".btn-detail");
   detailBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const service = btn.getAttribute("data-service");
       console.log(`[제휴 서비스] '${service}' 상세보기 클릭됨`);
-      // TODO: 실제 상세 페이지/모달 연결 예정
+      window.showInfoModal?.({
+        title: "서비스 <span>준비</span> 중입니다.",
+        desc: "상세 페이지를 준비하고 있어요.<br>조금만 기다려주세요!",
+      });
     });
   });
 });

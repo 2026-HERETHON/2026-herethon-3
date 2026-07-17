@@ -7,39 +7,117 @@
     <title>{{ question.question_content|truncatechars:20 }} - 질문 상세</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}" />
     <link rel="stylesheet" href="{% static 'main.css' %}" />
-    <link rel="stylesheet" href="{% static 'components/rightSideBar/rightSideBar.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'components/rightSideBar/rightSideBar.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'components/modals/infoModal.css' %}"
+    />
+    <!-- home.html/마이페이지와 같은 비율로 nav가 화면 높이에 맞춰
+         줄어들게 하는 공용 스크립트. 자세한 설명은 static/uiZoom.js 참고 -->
+    <script src="{% static 'uiZoom.js' %}"></script>
 
     <style>
-      .qnaDetail-wrap { max-width: 640px; margin: 40px auto 80px; padding: 0 20px; }
-      .qnaDetail-questionCard {
-        background: #fff; border-radius: 15px;
-        box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.08);
-        padding: 28px 30px; margin-bottom: 24px; box-sizing: border-box;
+      .qnaDetail-wrap {
+        max-width: 640px;
+        margin: 40px auto 80px;
+        padding: 0 20px;
       }
-      .qnaDetail-questionUser { font-size: 14px; color: #7b7578; margin: 0 0 8px 0; }
-      .qnaDetail-questionText { font-size: 20px; font-weight: 600; line-height: 140%; margin: 0; white-space: pre-line; }
-      .qnaDetail-sectionTitle { font-size: 18px; font-weight: 600; margin: 0 0 16px 4px; }
-      .qnaDetail-answerForm { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
+      .qnaDetail-questionCard {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.08);
+        padding: 28px 30px;
+        margin-bottom: 24px;
+        box-sizing: border-box;
+      }
+      .qnaDetail-questionUser {
+        font-size: 14px;
+        color: #7b7578;
+        margin: 0 0 8px 0;
+      }
+      .qnaDetail-questionText {
+        color: #000;
+        font-family: Pretendard;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 150%; /* 24px */
+        letter-spacing: -0.32px;
+        margin: 0;
+        white-space: pre-line;
+      }
+      .qnaDetail-sectionTitle {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 16px 4px;
+      }
+      .qnaDetail-answerForm {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
       .qnaDetail-answerForm textarea {
-        width: 100%; min-height: 90px; border-radius: 10px; border: 1px solid #e4e1e2;
-        padding: 12px; font-family: "Pretendard", sans-serif; font-size: 14px;
-        box-sizing: border-box; resize: vertical;
+        width: 100%;
+        min-height: 90px;
+        border-radius: 10px;
+        border: 1px solid #e4e1e2;
+        padding: 12px;
+        font-family: "Pretendard", sans-serif;
+        font-size: 14px;
+        box-sizing: border-box;
+        resize: vertical;
       }
       .qnaDetail-answerForm button {
-        align-self: flex-end; background: #21a8ff; color: #fff; border: none;
-        border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+        align-self: flex-end;
+        background: #21a8ff;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
       }
-      .qnaDetail-loginNote { color: #7b7578; font-size: 14px; }
-      .qnaDetail-loginNote a { color: #21a8ff; font-weight: 600; }
+      .qnaDetail-loginNote {
+        color: #7b7578;
+        font-size: 14px;
+      }
+      .qnaDetail-loginNote a {
+        color: #21a8ff;
+        font-weight: 600;
+      }
       .qnaDetail-backBtn {
-        display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
-        padding: 0; margin-bottom: 16px; font-size: 14px; font-weight: 600; color: #4b4548; cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-bottom: 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4b4548;
+        cursor: pointer;
       }
       /* 🎯 인라인 수정 폼 스타일 (수정 버튼 누르기 전엔 숨김) */
-      .qna-edit-form { display: none; margin-top: 12px; }
+      .qna-edit-form {
+        display: none;
+        margin-top: 12px;
+      }
       .qna-edit-form textarea {
-        width: 100%; min-height: 70px; border-radius: 10px; border: 1px solid #e4e1e2;
-        padding: 10px; font-family: "Pretendard", sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical;
+        width: 100%;
+        min-height: 70px;
+        border-radius: 10px;
+        border: 1px solid #e4e1e2;
+        padding: 10px;
+        font-family: "Pretendard", sans-serif;
+        font-size: 14px;
+        box-sizing: border-box;
+        resize: vertical;
       }
       .qna-action-link {
         background: none;
@@ -76,121 +154,316 @@
       .qna-edit-form-actions button[type="submit"]:hover {
         background: #1077ff;
       }
-      .qna-action-delete { color: #e04141; }
+      .qna-action-delete {
+        color: #e04141;
+      }
     </style>
   </head>
   <body>
     <nav>
       <div id="navbar-container">
-        <a href="/" style="text-decoration: none; color: inherit;">
-          <div class="navbar-logoImg"><img src="{% static 'accounts/mypage-images/logo.svg' %}"/></div>
+        <a href="/" style="text-decoration: none; color: inherit">
+          <div class="navbar-logoImg">
+            <img src="{% static 'accounts/mypage-images/logo.svg' %}" />
+          </div>
         </a>
         <div class="navbar-Select">
-          <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000;">안심맵</a>
-          <a href="/?tab=commercial" class="navbar-menu navbar-commercial" style="text-decoration: none; color: #000;">제휴 서비스</a>
+          <a
+            href="/"
+            class="navbar-menu navbar-safetyMap"
+            style="text-decoration: none; color: #000"
+            >안심맵</a
+          >
+          <a
+            href="/?tab=commercial"
+            class="navbar-menu navbar-commercial"
+            style="text-decoration: none; color: #000"
+            >제휴 서비스</a
+          >
         </div>
-        <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
-          <div style="position: relative; height: 60px; display: flex; align-items: center; margin-right:37px; padding-left:13px;">
-            <div style="display:flex; gap: 9px; align-items:center;">
-              <img src="{% static 'main-images/account.svg' %}" alt="마이페이지" />
-              <span class="navbar-mypage" style="font-weight: 600;">마이페이지</span>
+        <div
+          class="navbar-userMenu"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-right: 60px;
+          "
+        >
+          <div
+            style="
+              position: relative;
+              height: 60px;
+              display: flex;
+              align-items: center;
+              margin-right: 37px;
+              padding-left: 13px;
+            "
+          >
+            <div style="display: flex; gap: 9px; align-items: center">
+              <img
+                src="{% static 'main-images/account.svg' %}"
+                alt="마이페이지"
+              />
+              <span class="navbar-mypage" style="font-weight: 600"
+                >마이페이지</span
+              >
             </div>
+            <!-- 마이페이지(profile.html)의 "내가 작성한 글" 목록에서 이 질문
+                 상세 페이지로 들어오면, 원래 마이페이지에 있던 이 파란
+                 밑줄이 없어서 갑자기 사라진 것처럼 보였음. profile.html과
+                 똑같은 마크업으로 맞춰서 마이페이지에서 온 흐름임을
+                 계속 보여줌 -->
+            <div
+              style="
+                position: absolute;
+                bottom: 0;
+                left: 3px;
+                width: 123px;
+                height: 3px;
+                background-color: #21a8ff;
+                transition: none;
+              "
+            ></div>
           </div>
-          <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
+          <a
+            href="{% url 'accounts:logout' %}"
+            class="navbar-logout"
+            style="cursor: pointer; text-decoration: none; color: inherit"
+            >로그아웃</a
+          >
         </div>
       </div>
     </nav>
 
     <div class="qnaDetail-wrap">
-      <button type="button" class="qnaDetail-backBtn" onclick="history.back()">&lt; 뒤로가기</button>
+      <button type="button" class="qnaDetail-backBtn" onclick="history.back()">
+        &lt; 뒤로가기
+      </button>
 
       <div class="qnaDetail-questionCard">
-        <p class="qnaDetail-questionUser">{{ question.user.nickname }}님의 질문 · {{ question.grid.dong }}</p>
+        <p class="qnaDetail-questionUser">
+          <span id="qna-question-user">{{ question.user.nickname }}</span>님의
+          질문 · {{ question.grid.dong }} ·
+          <span id="qna-question-date"
+            >{{ question.created_at|timesince }} 전</span
+          >
+        </p>
 
-        <p class="qnaDetail-questionText" id="question-view-text">{{ question.question_content }}</p>
+        <p class="qnaDetail-questionText" id="question-view-text">
+          {{ question.question_content }}
+        </p>
 
         {% if request.user == question.user and not is_fragment %}
-          <form method="post" action="{% url 'qna:question_edit' question.id %}"
-                class="qna-edit-form" id="question-edit-form">
-            {% csrf_token %}
-            <textarea name="question_content" required>{{ question.question_content }}</textarea>
-            <div class="qna-edit-form-actions">
-              <button type="submit">저장</button>
-              <button type="button" class="qna-action-link" onclick="toggleQuestionEdit(false)">취소</button>
-            </div>
-          </form>
-
-          <div style="margin-top: 12px; display: flex; gap: 10px;" id="question-view-actions">
-            <button type="button" class="qna-action-link" onclick="toggleQuestionEdit(true)">수정</button>
-            <form method="post" action="{% url 'qna:question_delete' question.id %}"
-                  onsubmit="return confirm('정말 삭제하시겠어요? 답변도 모두 함께 삭제돼요.');" style="display: inline;">
-              {% csrf_token %}
-              <button type="submit" class="qna-action-link qna-action-delete">삭제</button>
-            </form>
+        <form
+          method="post"
+          action="{% url 'qna:question_edit' question.id %}"
+          class="qna-edit-form"
+          id="question-edit-form"
+        >
+          {% csrf_token %}
+          <textarea name="question_content" required>
+{{ question.question_content }}</textarea
+          >
+          <div class="qna-edit-form-actions">
+            <button type="submit">저장</button>
+            <button
+              type="button"
+              class="qna-action-link"
+              onclick="toggleQuestionEdit(false)"
+            >
+              취소
+            </button>
           </div>
+        </form>
+
+        <div
+          style="margin-top: 12px; display: flex; gap: 10px"
+          id="question-view-actions"
+        >
+          <button
+            type="button"
+            class="qna-action-link"
+            onclick="toggleQuestionEdit(true)"
+          >
+            수정
+          </button>
+          <form
+            method="post"
+            action="{% url 'qna:question_delete' question.id %}"
+            id="question-delete-form"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button type="submit" class="qna-action-link qna-action-delete">
+              삭제
+            </button>
+          </form>
+        </div>
         {% endif %}
       </div>
 
       <h3 class="qnaDetail-sectionTitle">답변 ({{ answers.count }})</h3>
       <div id="qnaAnswerContainer" data-count="{{ answers.count }}">
         {% if not answers %}
-          <div style="text-align:center; color:#7b7578; padding:12px 0;">아직 답변이 없어요.</div>
-        {% else %}
-          {% for answer in answers %}
-            <div class="rightSB-answerCard">
-              <div class="rightSB-ansUserLine">
-                <div class="rightSB-ansUserInfo">
-                  <div class="rightSB-ansAvatar"></div>
-                  <div>
-                    <span class="rightSB-ansNickname">{{ answer.user.nickname }}</span>
-                    <span class="rightSB-ansPeriod">
-                      {% if answer.user.verified_grid %}{{ answer.user.verified_grid.dong_group }} 거주 중{% endif %}
-                    </span>
-                  </div>
-                </div>
-                <span class="rightSB-ansDate">{{ answer.created_at|timesince }} 전</span>
+        <div style="text-align: center; color: #7b7578; padding: 12px 0">
+          아직 답변이 없어요.
+        </div>
+        {% else %} {% for answer in answers %}
+        <div class="rightSB-answerCard">
+          <div class="rightSB-ansUserLine">
+            <div class="rightSB-ansUserInfo">
+              <div class="rightSB-ansAvatar"></div>
+              <div>
+                <span class="rightSB-ansNickname"
+                  >{{ answer.user.nickname }}</span
+                >
+                <span class="rightSB-ansPeriod">
+                  {% if answer.user.verified_grid %}{{
+                  answer.user.verified_grid.dong_group }} 거주 중{% endif %}
+                </span>
               </div>
-
-              <div class="rightSB-ansText" id="answer-view-text-{{ answer.id }}">{{ answer.answer_content }}</div>
-
-              {% if request.user == answer.user and not is_fragment %}
-                <form method="post" action="{% url 'qna:answer_edit' answer.id %}"
-                      class="qna-edit-form" id="answer-edit-form-{{ answer.id }}">
-                  {% csrf_token %}
-                  <textarea name="answer_content" required>{{ answer.answer_content }}</textarea>
-                  <div class="qna-edit-form-actions">
-                    <button type="submit">저장</button>
-                    <button type="button" class="qna-action-link" onclick="toggleAnswerEdit({{ answer.id }}, false)">취소</button>
-                  </div>
-                </form>
-
-                <div style="margin-top: 8px; display: flex; gap: 10px;" id="answer-view-actions-{{ answer.id }}">
-                  <button type="button" class="qna-action-link" onclick="toggleAnswerEdit({{ answer.id }}, true)">수정</button>
-                  <form method="post" action="{% url 'qna:answer_delete' answer.id %}"
-                        onsubmit="return confirm('답변을 삭제하시겠어요?');" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="qna-action-link qna-action-delete">삭제</button>
-                  </form>
-                </div>
-              {% endif %}
             </div>
-          {% endfor %}
-        {% endif %}
+            <span class="rightSB-ansDate"
+              >{{ answer.created_at|timesince }} 전</span
+            >
+          </div>
+
+          <div class="rightSB-ansText" id="answer-view-text-{{ answer.id }}">
+            {{ answer.answer_content }}
+          </div>
+
+          {% if request.user == answer.user and not is_fragment %}
+          <form
+            method="post"
+            action="{% url 'qna:answer_edit' answer.id %}"
+            class="qna-edit-form"
+            id="answer-edit-form-{{ answer.id }}"
+          >
+            {% csrf_token %}
+            <textarea name="answer_content" required>
+{{ answer.answer_content }}</textarea
+            >
+            <div class="qna-edit-form-actions">
+              <button type="submit">저장</button>
+              <button
+                type="button"
+                class="qna-action-link"
+                onclick="toggleAnswerEdit({{ answer.id }}, false)"
+              >
+                취소
+              </button>
+            </div>
+          </form>
+
+          <div
+            style="margin-top: 8px; display: flex; gap: 10px"
+            id="answer-view-actions-{{ answer.id }}"
+          >
+            <button
+              type="button"
+              class="qna-action-link"
+              onclick="toggleAnswerEdit({{ answer.id }}, true)"
+            >
+              수정
+            </button>
+            <form
+              method="post"
+              action="{% url 'qna:answer_delete' answer.id %}"
+              onsubmit="return confirm('답변을 삭제하시겠어요?');"
+              style="display: inline"
+            >
+              {% csrf_token %}
+              <button type="submit" class="qna-action-link qna-action-delete">
+                삭제
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %} {% endif %}
       </div>
     </div>
 
+    <!-- 안내/확인 모달: home.html의 안심맵 SPA에 있는 것과 같은 DOM/스크립트를
+         이 페이지(질문 상세 단독 페이지)에도 둠 - 질문 삭제 확인을 브라우저
+         기본 confirm() 대신 이걸로 통일하기 위함 -->
+    <div class="modal-overlay" id="infoModal" style="display: none">
+      <div class="modal-card">
+        <button class="modal-close" aria-label="닫기" type="button">
+          &times;
+        </button>
+        <div class="modal-icon">
+          <svg
+            viewBox="0 0 24 24"
+            width="44"
+            height="44"
+            fill="none"
+            stroke="#378ADD"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10z" />
+            <circle cx="12" cy="11" r="2.5" />
+          </svg>
+        </div>
+        <h2 class="modal-title"></h2>
+        <p class="modal-desc"></p>
+        <div class="modal-btn-row">
+          <button
+            class="modal-btn-secondary"
+            type="button"
+            style="display: none"
+          >
+            취소
+          </button>
+          <button class="modal-btn-primary" type="button">확인</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'components/modals/infoModal.js' %}"></script>
     <script>
       function toggleQuestionEdit(showEdit) {
-        document.getElementById('question-view-text').style.display = showEdit ? 'none' : 'block';
-        document.getElementById('question-view-actions').style.display = showEdit ? 'none' : 'flex';
-        document.getElementById('question-edit-form').style.display = showEdit ? 'block' : 'none';
+        document.getElementById("question-view-text").style.display = showEdit
+          ? "none"
+          : "block";
+        document.getElementById("question-view-actions").style.display =
+          showEdit ? "none" : "flex";
+        document.getElementById("question-edit-form").style.display = showEdit
+          ? "block"
+          : "none";
       }
 
       function toggleAnswerEdit(answerId, showEdit) {
-        document.getElementById(`answer-view-text-${answerId}`).style.display = showEdit ? 'none' : 'block';
-        document.getElementById(`answer-view-actions-${answerId}`).style.display = showEdit ? 'none' : 'flex';
-        document.getElementById(`answer-edit-form-${answerId}`).style.display = showEdit ? 'block' : 'none';
+        document.getElementById(`answer-view-text-${answerId}`).style.display =
+          showEdit ? "none" : "block";
+        document.getElementById(
+          `answer-view-actions-${answerId}`,
+        ).style.display = showEdit ? "none" : "flex";
+        document.getElementById(`answer-edit-form-${answerId}`).style.display =
+          showEdit ? "block" : "none";
       }
+
+      // 질문 삭제: 원래 <form onsubmit="return confirm(...)">로 브라우저
+      // 기본 확인창을 썼는데, 나머지 팝업들과 디자인을 맞추려고
+      // showConfirmModal로 바꿈. confirm()은 동기적으로 true/false를
+      // 즉시 돌려줘야 해서 그 자리에서 막고, 모달의 "삭제" 버튼을
+      // 눌렀을 때(onConfirm)만 실제로 form.submit()을 호출함
+      const questionDeleteForm = document.getElementById(
+        "question-delete-form",
+      );
+      questionDeleteForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        window.showConfirmModal?.({
+          title: "질문을 삭제할까요?",
+          desc: "정말 삭제하시겠어요?<br>답변도 모두 함께 삭제돼요.",
+          confirmText: "삭제",
+          cancelText: "취소",
+          onConfirm: () => questionDeleteForm.submit(),
+        });
+      });
     </script>
   </body>
 </html>

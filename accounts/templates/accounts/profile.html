@@ -8,14 +8,22 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}" />
     <link rel="stylesheet" href="{% static 'main.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts/mypage.css' %}" />
+    <!-- home.html과 같은 비율로 nav가 화면 높이에 맞춰 줄어들게 하는
+         공용 스크립트 (main.js의 응답형 zoom 로직 중 --ui-zoom 계산
+         부분만 뗀 것). 자세한 설명은 static/uiZoom.js 주석 참고 -->
+    <script src="{% static 'uiZoom.js' %}"></script>
 
     <style>
       /* body는 잠가둔 채(overflow hidden 유지) 화면을 꽉 채운다 */
       html, body { height: 100vh; overflow: hidden; }
 
       /* nav 높이(60px)를 뺀 나머지를 레이아웃이 채우게 하고,
-         레이아웃 자체는 안 넘치게 한다 */
-      .myPage-layout { height: calc(100vh - 60px); overflow: hidden; }
+         레이아웃 자체는 안 넘치게 한다.
+         home.html의 #page-safetyMap과 같은 이유로 고정 60px 대신
+         60px * var(--ui-zoom)를 뺌 - uiZoom.js가 화면 높이에 따라
+         nav를 줄이면 실제 nav 높이도 60px보다 작아지는데, 그대로
+         고정 60px를 빼면 nav가 줄어든 만큼 빈 틈이 아래에 남음 */
+      .myPage-layout { height: calc(100vh - 60px * var(--ui-zoom, 1)); overflow: hidden; }
 
       /* 사이드바는 고정 높이, 안 스크롤 */
       .myPage-sidebar { height: 100%; overflow: hidden; flex-shrink: 0; }
