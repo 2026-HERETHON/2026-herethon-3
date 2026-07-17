@@ -123,7 +123,11 @@
                 <span class="myPage-infoValue">
                   {% if request.user.verified_grid %}
                     {{ request.user.verified_grid.sido }} {{ request.user.verified_grid.gu }} {{ request.user.verified_grid.dong }}
-                    {% if request.user.is_verified %}(인증완료){% else %}(인증 대기중){% endif %}
+                    {% if request.user.has_valid_verification %}
+                      (인증완료, ~{{ request.user.verification_expires_at|date:"Y.m.d" }})
+                    {% elif request.user.is_verified %}
+                      (인증 만료 - 재인증 필요, {{ request.user.verification_expires_at|date:"Y.m.d" }} 만료)
+                    {% else %}(인증 대기중){% endif %}
                   {% else %}
                     미설정
                   {% endif %}
@@ -153,14 +157,19 @@
             <div class="myPage-infoCard myPage-residenceCard">
               <img src="{% static 'accounts/mypage-images/location-badge.svg' %}" class="myPage-residenceIcon" />
               <h3 class="myPage-residenceTitle">{{ request.user.verified_grid.dong }}</h3>
-              {% if request.user.is_verified %}
+              {% if request.user.has_valid_verification %}
                 <p class="myPage-residenceDesc">
-                  인증 완료 ({{ request.user.verified_at|date:"Y.m.d H:i" }})
+                  인증 완료 ({{ request.user.verified_at|date:"Y.m.d H:i" }} ~ {{ request.user.verification_expires_at|date:"Y.m.d H:i" }})
                 </p>
               {% else %}
                 <p class="myPage-residenceDesc">
-                  아직 실거주지 인증이 완료되지 않았어요.<br />
-                  아래 버튼을 눌러 현재 위치를 확인하고 인증해주세요.
+                  {% if request.user.is_verified %}
+                    실거주지 인증 유효기간(6개월)이 지났어요.<br />
+                    아래 버튼을 눌러 다시 인증해주세요.
+                  {% else %}
+                    아직 실거주지 인증이 완료되지 않았어요.<br />
+                    아래 버튼을 눌러 현재 위치를 확인하고 인증해주세요.
+                  {% endif %}
                 </p>
                 <button
                   id="verify-residence-btn"
@@ -173,6 +182,7 @@
               {% endif %}
               <p class="myPage-residenceNote" id="verify-result">
                 위치 정보는 인증 용도로만 사용되며, 공개되지 않습니다.
+                인증 만료 시 재인증이 필요합니다. (인증 유효기간: 6개월)
               </p>
             </div>
           {% else %}
@@ -193,6 +203,7 @@
               </form>
               <p class="myPage-residenceNote">
                 위치 정보는 인증 용도로만 사용되며, 공개되지 않습니다.
+                인증 만료 시 재인증이 필요합니다. (인증 유효기간: 6개월)
               </p>
             </div>
           {% endif %}

@@ -3,8 +3,10 @@
 {% if user.verified_grid %}
     <p>설정된 실거주지: {{ user.verified_grid.dong }}</p>
     <p>인증 상태:
-        {% if user.is_verified %}
+        {% if user.has_valid_verification %}
             인증완료 ({{ user.verified_at }})
+        {% elif user.is_verified %}
+            인증 만료 (6개월 경과, 마지막 인증: {{ user.verified_at }})
         {% else %}
             미인증
         {% endif %}
