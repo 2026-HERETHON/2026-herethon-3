@@ -1,12 +1,21 @@
 .mapOverlay-locationBtn {
   position: fixed;
-  top: 83px;
+  /* 이 요소는 CSS zoom 프로퍼티를 안 씀 (다른 mapOverlay 요소들과 다름).
+     right는 rightSideBar.js가 사이드바의 실제 렌더링 폭을 재서 매번
+     인라인 style로 넣어주는데, zoom을 걸면 그 인라인 값까지 같은
+     비율로 한 번 더 줄어들어(zoom은 소스가 인라인이든 스타일시트든
+     상관없이 자기 자신의 모든 오프셋/크기 사용값에 걸림) JS가 계산한
+     값과 실제 렌더링이 어긋나 버림. 그래서 top/width/height/padding/
+     border-radius를 zoom 대신 각각 calc()로 직접 축소함 - right는
+     건드리지 않아 JS 값이 그대로 적용됨 */
+  top: calc(83px * var(--ui-zoom, 1));
   right: 25px;
-  width: 54px;
-  height: 54px;
+  width: calc(54px * var(--ui-zoom, 1));
+  height: calc(54px * var(--ui-zoom, 1));
   z-index: 10;
-  padding: 13px 14px 13px 13px;
-  border-radius: 27px; /* 54의 절반 = 완전한 원 */
+  padding: calc(13px * var(--ui-zoom, 1)) calc(14px * var(--ui-zoom, 1))
+    calc(13px * var(--ui-zoom, 1)) calc(13px * var(--ui-zoom, 1));
+  border-radius: calc(27px * var(--ui-zoom, 1)); /* 54의 절반 = 완전한 원 */
   background: var(--GrayScale-White, #fff);
   box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
   display: flex;
@@ -19,8 +28,8 @@
 }
 
 .mapOverlay-locationBtn img {
-  width: 27px; /* 아이콘 27×28 */
-  height: 28px;
+  width: calc(27px * var(--ui-zoom, 1)); /* 아이콘 27×28 */
+  height: calc(28px * var(--ui-zoom, 1));
 }
 
 .mapOverlay-locationBtn:hover {
@@ -56,7 +65,9 @@
 }
 
 .rightSB-close {
-  width: 35px;
+  /* 고정 35px 폭을 없애서, 안에 든 img의 (zoom으로 줄어든) 실제 폭만큼만
+     차지하도록 함 - 접혔을 때 남는 폭 계산(rightSideBar.js)도 이 실제
+     렌더링 폭을 기준으로 다시 잼 */
   height: 60px;
   background: var(--GrayScale-White, #fff);
   border-radius: 10px 0 0 10px;
@@ -1646,18 +1657,7 @@
 }
 
 /* =====================================================================
-   노트북 화면 대응*/
-@media (max-height: 950px) {
-  .rightSB-wholeContainer {
-    zoom: 0.8824; /* 900 / 1020, 고정 배율*/
-    height: calc(
-      (100vh - 60px) / 0.8824
-    ); /* 높이는 축소 후에도 풀로 채워지도록 역보정 */
-  }
-
-  .mapOverlay-locationBtn.rightSB-gpsShifted {
-    right: 475px;
-  }
-
-
-}
+   노트북 화면 대응은 이제 고정 배율(950px 기준) 대신 main.js의
+   applyResponsiveZoom()이 실제 창 높이를 읽어 좌/우 사이드바 zoom과
+   높이를 실시간으로 계산함 (어떤 화면 높이에서도 잘리지 않도록).
+   ===================================================================== */

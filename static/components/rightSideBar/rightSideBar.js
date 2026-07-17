@@ -1420,14 +1420,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!isOpen) {
         // 패널이 한 번도 안 열린 상태 -> 기본 위치(오른쪽 상단 고정) 유지
         gpsBtn.classList.remove("rightSB-gpsShifted", "rightSB-gpsCollapsed");
+        gpsBtn.style.right = ""; // 인라인 오프셋 해제, 기본 CSS 값(25px) 사용
+        container.style.transform = ""; // 열린 적 없으니 collapsed 오프셋도 해제
       } else if (isCollapsed) {
-        // 패널이 열려있지만 접힌 상태 -> 그만큼만 이동
+        // 패널이 열려있지만 접힌 상태 -> 닫기 탭(.rightSB-close)만 남기고
+        // 오른쪽으로 밀어냄. .rightSB-close도 zoom 걸린 .rightSB-wholeContainer의
+        // 자손이라 고정 35px을 그대로 썼더니 실제 줄어든 탭 폭보다 더 넓게
+        // 남는 문제가 있었음 -> .rightSB-close 자체의 실제 렌더링 폭을 재서
+        // (고정폭 CSS는 제거하고 img 크기만큼만 차지하게 함) 그만큼만 남김.
         gpsBtn.classList.add("rightSB-gpsCollapsed");
         gpsBtn.classList.remove("rightSB-gpsShifted");
+        gpsBtn.style.right = "";
+        const renderedWidth = container.getBoundingClientRect().width;
+        const closeTab = container.querySelector(".rightSB-close");
+        const visibleWidth = closeTab
+          ? closeTab.getBoundingClientRect().width
+          : 35;
+        container.style.transform = `translateX(${renderedWidth - visibleWidth}px)`;
       } else {
         // 패널이 완전히 펼쳐진 상태 -> 패널 왼쪽에 딱 붙게 이동
+        // 우측 패널이 responsiveZoom으로 화면 높이에 맞춰 줄어들 수 있으므로,
+        // 고정 px 대신 실제 렌더링된 폭을 재서 오프셋을 계산함
         gpsBtn.classList.add("rightSB-gpsShifted");
         gpsBtn.classList.remove("rightSB-gpsCollapsed");
+        const renderedWidth = container.getBoundingClientRect().width;
+        gpsBtn.style.right = `${renderedWidth + 6}px`;
+        container.style.transform = ""; // 펼친 상태는 CSS 기본값(transform 없음) 사용
       }
     };
 
@@ -1437,6 +1455,9 @@ document.addEventListener("DOMContentLoaded", () => {
       attributes: true,
       attributeFilter: ["class"],
     });
+
+    // 창 크기가 바뀌어 zoom이 재계산될 때도 오프셋을 다시 맞출 수 있도록 노출
+    window.__syncGpsButtonPosition = syncGpsButtonPosition;
 
     syncGpsButtonPosition(); // 초기 상태 반영
   })();
