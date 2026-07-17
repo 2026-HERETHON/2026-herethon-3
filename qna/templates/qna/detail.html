@@ -7,93 +7,76 @@
     <title>{{ question.question_content|truncatechars:20 }} - 질문 상세</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}" />
     <link rel="stylesheet" href="{% static 'main.css' %}" />
-    <!-- 답변 카드(.rightSB-answerCard 등)는 사이드바용으로 정의된 스타일이라
-         그대로 재사용하기 위해 rightSideBar.css를 같이 불러온다. -->
     <link rel="stylesheet" href="{% static 'components/rightSideBar/rightSideBar.css' %}" />
 
     <style>
-      /* 사이드바 전용으로 만들어졌던 페이지를 단독 페이지로도 어색하지 않게
-         가운데 정렬된 카드 레이아웃만 얹음. .rightSB-* 클래스는 그대로 둠
-         (사이드바 쪽 스타일과 공유) */
-      .qnaDetail-wrap {
-        max-width: 640px;
-        margin: 40px auto 80px;
-        padding: 0 20px;
-      }
+      .qnaDetail-wrap { max-width: 640px; margin: 40px auto 80px; padding: 0 20px; }
       .qnaDetail-questionCard {
-        background: #fff;
-        border-radius: 15px;
+        background: #fff; border-radius: 15px;
         box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.08);
-        padding: 28px 30px;
-        margin-bottom: 24px;
-        box-sizing: border-box;
+        padding: 28px 30px; margin-bottom: 24px; box-sizing: border-box;
       }
-      .qnaDetail-questionUser {
-        font-size: 14px;
-        color: #7b7578;
-        margin: 0 0 8px 0;
-      }
-      .qnaDetail-questionText {
-        font-size: 20px;
-        font-weight: 600;
-        line-height: 140%;
-        margin: 0;
-        white-space: pre-line;
-      }
-      .qnaDetail-sectionTitle {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0 0 16px 4px;
-      }
-      .qnaDetail-answerForm {
-        margin-top: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
+      .qnaDetail-questionUser { font-size: 14px; color: #7b7578; margin: 0 0 8px 0; }
+      .qnaDetail-questionText { font-size: 20px; font-weight: 600; line-height: 140%; margin: 0; white-space: pre-line; }
+      .qnaDetail-sectionTitle { font-size: 18px; font-weight: 600; margin: 0 0 16px 4px; }
+      .qnaDetail-answerForm { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
       .qnaDetail-answerForm textarea {
-        width: 100%;
-        min-height: 90px;
-        border-radius: 10px;
-        border: 1px solid #e4e1e2;
-        padding: 12px;
-        font-family: "Pretendard", sans-serif;
-        font-size: 14px;
-        box-sizing: border-box;
-        resize: vertical;
+        width: 100%; min-height: 90px; border-radius: 10px; border: 1px solid #e4e1e2;
+        padding: 12px; font-family: "Pretendard", sans-serif; font-size: 14px;
+        box-sizing: border-box; resize: vertical;
       }
       .qnaDetail-answerForm button {
-        align-self: flex-end;
-        background: #21a8ff;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
+        align-self: flex-end; background: #21a8ff; color: #fff; border: none;
+        border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
       }
-      .qnaDetail-loginNote {
-        color: #7b7578;
-        font-size: 14px;
-      }
-      .qnaDetail-loginNote a {
-        color: #21a8ff;
-        font-weight: 600;
-      }
+      .qnaDetail-loginNote { color: #7b7578; font-size: 14px; }
+      .qnaDetail-loginNote a { color: #21a8ff; font-weight: 600; }
       .qnaDetail-backBtn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
+        padding: 0; margin-bottom: 16px; font-size: 14px; font-weight: 600; color: #4b4548; cursor: pointer;
+      }
+      /* 🎯 인라인 수정 폼 스타일 (수정 버튼 누르기 전엔 숨김) */
+      .qna-edit-form { display: none; margin-top: 12px; }
+      .qna-edit-form textarea {
+        width: 100%; min-height: 70px; border-radius: 10px; border: 1px solid #e4e1e2;
+        padding: 10px; font-family: "Pretendard", sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical;
+      }
+      .qna-action-link {
         background: none;
         border: none;
-        padding: 0;
-        margin-bottom: 16px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #4b4548;
+        padding: 4px 10px;
         cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1077ff;
+        border-radius: 6px;
+        transition: background 0.15s ease;
       }
+      .qna-action-link:hover {
+        background: #eaf5ff;
+      }
+      .qna-action-delete {
+        color: #e04141;
+      }
+      .qna-action-delete:hover {
+        background: #fdeaea;
+      }
+
+      .qna-edit-form-actions button[type="submit"] {
+        background: #1077ff;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .qna-edit-form-actions button[type="submit"]:hover {
+        background: #1077ff;
+      }
+      .qna-action-delete { color: #e04141; }
     </style>
   </head>
   <body>
@@ -103,12 +86,8 @@
           <div class="navbar-logoImg"><img src="{% static 'accounts/mypage-images/logo.svg' %}"/></div>
         </a>
         <div class="navbar-Select">
-          <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
-            안심맵
-          </a>
-          <a href="/?tab=commercial" class="navbar-menu navbar-commercial" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
-            제휴 서비스
-          </a>
+          <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000;">안심맵</a>
+          <a href="/?tab=commercial" class="navbar-menu navbar-commercial" style="text-decoration: none; color: #000;">제휴 서비스</a>
         </div>
         <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
           <div style="position: relative; height: 60px; display: flex; align-items: center; margin-right:37px; padding-left:13px;">
@@ -116,7 +95,6 @@
               <img src="{% static 'main-images/account.svg' %}" alt="마이페이지" />
               <span class="navbar-mypage" style="font-weight: 600;">마이페이지</span>
             </div>
-            <div style="position: absolute; bottom: 0; left: 3px; width: 123px; height: 3px; background-color: #21a8ff; transition: none;"></div>
           </div>
           <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
         </div>
@@ -128,7 +106,29 @@
 
       <div class="qnaDetail-questionCard">
         <p class="qnaDetail-questionUser">{{ question.user.nickname }}님의 질문 · {{ question.grid.dong }}</p>
-        <p class="qnaDetail-questionText" id="qna-question-content">{{ question.question_content }}</p>
+
+        <p class="qnaDetail-questionText" id="question-view-text">{{ question.question_content }}</p>
+
+        {% if request.user == question.user and not is_fragment %}
+          <form method="post" action="{% url 'qna:question_edit' question.id %}"
+                class="qna-edit-form" id="question-edit-form">
+            {% csrf_token %}
+            <textarea name="question_content" required>{{ question.question_content }}</textarea>
+            <div class="qna-edit-form-actions">
+              <button type="submit">저장</button>
+              <button type="button" class="qna-action-link" onclick="toggleQuestionEdit(false)">취소</button>
+            </div>
+          </form>
+
+          <div style="margin-top: 12px; display: flex; gap: 10px;" id="question-view-actions">
+            <button type="button" class="qna-action-link" onclick="toggleQuestionEdit(true)">수정</button>
+            <form method="post" action="{% url 'qna:question_delete' question.id %}"
+                  onsubmit="return confirm('정말 삭제하시겠어요? 답변도 모두 함께 삭제돼요.');" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="qna-action-link qna-action-delete">삭제</button>
+            </form>
+          </div>
+        {% endif %}
       </div>
 
       <h3 class="qnaDetail-sectionTitle">답변 ({{ answers.count }})</h3>
@@ -143,16 +143,54 @@
                   <div class="rightSB-ansAvatar"></div>
                   <div>
                     <span class="rightSB-ansNickname">{{ answer.user.nickname }}</span>
-                    <span class="rightSB-ansPeriod">{{ question.grid.dong }} 거주 중</span>
+                    <span class="rightSB-ansPeriod">
+                      {% if answer.user.verified_grid %}{{ answer.user.verified_grid.dong_group }} 거주 중{% endif %}
+                    </span>
                   </div>
                 </div>
                 <span class="rightSB-ansDate">{{ answer.created_at|timesince }} 전</span>
               </div>
-              <div class="rightSB-ansText">{{ answer.answer_content }}</div>
+
+              <div class="rightSB-ansText" id="answer-view-text-{{ answer.id }}">{{ answer.answer_content }}</div>
+
+              {% if request.user == answer.user and not is_fragment %}
+                <form method="post" action="{% url 'qna:answer_edit' answer.id %}"
+                      class="qna-edit-form" id="answer-edit-form-{{ answer.id }}">
+                  {% csrf_token %}
+                  <textarea name="answer_content" required>{{ answer.answer_content }}</textarea>
+                  <div class="qna-edit-form-actions">
+                    <button type="submit">저장</button>
+                    <button type="button" class="qna-action-link" onclick="toggleAnswerEdit({{ answer.id }}, false)">취소</button>
+                  </div>
+                </form>
+
+                <div style="margin-top: 8px; display: flex; gap: 10px;" id="answer-view-actions-{{ answer.id }}">
+                  <button type="button" class="qna-action-link" onclick="toggleAnswerEdit({{ answer.id }}, true)">수정</button>
+                  <form method="post" action="{% url 'qna:answer_delete' answer.id %}"
+                        onsubmit="return confirm('답변을 삭제하시겠어요?');" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="qna-action-link qna-action-delete">삭제</button>
+                  </form>
+                </div>
+              {% endif %}
             </div>
           {% endfor %}
         {% endif %}
       </div>
     </div>
+
+    <script>
+      function toggleQuestionEdit(showEdit) {
+        document.getElementById('question-view-text').style.display = showEdit ? 'none' : 'block';
+        document.getElementById('question-view-actions').style.display = showEdit ? 'none' : 'flex';
+        document.getElementById('question-edit-form').style.display = showEdit ? 'block' : 'none';
+      }
+
+      function toggleAnswerEdit(answerId, showEdit) {
+        document.getElementById(`answer-view-text-${answerId}`).style.display = showEdit ? 'none' : 'block';
+        document.getElementById(`answer-view-actions-${answerId}`).style.display = showEdit ? 'none' : 'flex';
+        document.getElementById(`answer-edit-form-${answerId}`).style.display = showEdit ? 'block' : 'none';
+      }
+    </script>
   </body>
 </html>

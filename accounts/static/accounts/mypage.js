@@ -171,3 +171,15 @@ document.getElementById("set-residence-form")?.addEventListener("submit", async 
     console.error("실거주지 설정 중 오류:", err);
   }
 });
+
+const urlParams = new URLSearchParams(window.location.search);
+const targetTab = urlParams.get("tab");
+
+if (targetTab) {
+  const targetMenuItem = document.querySelector(
+    `.myPage-menuItem[data-menu="${targetTab}"]`,
+  );
+  if (targetMenuItem) {
+    targetMenuItem.click(); // 기존 클릭 핸들러 그대로 재사용해서 탭 전환
+  }
+}
