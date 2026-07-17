@@ -37,7 +37,13 @@ function activateTab(currentMenu) {
     if (ctx) {
       const existingChart = Chart.getChart(ctx);
       if (existingChart) {
-        existingChart.resize();
+        // resize()를 인자 없이 부르면 Chart.js가 부모 컨테이너 크기를
+        // 다시 재서 캔버스에 넣는데, 부모가 zoom이 걸린 사이드바 안에
+        // 있어서 그 측정값 자체가 이미 줄어든 값 - 여기다 또 넣으면
+        // zoom이 중복 적용돼 차트가 계속 작아짐. rightSideBar.js에서
+        // 캔버스를 고정 크기(212x174)로 만들어뒀으니 그 값 그대로
+        // 강제 지정해서 재측정 루프를 안 타게 함
+        existingChart.resize(212, 174);
         existingChart.update();
       }
     }

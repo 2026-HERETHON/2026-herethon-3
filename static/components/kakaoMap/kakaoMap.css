@@ -115,5 +115,10 @@ img[src*="bt_close.gif"] {
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-  pointer-events: none;
+  /* 예전엔 pointer-events: none이라 이 라벨을 클릭해도 카카오맵 폴리곤
+     쪽으로 클릭이 전달되지 않아 안심점수 infoWindow가 안 떴음. 이제
+     kakaoMap.js에서 이 요소에 직접 클릭 리스너를 달아 처리하므로
+     클릭을 받을 수 있게 열어둠 */
+  pointer-events: auto;
+  cursor: pointer;
 }

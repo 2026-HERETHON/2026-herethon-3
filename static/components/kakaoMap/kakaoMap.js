@@ -502,10 +502,37 @@ function showAdminDongGroup(legalDongName) {
                 ? new kakao.maps.LatLng(grid.latitude, grid.longitude)
                 : null);
         if (labelPosition) {
+            // 예전엔 content를 HTML 문자열로 넘겼는데, 그러면 이 라벨을
+            // 클릭했을 때 밑에 깔린 폴리곤으로 클릭이 전달되지 않아서
+            // (라벨이 폴리곤 위 별도 DOM 오버레이라 카카오맵의 폴리곤
+            // 클릭 판정에 안 잡힘) 안심점수 창이 안 뜨는 문제가 있었음.
+            // 문자열 대신 실제 DOM 엘리먼트를 만들어서 여기다 직접
+            // 클릭 리스너를 달고, 폴리곤을 클릭했을 때와 똑같이
+            // openAdminDongDetail을 호출하도록 함
+            const labelEl = document.createElement("div");
+            labelEl.className = "kakaoMap-adminDongLabel";
+            labelEl.textContent = grid.dong;
+            labelEl.addEventListener("click", function (e) {
+                e.stopPropagation();
+                cancelHoverRevert();
+                openAdminDongDetail(grid, legalDongName, labelPosition, labelOverlay);
+            });
+            // 라벨을 클릭 가능하게(pointer-events: auto) 만든 부작용으로,
+            // 마우스가 폴리곤 위에서 라벨로 옮겨갈 때 브라우저가 폴리곤
+            // 캔버스 쪽에는 mouseout으로 잡아버려서 scheduleHoverRevert가
+            // 걸리고, 그 결과 행정동 라벨에 마우스를 올리기만 해도 법정동
+            // 뷰로 돌아가 버리는 문제가 있었음(신림동 안의 서림동 라벨
+            // 호버 시 신림동으로 회귀). 라벨 위에 있는 것도 "이 행정동을
+            // 계속 보고 있는 상태"로 쳐서, 폴리곤에 마우스를 올렸을 때와
+            // 똑같이 예약된 복귀를 취소함
+            labelEl.addEventListener("mouseover", function () {
+                cancelHoverRevert();
+            });
+
             labelOverlay = new kakao.maps.CustomOverlay({
                 map: map,
                 position: labelPosition,
-                content: `<div class="kakaoMap-adminDongLabel">${grid.dong}</div>`,
+                content: labelEl,
                 yAnchor: 0.5,
             });
         }

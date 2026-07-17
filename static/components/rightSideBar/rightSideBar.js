@@ -95,6 +95,20 @@ function renderSafetyChart(fields) {
   const ctx = document.getElementById("safetyRadarChart");
   if (!ctx) return;
 
+  // .rightSB-wholeContainer가 화면 높이에 맞춰 CSS zoom으로 줄어드는데,
+  // Chart.js의 기본 responsive 모드는 캔버스의 부모(.rightSB-safetyGraph,
+  // 원래 212x174 고정) 크기를 getBoundingClientRect로 재서 캔버스에
+  // "다시" px로 박아넣음 - 근데 그 측정값은 이미 zoom이 적용된(줄어든)
+  // 값이라, 같은 zoom이 걸린 조상 안에서 캔버스에 그 값을 다시 넣으면
+  // zoom이 한 번 더 곱해져서(이중 축소) 차트가 원래 의도보다 훨씬
+  // 작게 그려지는 문제가 있었음(#safetyRadarChart가 너무 작아짐).
+  // 그래서 responsive 자동측정을 끄고, 캔버스 자체의 실제 크기(HTML
+  // width/height 속성)를 컨테이너의 원래(줄지 않은) 디자인 값으로
+  // 고정해둠 - 이러면 캔버스도 다른 사이드바 내용물처럼 조상의 zoom을
+  // 딱 한 번만 물려받아 정확히 비례해서 작아짐
+  ctx.width = 212;
+  ctx.height = 174;
+
   myRadarChart = new Chart(ctx, {
     type: "radar",
     data: {
@@ -155,7 +169,11 @@ function renderSafetyChart(fields) {
           },
         },
       },
-      maintainAspectRatio: false, // 부모 박스 크기에 맞춰 꽉 차게 조절
+      // 위에서 캔버스 크기를 고정값(212x174)으로 직접 넣어줬으므로,
+      // Chart.js가 컨테이너 크기를 자동으로 재서 다시 맞추지 않게 끔.
+      // (responsive:true였을 때 zoom과 겹쳐 이중 축소되던 문제 때문)
+      responsive: false,
+      maintainAspectRatio: false,
     },
   });
 }
@@ -1365,6 +1383,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const locBtn = document.querySelector(".mapOverlay-locationBtn");
   console.log("현재위치 버튼 찾음?:", locBtn); // null이면 셀렉터가 틀린 것
 
+  // 이미 요청이 진행 중일 때 또 클릭하면, enableHighAccuracy:true라 응답이
+  // 느린 첫 요청이 아직 안 끝난 채로 두 번째 요청이 겹쳐 실행됨 - 둘 중
+  // 느린 쪽이 5초 타임아웃으로 실패 알림을 먼저 띄우고, 그 알림이
+  // alert()라 화면을 막고 있는 동안 다른 쪽 요청이 성공해서 대기하다가,
+  // 알림을 닫는 순간 밀려있던 성공 콜백이 실행돼 갑자기 위치가 이동하는
+  //것처럼 보였음(권한은 이미 허용돼 있는데도 실패 알림 -> 확인 누르면
+  // 이동). 요청이 진행 중이면 버튼을 다시 눌러도 새 요청을 안 만들게 막음
+  let gpsRequestInFlight = false;
+
   locBtn?.addEventListener("click", () => {
     console.log("버튼 클릭됨!");
 
@@ -1373,8 +1400,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (gpsRequestInFlight) return;
+    gpsRequestInFlight = true;
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        gpsRequestInFlight = false;
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
@@ -1395,13 +1426,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       },
       (err) => {
+        gpsRequestInFlight = false;
         console.error("위치 정보를 가져오지 못했습니다:", err);
         alert("위치 정보를 가져오지 못했어요. 위치 권한을 확인해주세요.");
       },
       {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+        // enableHighAccuracy:true + timeout:5000은 실내/노트북 환경에서
+        // GPS 정밀 측위를 5초 안에 못 끝내 타임아웃 에러가 잦았음(권한은
+        // 이미 허용돼 있어도 실패). 이 지도는 동네 단위 안심맵이라 그
+        // 정도 정밀도는 필요 없어서 정확도를 낮추고, 시간 여유를 늘리고,
+        // 1분 이내 캐시된 위치가 있으면 그걸 바로 써서 버튼 누른 뒤
+        // 체감 딜레이도 같이 줄임
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 60000,
       },
     );
   });
