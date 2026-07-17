@@ -1,0 +1,119 @@
+/*지도 클릭시 포인터 디자인*/
+.custom_info_window,
+#map .kakao-info-window,
+div[style*="border: 1px solid rgb(118, 129, 168)"],
+div[style*="border: 1px solid rgb(0, 0, 0)"],
+div[style*="background-color: white;"] {
+  border: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 2. 카카오 기본 인포윈도우 내부의 불필요한 고정 흰색 배경 박스 영역 파쇄 */
+div[style*="position: absolute; background: rgb(255, 255, 255);"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 3. 인포윈도우 기본 패딩(5px)을 강제로 0으로 만들어 박스가 어긋나는 것을 조율합니다. */
+div[style*="padding: 5px;"] {
+  padding: 0 !important;
+}
+
+img[alt="close"],
+img[src*="bt_close.gif"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.kakaoMap-pointerContainer {
+  width: 130px;
+  height: 133px;
+  border-radius: 10px;
+  background: var(--GrayScale-White, #fff);
+
+  /* 그림자/기본 그림자 */
+  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
+
+  padding-top: 0; 
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+
+.kakaoMap-pointerRegion {
+    margin-top: 15px;
+  color: #000;
+
+  /* Body/M-Bold */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+
+  margin-bottom: 16px;
+}
+
+.kakaoMap-pointerScoreTitle {
+  align-self: stretch;
+  color: var(--GrayScale-800, #5b5658);
+
+  /* Others/Caption-Bold */
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%; /* 18px */
+  letter-spacing: -0.24px;
+
+  margin-bottom: 6px;
+}
+
+.kakaoMap-pointerScore {
+  color: var(--GrayScale-black, #1a1a1a);
+  text-align: center;
+
+  /* Title/M-Bold */
+  font-family: Pretendard;
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 600;
+  /*line-height: 140%; */
+  letter-spacing: -0.56px;
+
+  margin-right: 7px;
+}
+
+.kakaoMap-pointerContainer span {
+  color: var(--GrayScale-800, #5b5658);
+  text-align: center;
+
+  /* Body/M */
+  font-family: Pretendard;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%; /* 24px */
+  letter-spacing: -0.32px;
+}
+
+/* 법정동 hover-in 시, 행정동 폴리곤 구역 안에 뜨는 이름 라벨 */
+.kakaoMap-adminDongLabel {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
+
+  color: #1a1a1a;
+  font-family: Pretendard;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}

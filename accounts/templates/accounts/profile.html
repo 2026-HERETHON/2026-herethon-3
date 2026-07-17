@@ -1,0 +1,349 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>마이페이지</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}" />
+    <link rel="stylesheet" href="{% static 'main.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts/mypage.css' %}" />
+
+    <style>
+      /* body는 잠가둔 채(overflow hidden 유지) 화면을 꽉 채운다 */
+      html, body { height: 100vh; overflow: hidden; }
+
+      /* nav 높이(60px)를 뺀 나머지를 레이아웃이 채우게 하고,
+         레이아웃 자체는 안 넘치게 한다 */
+      .myPage-layout { height: calc(100vh - 60px); overflow: hidden; }
+
+      /* 사이드바는 고정 높이, 안 스크롤 */
+      .myPage-sidebar { height: 100%; overflow: hidden; flex-shrink: 0; }
+
+      /* 오른쪽 메인만 세로 스크롤 허용 */
+      .myPage-main { height: 100%; overflow-y: auto; }
+    </style>
+  </head>
+  <body>
+    <!-- home.html과 같은 nav 마크업을 그대로 써서 로그인 상태가 이어져 보이게
+         함. 다만 이 페이지는 SPA 탭이 아니라 별도 페이지라 안심맵/제휴 서비스
+         클릭은 실제 페이지 이동으로 처리 -->
+    <nav>
+      <div id="navbar-container">
+        <a href="/" style="text-decoration: none; color: inherit;">
+          <div class="navbar-logoImg"><img src="{% static 'accounts/mypage-images/logo.svg' %}"/></div>
+        </a>
+        <div class="navbar-Select">
+          <!-- home.html에선 이 자리가 <div>인데, 여기는 페이지 이동이 필요해
+               <a>를 씀. <a>의 기본 스타일(파란 글씨 등)을 덮으려 폰트/색을
+               인라인으로 다시 줌. -->
+          <a href="/" class="navbar-menu navbar-safetyMap" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
+            안심맵
+          </a>
+          <a href="/?tab=commercial" class="navbar-menu navbar-commercial" style="text-decoration: none; color: #000; text-align: center; font-size: 16px; font-style: normal; font-weight: 400; line-height: 150%; letter-spacing: -0.32px;">
+            제휴 서비스
+          </a>
+        </div>
+        <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
+          <!-- 마이페이지에서는 이 자리가 항상 "현재 탭"이므로 navbar-underline과
+               동일한 두께/색으로 이 라벨 밑에만 그어준다. nav 높이(60px)를
+               그대로 채워 밑줄이 같은 y축(navbar 맨 아래)에 오게 함.
+               트랜지션 없음: 항상 고정 위치. -->
+          <div style="position: relative; height: 60px; display: flex; align-items: center; margin-right:37px; padding-left:13px;">
+            <div style="display:flex; gap: 9px; align-items:center;">
+              <img src="{% static 'main-images/account.svg' %}" alt="마이페이지" />
+              <span class="navbar-mypage" style="font-weight: 600;">마이페이지</span>
+            </div>
+            <!-- main.css의 .navbar-underline은 .navbar-Select 밑에서만
+                 스코프돼 있어서 여기선 안 먹는다. 그래서 클래스 대신
+                 스타일을 전부 인라인으로 줌. -->
+            <div style="position: absolute; bottom: 0; left: 3px; width: 123px; height: 3px; background-color: #21a8ff; transition: none;"></div>
+          </div>
+          <a href="{% url 'accounts:logout' %}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="myPage-layout">
+      <!-- ===== 왼쪽 사이드바 ===== -->
+      <div class="myPage-sidebar">
+        <h2 class="myPage-sidebarTitle">마이페이지</h2>
+        <ul class="myPage-menu">
+          <li class="myPage-menuItem active" data-menu="profile">
+            <img src="{% static 'accounts/mypage-images/profile.svg' %}" />
+            <span>프로필 및 회원 정보</span>
+          </li>
+          <li class="myPage-menuItem" data-menu="residence">
+            <img src="{% static 'accounts/mypage-images/residence.svg' %}" />
+            <span>실거주지 인증</span>
+          </li>
+          <li class="myPage-menuItem" data-menu="myposts">
+            <img src="{% static 'accounts/mypage-images/myposts.svg' %}" />
+            <span>내가 작성한 글</span>
+          </li>
+          <li class="myPage-menuItem" data-menu="saved">
+            <img src="{% static 'accounts/mypage-images/saved.svg' %}" />
+            <span>찜한 동네</span>
+          </li>
+          <li class="myPage-menuItem" data-menu="alarm">
+            <img src="{% static 'accounts/mypage-images/alarm.svg' %}" />
+            <span>알림</span>
+          </li>
+          <li class="myPage-menuItem" data-menu="settings">
+            <img src="{% static 'accounts/mypage-images/settings.svg' %}" />
+            <span>설정</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ===== 오른쪽 메인 ===== -->
+      <div class="myPage-main">
+        <!-- ===== 프로필 및 회원 정보 ===== -->
+        <div class="myPage-content" data-menu="profile">
+          <h1 class="myPage-mainTitle">프로필 및 회원 정보</h1>
+          <p class="myPage-mainDesc">회원님의 정보를 확인하고 수정할 수 있습니다.</p>
+
+          <div class="myPage-infoCard">
+            <div class="myPage-infoCardHeader">
+              <h3>기본 정보</h3>
+              <span class="myPage-editBtn">수정하기</span>
+            </div>
+
+            <div class="myPage-infoList">
+              <div class="myPage-infoRow">
+                <span class="myPage-infoLabel">닉네임</span>
+                <span class="myPage-infoValue">{{ request.user.nickname }}</span>
+              </div>
+              <div class="myPage-infoRow">
+                <span class="myPage-infoLabel">성별</span>
+                <span class="myPage-infoValue">{{ request.user.get_gender_display }}</span>
+              </div>
+              <div class="myPage-infoRow">
+                <span class="myPage-infoLabel">거주지</span>
+                <span class="myPage-infoValue">
+                  {% if request.user.verified_grid %}
+                    {{ request.user.verified_grid.sido }} {{ request.user.verified_grid.gu }} {{ request.user.verified_grid.dong }}
+                    {% if request.user.is_verified %}(인증완료){% else %}(인증 대기중){% endif %}
+                  {% else %}
+                    미설정
+                  {% endif %}
+                </span>
+              </div>
+              <div class="myPage-infoRow">
+                <span class="myPage-infoLabel">아이디</span>
+                <span class="myPage-infoValue">{{ request.user.username }}</span>
+              </div>
+              <div class="myPage-infoRow">
+                <span class="myPage-infoLabel">비밀번호</span>
+                <span class="myPage-infoValue">••••••••••</span>
+                <span class="myPage-pwChange">비밀번호 변경</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 실거주지 인증 ===== -->
+        <div class="myPage-content myPage-hide" data-menu="residence">
+          <h1 class="myPage-mainTitle">실거주지 인증</h1>
+          <p class="myPage-mainDesc">
+            실거주지 인증을 통해 거주 후기 및 큐앤에이 답변을 작성할 수 있어요.
+          </p>
+
+          {% if request.user.verified_grid %}
+            <div class="myPage-infoCard myPage-residenceCard">
+              <img src="{% static 'accounts/mypage-images/location-badge.svg' %}" class="myPage-residenceIcon" />
+              <h3 class="myPage-residenceTitle">{{ request.user.verified_grid.dong }}</h3>
+              {% if request.user.is_verified %}
+                <p class="myPage-residenceDesc">
+                  인증 완료 ({{ request.user.verified_at|date:"Y.m.d H:i" }})
+                </p>
+              {% else %}
+                <p class="myPage-residenceDesc">
+                  아직 실거주지 인증이 완료되지 않았어요.<br />
+                  아래 버튼을 눌러 현재 위치를 확인하고 인증해주세요.
+                </p>
+                <button
+                  id="verify-residence-btn"
+                  class="myPage-residenceBtn"
+                  data-confirm-url="{% url 'accounts:confirm_residence' %}"
+                >
+                  <img src="{% static 'accounts/mypage-images/send.svg' %}" />
+                  현재 위치로 인증하기
+                </button>
+              {% endif %}
+              <p class="myPage-residenceNote" id="verify-result">
+                위치 정보는 인증 용도로만 사용되며, 공개되지 않습니다.
+              </p>
+            </div>
+          {% else %}
+            <div class="myPage-infoCard myPage-residenceCard">
+              <img src="{% static 'accounts/mypage-images/location-badge.svg' %}" class="myPage-residenceIcon" />
+              <h3 class="myPage-residenceTitle">실거주지를 먼저 설정해주세요</h3>
+              <p class="myPage-residenceDesc">
+                실거주지를 설정한 후, GPS로 실제 위치 인증을 진행할 수 있어요.
+              </p>
+              <form id="set-residence-form" data-set-url="{% url 'accounts:set_residence' %}">
+                <select name="grid_id" class="myPage-residenceSelect">
+                  <option value="">동을 선택해주세요</option>
+                  {% for grid in legal_grids %}
+                    <option value="{{ grid.id }}">{{ grid.sido }} {{ grid.gu }} {{ grid.dong }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="myPage-residenceBtn">설정하기</button>
+              </form>
+              <p class="myPage-residenceNote">
+                위치 정보는 인증 용도로만 사용되며, 공개되지 않습니다.
+              </p>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- ===== 내가 작성한 글 ===== -->
+        <div class="myPage-content myPage-hide" data-menu="myposts">
+          <h1 class="myPage-mainTitle">내가 작성한 글</h1>
+          <p class="myPage-mainDesc">
+            내가 작성한 후기 및 질문과 답변을 확인해보세요.
+          </p>
+
+          <!-- 실거주 후기 -->
+          <h2 class="myPage-sectionTitle">실거주 후기 ({{ reviews|length }})</h2>
+          {% for review in reviews %}
+            <div class="myPage-reviewCard">
+              <div class="myPage-reviewHeader">
+                <div class="myPage-reviewProfile">
+                  <img src="{% static 'accounts/mypage-images/profile-default.svg' %}" />
+                </div>
+                <span class="myPage-reviewName">{{ request.user.nickname }}</span>
+                <span class="myPage-reviewLocation">{{ review.grid.dong }} 거주 중</span>
+                <span class="myPage-reviewDate">{{ review.created_at|timesince }} 전</span>
+              </div>
+
+              <div class="myPage-reviewRating">
+                <div class="myPage-cardStarsDisplay">
+                  <div class="myPage-cardEmptyStars">
+                    {% for _ in "12345" %}<img src="{% static 'reviews/rightSB-images/emptyStar.svg' %}" class="myPage-cardStarIcon" />{% endfor %}
+                  </div>
+                  <div class="myPage-cardFilledStars" style="width: {{ review.star_width }}px;">
+                    {% for _ in "12345" %}<img src="{% static 'reviews/rightSB-images/filledStar.svg' %}" class="myPage-cardStarIcon" />{% endfor %}
+                  </div>
+                </div>
+                <span class="myPage-ratingNum">{{ review.average_rating }}</span>
+              </div>
+
+              <div class="myPage-reviewBottom">
+                <p class="myPage-reviewText">{{ review.review_content|linebreaksbr }}</p>
+                <div class="myPage-reviewLike">
+                  <img src="{% static 'accounts/mypage-images/thumbsup.svg' %}" />
+                  <span>{{ review.like_count }}</span>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <p style="color:#7b7578; margin-top:15px;">작성한 후기가 없어요.</p>
+          {% endfor %}
+
+          <!-- 내가 작성한 질문 -->
+          <h2 class="myPage-sectionTitle">내가 작성한 질문 ({{ questions.count }})</h2>
+          <div class="myPage-qnaGroup">
+            {% for q in questions %}
+              <a href="{% url 'qna:detail' question_id=q.id %}" style="text-decoration:none; color:inherit; display:block;">
+                <div class="myPage-qnaItem">
+                  <div class="myPage-qnaIcon">Q</div>
+                  <span class="myPage-qnaText">{{ q.question_content }}</span>
+                  <div class="myPage-qnaRight">
+                    <span class="myPage-qnaCount">답변 {{ q.answers.count }}</span>
+                    <img src="{% static 'accounts/mypage-images/chevron-right.svg' %}" class="myPage-qnaArrow" />
+                  </div>
+                </div>
+              </a>
+              {% if not forloop.last %}<div class="myPage-qnaDivider"></div>{% endif %}
+            {% empty %}
+              <div class="myPage-qnaItem"><span class="myPage-qnaText" style="color:#7b7578;">작성한 질문이 없어요.</span></div>
+            {% endfor %}
+          </div>
+
+          <!-- 내가 작성한 답변 -->
+          <h2 class="myPage-sectionTitle">내가 작성한 답변 ({{ answers.count }})</h2>
+          <div class="myPage-qnaGroup">
+            {% for a in answers %}
+              <a href="{% url 'qna:detail' question_id=a.question.id %}" style="text-decoration:none; color:inherit; display:block;">
+                <div class="myPage-qnaItem">
+                  <div class="myPage-qnaIcon">A</div>
+                  <span class="myPage-qnaText">{{ a.answer_content }}</span>
+                  <div class="myPage-qnaRight">
+                    <span class="myPage-qnaCount">Q. {{ a.question.question_content|truncatechars:20 }}</span>
+                    <img src="{% static 'accounts/mypage-images/chevron-right.svg' %}" class="myPage-qnaArrow" />
+                  </div>
+                </div>
+              </a>
+              {% if not forloop.last %}<div class="myPage-qnaDivider"></div>{% endif %}
+            {% empty %}
+              <div class="myPage-qnaItem"><span class="myPage-qnaText" style="color:#7b7578;">작성한 답변이 없어요.</span></div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ===== 찜한 동네 ===== -->
+        <div class="myPage-content myPage-hide" data-menu="saved">
+          <h1 class="myPage-mainTitle">찜한 동네</h1>
+          <p class="myPage-mainDesc">
+            관심 있는 동네를 찜해두고 안전 정보를 확인하세요.
+          </p>
+
+          {% for saved in saved_grids %}
+            <div class="myPage-savedCard">
+              <div class="myPage-savedMap">
+                {% with points=saved.grid.thumbnail_polygon_points %}
+                  {% if points %}
+                    <svg class="myPage-savedMapSvg" viewBox="0 0 100 100">
+                      <polygon points="{{ points }}" />
+                    </svg>
+                  {% endif %}
+                {% endwith %}
+              </div>
+              <div class="myPage-savedInfo">
+                <h3 class="myPage-savedName">{{ saved.grid.dong }}</h3>
+                <p class="myPage-savedRegion">{{ saved.grid.sido }} {{ saved.grid.gu }}</p>
+                <p class="myPage-savedScoreLabel">안심 점수</p>
+                <div class="myPage-savedScore">
+                  <span class="myPage-scoreNum">{{ saved.grid.safety_score }}</span>
+                  <span class="myPage-scoreTotal">/ 100</span>
+                  <span class="myPage-scoreBadge">{{ saved.grade_label }}</span>
+                </div>
+              </div>
+              <div class="myPage-savedChartBox">
+                <canvas
+                  data-cctv-count="{{ saved.grid.cctv_count }}"
+                  data-light-count="{{ saved.grid.light_count }}"
+                  data-bell-count="{{ saved.grid.bell_count }}"
+                  data-police-count="{{ saved.grid.police_count }}"
+                  data-crime-zone-grade="{{ saved.grid.crime_zone_grade }}"
+                  data-night-safety-grade="{{ saved.grid.night_safety_grade }}"
+                ></canvas>
+              </div>
+            </div>
+          {% empty %}
+            <p style="color:#7b7578; margin-top:49px;">
+              찜한 동네가 없어요. 안심맵에서 동네를 클릭하고 하트 아이콘을 눌러 찜해보세요.
+            </p>
+          {% endfor %}
+        </div>
+
+        <!-- ===== 알림 ===== -->
+        <div class="myPage-content myPage-hide" data-menu="alarm">
+          <h1 class="myPage-mainTitle">알림</h1>
+          <p class="myPage-mainDesc">알림 내용을 확인하세요.</p>
+        </div>
+
+        <!-- ===== 설정 ===== -->
+        <div class="myPage-content myPage-hide" data-menu="settings">
+          <h1 class="myPage-mainTitle">설정</h1>
+          <p class="myPage-mainDesc">설정을 변경할 수 있습니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'accounts/mypage.js' %}"></script>
+  </body>
+</html>

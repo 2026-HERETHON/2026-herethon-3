@@ -1,0 +1,526 @@
+/* 기본 여백 초기화 및 기본 스타일 설정함 */
+/* 예전엔 독립 페이지라 *, body에 걸어도 안전했는데, 이제 home.html의
+   다른 탭과 페이지를 공유하므로 .commercial-container 스코프로 좁혀둠. */
+.commercial-container,
+.commercial-container * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.commercial-container {
+  font-family: 'Pretendard', sans-serif;
+  color: #333;
+}
+
+
+.commercial-container {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 60px); /* 80px은 네비바 높이 — 실제 높이에 맞게 조정 */
+}
+
+/* 왼쪽 사이드바 스타일링함 */
+.sidebar {
+  width: 230px;
+  padding: 24px 16px; 
+  box-shadow: 4px 4px 20px 0 rgba(0, 0, 0, 0.10);
+  box-sizing: border-box;
+}
+
+.sidebar-menu {
+  list-style: none;
+}
+
+.menu-item {
+  height: auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px; 
+  /* 아이콘과 텍스트 사이 간격 */
+  gap: 10px; 
+  /* 모서리 둥글기 */
+  border-radius: 12px; 
+  cursor: pointer;
+  color: #666;
+  margin-bottom: 6px;
+  transition: all 0.2s ease;
+  font-family: Pretendard;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+/* 사이드바 메뉴 아이콘 크기 고정 */
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* 활성화(클릭)되었을 때 스타일임 */
+.menu-item.active {
+  /* 피그마의 배경색 변수값 적용함 */
+  background-color: var(--Color-Blue100, #E4F2FF); 
+  color: #1e80ff;
+  font-weight: 700;
+}
+
+/* 오른쪽 메인 영역 스타일링함 */
+.content-area {
+  flex: 1;
+  min-width: 0; /* flex 자식 오버플로 방지 */
+  padding: 24px 48px 40px 40px;
+  background-color: #fafbfc;
+  overflow-y: auto;
+}
+
+/* 상단 타이틀 섹션 스타일임 */
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+/* 텍스트 상자 내부 세로 배치 설정함 */
+.header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 헤더 일러스트 크기 제한 */
+.header-image img {
+  width: 300px;
+  height: auto;
+  max-width: 40vw;
+}
+
+/* 1. 안전한 일상을 위한 파트너 */
+.sub-title {
+  color: var(--GrayScale-800, #5B5658);
+  /* Body/L */
+  font-family: Pretendard;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.28px;
+  /* 제휴 서비스 타이틀과의 간격 */
+  margin-bottom: 8px; 
+}
+
+/* 2. 제휴 서비스. */
+.main-title {
+  /* 설명 문구와의 간격 축소 */
+  margin-bottom: 16px; 
+  color: #000;
+  font-family: Pretendard;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -0.64px;
+}
+
+.point-blue {
+  color: #1e80ff;
+}
+
+/* 3. 신뢰할 수 있는 파트너와 함께... */
+.description {
+  color: var(--GrayScale-800, #5B5658);
+  /* Title/S */
+  font-family: Pretendard;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.3px;
+}
+
+/* 하단 카드 레이아웃 스타일링함 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 개별 서비스 카드 공통 레이아웃 구조임 */
+.service-card {
+  display: flex;
+  border-radius: 16px;
+  width: 100%;
+  min-height: 180px;
+  padding: 40px 40px;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1.2;
+  min-width: 0;
+}
+
+/* 동그란 아이콘 배경 공통 스타일임 */
+.icon-wrapper {
+  display: flex;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* 아이콘 내부 이미지 크기 통일
+   - 기본: 래퍼 원 안에 여백을 두고 아이콘만 표시 (icon-shield 등) */
+.icon-wrapper img {
+  width: 52%;
+  height: 52%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* icon-home.svg 처럼 '원+아이콘'이 통째로 그려진 이미지는 래퍼를 꽉 채움 */
+.service-card.theme-housing .icon-wrapper img {
+  width: 100%;
+  height: 100%;
+}
+
+.card-info {
+  margin-left: 24px;
+  min-width: 0;
+}
+
+.card-info h3 {
+  color: #000;
+  font-family: Pretendard;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -0.44px;
+  margin-bottom: 10px;
+}
+
+.card-info p {
+  color: var(--GrayScale-800, #5B5658);
+/* Title/S */
+  font-family: Pretendard;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+   line-height: 150%;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+/* 카드 가운데 세로 분할선임 */
+.card-divider-up {
+  width: 1px;
+  height: 100px;
+  flex-shrink: 0;
+  background-color: #D9D2D4;
+  margin: 0 40px;
+}
+
+.card-divider-down {
+  width: 1px;
+  height: 100px;
+  flex-shrink: 0;
+  background-color: #D9D2D4;
+  margin-left: 64px;
+  margin-right: 40px;
+}
+
+.card-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1.5;
+  min-width: 0;
+}
+
+.feature-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  color: var(--GrayScale-900, #2E2B2C);
+
+/* Title/M */
+font-family: Pretendard;
+font-size: 17px;
+font-style: normal;
+font-weight: 400;
+line-height: 140%;
+letter-spacing: -0.34px;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+/* 기능목록 앞 아이콘 크기 고정 */
+.feature-list li img {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* 우측 상세 버튼 기본 레이아웃 공통 스타일임 */
+.btn-detail {
+
+  display: inline-flex;
+padding: 11px 26px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+  flex-shrink: 0;
+  
+border-radius: 12px;
+background: var(--Color-Blue700, #1D9BFE);
+
+
+  
+  border: none;
+  color: var(--GrayScale-White, #FFF);
+
+/* Title/M-Bold */
+font-family: Pretendard;
+font-size: 17px;
+font-style: normal;
+font-weight: 600;
+line-height: 140%;
+letter-spacing: -0.34px;
+
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+
+/* ==========================================
+   카드 개별 맞춤 스타일링 (이미지 가이드 적용)
+   ========================================== */
+
+/* 1. 첫 번째 카드: 안심 귀가 서비스 테마임 */
+.service-card.theme-return {
+  border-radius: 20px;
+border: 1px solid var(--Color-Blue900, #1077FF);
+background: rgba(228, 247, 255, 0.30); /* 매우 부드러운 블루 보더 지정함 */
+}
+
+/* 첫 번째 카드 원형 아이콘 스타일임 */
+.service-card.theme-return .circle-blue {
+  background-color: #d1ecff;
+}
+
+/* 첫 번째 카드 우측 버튼 스타일임 */
+.service-card.theme-return .btn-detail {
+  background-color: #4da1ff; /* 하늘색 계열 버튼 지정함 */
+}
+
+.service-card.theme-return .btn-detail:hover {
+  background-color: #1e80ff;
+}
+
+
+/* 2. 두 번째 카드: 안심 주거 서비스 테마임 */
+.service-card.theme-housing {
+  border-radius: 20px;
+border: 1px solid var(--Color-Blue900, #1077FF);
+background: #E4F7FF;
+}
+
+/* 두 번째 카드 원형 아이콘 스타일임
+   icon-home.svg는 원이 포함된 이미지라 래퍼 배경을 투명 처리해 이중 원 방지 */
+.service-card.theme-housing .circle-light-blue {
+  background-color: transparent;
+}
+
+/* 두 번째 카드 우측 버튼 스타일임 */
+.service-card.theme-housing .btn-detail {
+  background-color: #2b72f5; /* 선명한 로열 블루 계열 버튼 지정함 */
+}
+
+.service-card.theme-housing .btn-detail:hover {
+  background-color: #1557d4;
+}
+
+
+/* ==========================================
+   📱 반응형 (CSS만으로 처리, 구조 변경 없음)
+   - 사이드바: 좌측 유지, 폭만 단계적으로 축소
+   - 카드: 가로 배치 유지, 전체적으로 축소
+   ========================================== */
+
+/* ▪ 태블릿 (~1024px): 더 촘촘하게 축소 + 설명 줄바꿈 허용 */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+    padding: 24px 12px;
+  }
+  .menu-item {
+    font-size: 15px;
+    height: auto;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .content-area {
+    padding: 16px 28px 36px 24px;
+  }
+  .content-header {
+    margin-bottom: 32px;
+  }
+  .main-title {
+    font-size: 27px;
+    margin-bottom: 14px;
+  }
+  .sub-title {
+    font-size: 13px;
+  }
+  .description {
+    font-size: 14px;
+  }
+
+  .service-card {
+    min-height: 0;
+    padding: 32px 28px;
+  }
+  .icon-wrapper {
+    width: 72px;
+    height: 72px;
+  }
+  .card-info {
+    margin-left: 16px;
+  }
+  .card-info h3 {
+    font-size: 19px;
+    margin-bottom: 8px;
+  }
+  .card-info p {
+    font-size: 14px;
+    white-space: normal; /* 좁아지면 줄바꿈 허용 */
+  }
+  .card-divider-up {
+    height: 84px;
+    margin: 0 24px;
+  }
+  .card-divider-down {
+    height: 84px;
+    margin-left: 32px;
+    margin-right: 24px;
+  }
+  .feature-list {
+    gap: 12px;
+  }
+  .feature-list li {
+    font-size: 15px;
+    gap: 10px;
+    white-space: normal;
+  }
+  .btn-detail {
+    font-size: 15px;
+    padding: 9px 20px;
+  }
+}
+
+/* ▪ 모바일 (~768px): 최소 폭 사이드바 + 카드 압축(가로 유지) */
+@media (max-width: 768px) {
+  .commercial-container {
+    height: auto; /* 콘텐츠에 따라 늘어나게 */
+  }
+
+  .sidebar {
+    width: 150px;
+    padding: 16px 8px;
+    box-shadow: 2px 2px 10px 0 rgba(0, 0, 0, 0.08);
+  }
+  .menu-item {
+    font-size: 14px;
+    padding: 8px 10px;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .content-area {
+    padding: 12px 14px 24px 14px;
+  }
+  .content-header {
+    margin-bottom: 20px;
+  }
+  .main-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  .sub-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .description {
+    font-size: 14px;
+  }
+
+  .card-list {
+    gap: 14px;
+  }
+  .service-card {
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+  .card-left {
+    gap: 12px;
+  }
+  .icon-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+  .card-info {
+    margin-left: 8px;
+  }
+  .card-info h3 {
+    font-size: 17px;
+    margin-bottom: 6px;
+  }
+  .card-info p {
+    font-size: 12px;
+    white-space: normal;
+  }
+  .card-divider-up {
+    height: 80px;
+    margin: 0 12px;
+  }
+  .card-divider-down {
+    height: 80px;
+    margin-left: 14px;
+    margin-right: 12px;
+  }
+  .feature-list {
+    gap: 8px;
+  }
+  .feature-list li {
+    font-size: 12px;
+    gap: 8px;
+  }
+  .btn-detail {
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
+}
