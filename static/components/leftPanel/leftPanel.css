@@ -310,7 +310,8 @@
   cursor: pointer;
 }
 
-.leftPanel-searchResultItem:hover {
+.leftPanel-searchResultItem:hover,
+.leftPanel-searchResultItem.is-active {
   background: var(--GrayScale-100, #f0edee);
 }
 

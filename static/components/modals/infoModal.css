@@ -1,3 +1,8 @@
+/* 원래 후기 작성 완료 안내용으로만 쓰던 모달이었는데, 실거주지 인증
+   필요 안내처럼 "아이콘 + 제목 + 설명 + 확인 버튼" 구조가 똑같은
+   안내 팝업이 하나 더 필요해져서 reviewCompleteModal에서 이름을
+   바꾸고 재사용 가능한 공용 컴포넌트로 정리함 (내용은 그대로, 파일
+   이름/위치만 정리) */
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, 0.45);
@@ -36,11 +41,29 @@
   font-size: 13px; color: #6b7280;
   margin: 0 0 24px; line-height: 1.6;
 }
+/* 삭제 확인처럼 취소/확인 두 버튼이 같이 뜨는 경우(showConfirmModal)를
+   위한 줄. 버튼 하나만(showInfoModal) 쓸 땐 취소 버튼이 display:none이라
+   flex:1인 확인 버튼이 그냥 행 전체를 차지해서 예전 width:100%와 같아짐 */
+.modal-btn-row {
+  display: flex;
+  gap: 10px;
+}
+.modal-btn-primary,
+.modal-btn-secondary {
+  flex: 1;
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
 .modal-btn-primary {
-  width: 100%; height: 46px; border: none; border-radius: 10px;
   background: #1077FF;
   color: #fff;
-  font-size: 15px; font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
+}
+.modal-btn-secondary {
+  background: #F0EDEE;
+  color: #4b4548;
 }

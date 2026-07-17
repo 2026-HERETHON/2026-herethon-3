@@ -229,6 +229,14 @@ aside {
   background: #fff;
   box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.15);
 
+  /* login.js/main.js/rightSideBar.js 여러 곳에서 이 요소의 width/height를
+     로그인↔회원가입 전환 때마다 인라인 px로 갈아끼우는데, 그 호출부를
+     전부 찾아 고치는 대신 이 요소 자체에 zoom만 걸어둠. 부모
+     #loginPopupOverlay는 화면 전체를 덮는 어두운 배경이라 안 건드리고,
+     이 카드만 다른 UI와 같은 비율로 줄어들게 함(중앙 정렬은 부모의
+     flex center가 그대로 처리) */
+  zoom: var(--ui-zoom, 1);
+
   /* 0.4초 동안 부드럽게 창 크기가 변하도록 애니메이션 설정 */
   transition:
     width 0.4s cubic-bezier(0.25, 1, 0.5, 1),

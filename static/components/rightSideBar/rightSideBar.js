@@ -95,6 +95,20 @@ function renderSafetyChart(fields) {
   const ctx = document.getElementById("safetyRadarChart");
   if (!ctx) return;
 
+  // .rightSB-wholeContainer가 화면 높이에 맞춰 CSS zoom으로 줄어드는데,
+  // Chart.js의 기본 responsive 모드는 캔버스의 부모(.rightSB-safetyGraph,
+  // 원래 212x174 고정) 크기를 getBoundingClientRect로 재서 캔버스에
+  // "다시" px로 박아넣음 - 근데 그 측정값은 이미 zoom이 적용된(줄어든)
+  // 값이라, 같은 zoom이 걸린 조상 안에서 캔버스에 그 값을 다시 넣으면
+  // zoom이 한 번 더 곱해져서(이중 축소) 차트가 원래 의도보다 훨씬
+  // 작게 그려지는 문제가 있었음(#safetyRadarChart가 너무 작아짐).
+  // 그래서 responsive 자동측정을 끄고, 캔버스 자체의 실제 크기(HTML
+  // width/height 속성)를 컨테이너의 원래(줄지 않은) 디자인 값으로
+  // 고정해둠 - 이러면 캔버스도 다른 사이드바 내용물처럼 조상의 zoom을
+  // 딱 한 번만 물려받아 정확히 비례해서 작아짐
+  ctx.width = 212;
+  ctx.height = 174;
+
   myRadarChart = new Chart(ctx, {
     type: "radar",
     data: {
@@ -155,7 +169,11 @@ function renderSafetyChart(fields) {
           },
         },
       },
-      maintainAspectRatio: false, // 부모 박스 크기에 맞춰 꽉 차게 조절
+      // 위에서 캔버스 크기를 고정값(212x174)으로 직접 넣어줬으므로,
+      // Chart.js가 컨테이너 크기를 자동으로 재서 다시 맞추지 않게 끔.
+      // (responsive:true였을 때 zoom과 겹쳐 이중 축소되던 문제 때문)
+      responsive: false,
+      maintainAspectRatio: false,
     },
   });
 }
@@ -349,10 +367,12 @@ function openQuestionDetail(questionId) {
   currentSidebarState.currentQuestionId = questionId;
 
   const titleEl = document.getElementById("qnaDetailTitle");
+  const userEl = document.getElementById("qnaDetailUser");
+  const dateEl = document.getElementById("qnaDetailDate");
   const ansContainer = document.getElementById("qnaAnswerContainer");
   const ansCountEl = document.getElementById("qnaDetailAnsCount");
 
-  fetch(`/qna/question/${questionId}/`)
+  fetch(`/qna/question/${questionId}/?fragment=1`)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`질문 상세 fetch 실패 (상태코드 ${res.status})`);
@@ -363,10 +383,25 @@ function openQuestionDetail(questionId) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 씀
+      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 씀.
+      // qna/detail.html에서 이 문단의 실제 id는 question-view-text인데
+      // (인라인 수정 토글용) 여기선 계속 존재하지 않는 qna-question-content를
+      // 찾고 있어서 항상 빈 문자열이 들어갔었음(질문 내역이 안 뜨던 원인)
       const questionText =
-        doc.getElementById("qna-question-content")?.textContent || "";
+        doc.getElementById("question-view-text")?.textContent.trim() || "";
       if (titleEl) titleEl.textContent = questionText;
+
+      // 사용자명/작성 일시: 사이드바의 #qnaDetailUser, #qnaDetailDate는
+      // "작성자"/"날짜" placeholder만 있고 실제 값을 채워주는 코드가
+      // 아예 없었음. detail.html에 새로 추가한 qna-question-user/
+      // qna-question-date를 읽어서 채움
+      const questionUser =
+        doc.getElementById("qna-question-user")?.textContent.trim() || "";
+      if (userEl && questionUser) userEl.textContent = questionUser;
+
+      const questionDate =
+        doc.getElementById("qna-question-date")?.textContent.trim() || "";
+      if (dateEl && questionDate) dateEl.textContent = questionDate;
 
       // 답변 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
       // Django가 렌더링한 #qnaAnswerContainer의 HTML을 그대로 옮겨 붙임
@@ -434,9 +469,11 @@ function bindAnswerSubmit() {
         // accounts.decorators.verified_residence_required가 실거주지 인증이
         // 안 됐거나 인증한 동네와 이 질문의 동네가 다르면 403으로 내려줌
         if (res.status === 403) {
-          alert(
-            "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.",
-          );
+          // 후기 쪽과 같은 공용 안내 모달(static/components/modals/infoModal.js) 재사용
+          window.showInfoModal?.({
+            title: "실거주지 <span>인증</span>이 필요해요",
+            desc: "마이페이지에서 실거주지 인증을 해주세요.",
+          });
           return;
         }
         if (!res.ok) {
@@ -446,7 +483,10 @@ function bindAnswerSubmit() {
         input.value = "";
         // 방금 등록한 답변까지 반영된 최신 상세를 다시 그림
         openQuestionDetail(questionId);
-        alert("답변이 등록되었습니다.");
+        window.showInfoModal?.({
+          title: "답변이 <span>등록</span>되었습니다!",
+          desc: "소중한 답변이 다른 사용자에게<br>큰 도움이 됩니다.",
+        });
       })
       .catch((err) => {
         console.error("답변 등록 중 오류:", err);
@@ -963,12 +1003,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    ratingBox.addEventListener("mousemove", (e) => {
+    // 클릭 시점의 좌표로 직접 별점을 계산함 (mousemove가 미리 채워둔
+    // hoveredRating을 그대로 믿지 않음). 예전엔 click 핸들러가
+    // "hoveredRating === 0이면 무시"했는데, 트랙패드 탭이나 빠른 클릭처럼
+    // click 이벤트가 mousemove보다 먼저(또는 mousemove 없이) 발생하면
+    // hoveredRating이 아직 0으로 남아있어서 별을 눌러도 data-score가
+    // 실제로는 안 채워지는 경우가 있었음(시각적으로는 채워진 것처럼
+    // 보여서 "다 눌렀는데 오류난다"는 문제로 이어짐)
+    const computeRatingFromEvent = (e) => {
       const rect = ratingBox.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const width = rect.width;
       const value = Math.ceil((x / width) * RATING_COUNT * 2) / 2;
-      hoveredRating = Math.min(Math.max(value, 0.5), RATING_COUNT);
+      return Math.min(Math.max(value, 0.5), RATING_COUNT);
+    };
+
+    ratingBox.addEventListener("mousemove", (e) => {
+      hoveredRating = computeRatingFromEvent(e);
       updateStars(hoveredRating);
     });
 
@@ -977,9 +1028,8 @@ document.addEventListener("DOMContentLoaded", () => {
       updateStars(currentRating);
     });
 
-    ratingBox.addEventListener("click", () => {
-      if (hoveredRating === 0) return;
-      currentRating = hoveredRating;
+    ratingBox.addEventListener("click", (e) => {
+      currentRating = computeRatingFromEvent(e);
       updateStars(currentRating);
       ratingBox.setAttribute("data-score", currentRating);
     });
@@ -1134,7 +1184,10 @@ document.addEventListener("DOMContentLoaded", () => {
           scores.convenience === 0 ||
           scores.atmosphere === 0
         ) {
-          alert("모든 항목의 만족도 별점을 선택해주세요.");
+          window.showInfoModal?.({
+            title: "별점을 <span>선택</span>해주세요",
+            desc: "모든 항목의 만족도 별점을 선택해주세요.",
+          });
           return;
         }
         if (!text.trim()) {
@@ -1194,9 +1247,15 @@ document.addEventListener("DOMContentLoaded", () => {
               } catch (e) {
                 console.warn("작성 중이던 후기 임시 저장 실패:", e);
               }
-              throw new Error(
+              // 이 케이스는 일반 실패가 아니라 "마이페이지 가서 인증하고
+              // 오면 이어서 쓸 수 있어요"라는 안내라, 아래 catch에서
+              // 평범한 alert 대신 안내 모달(showInfoModal)을 띄우도록
+              // 표시해둠 (구분 없이 catch로 넘어가면 그냥 alert가 뜸)
+              const err = new Error(
                 "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 하고 돌아오면 작성 중이던 후기가 그대로 남아있어요.",
               );
+              err.isResidenceRequired = true;
+              throw err;
             }
             // 성공하면 서버가 reviews:list로 redirect하고, fetch가 그걸 따라가서
             // 최종 res.url이 .../create/ 없이 끝남. 폼 검증 실패 시엔 redirect 없이
@@ -1238,10 +1297,19 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           .catch((err) => {
             console.error("후기 등록 실패:", err);
-            alert(
-              err.message ||
-                "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
-            );
+            if (err.isResidenceRequired) {
+              // 일반 실패 alert 대신, 후기 작성 완료 때 쓰는 것과 같은
+              // 안내 모달(static/components/modals/infoModal.js)을 재사용
+              window.showInfoModal?.({
+                title: "실거주지 <span>인증</span>이 필요해요",
+                desc: "마이페이지에서 실거주지 인증을 하고 돌아오면<br>작성 중이던 후기가 그대로 남아있어요.",
+              });
+            } else {
+              alert(
+                err.message ||
+                  "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
+              );
+            }
           })
           .finally(() => {
             if (submitBtn) submitBtn.disabled = false;
@@ -1287,7 +1355,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           })
           .then(() => {
-            alert("질문이 성공적으로 등록되었습니다!");
+            window.showInfoModal?.({
+              // "성공적으로"까지 넣으면 모달 너비(320px) 기준 한 줄에 안 들어가서
+              // "!"만 다음 줄로 밀려 잘려 보였음. 다른 모달 제목들(후기/답변
+              // 등록)과 길이를 맞춰서 한 줄에 들어오게 줄임
+              title: "질문이 <span>등록</span>되었습니다!",
+              desc: "궁금한 점을 이웃에게 물어보세요.",
+            });
 
             // Q&A 폼 초기화 코드
             // 1. 텍스트 영역 비우기 및 글자수 표기 리셋
@@ -1365,6 +1439,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const locBtn = document.querySelector(".mapOverlay-locationBtn");
   console.log("현재위치 버튼 찾음?:", locBtn); // null이면 셀렉터가 틀린 것
 
+  // 이미 요청이 진행 중일 때 또 클릭하면, enableHighAccuracy:true라 응답이
+  // 느린 첫 요청이 아직 안 끝난 채로 두 번째 요청이 겹쳐 실행됨 - 둘 중
+  // 느린 쪽이 5초 타임아웃으로 실패 알림을 먼저 띄우고, 그 알림이
+  // alert()라 화면을 막고 있는 동안 다른 쪽 요청이 성공해서 대기하다가,
+  // 알림을 닫는 순간 밀려있던 성공 콜백이 실행돼 갑자기 위치가 이동하는
+  //것처럼 보였음(권한은 이미 허용돼 있는데도 실패 알림 -> 확인 누르면
+  // 이동). 요청이 진행 중이면 버튼을 다시 눌러도 새 요청을 안 만들게 막음
+  let gpsRequestInFlight = false;
+
   locBtn?.addEventListener("click", () => {
     console.log("버튼 클릭됨!");
 
@@ -1373,8 +1456,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (gpsRequestInFlight) return;
+    gpsRequestInFlight = true;
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        gpsRequestInFlight = false;
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
@@ -1395,13 +1482,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       },
       (err) => {
+        gpsRequestInFlight = false;
         console.error("위치 정보를 가져오지 못했습니다:", err);
         alert("위치 정보를 가져오지 못했어요. 위치 권한을 확인해주세요.");
       },
       {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+        // enableHighAccuracy:true + timeout:5000은 실내/노트북 환경에서
+        // GPS 정밀 측위를 5초 안에 못 끝내 타임아웃 에러가 잦았음(권한은
+        // 이미 허용돼 있어도 실패). 이 지도는 동네 단위 안심맵이라 그
+        // 정도 정밀도는 필요 없어서 정확도를 낮추고, 시간 여유를 늘리고,
+        // 1분 이내 캐시된 위치가 있으면 그걸 바로 써서 버튼 누른 뒤
+        // 체감 딜레이도 같이 줄임
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 60000,
       },
     );
   });
@@ -1547,7 +1641,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (!draft || !draft.legalDongId) return;
 
-    // 1. 지도 클릭과 동일한 진입점으로 해당 동네 사이드바를 다시 연다.
+    // 1. 지도 클릭/검색 선택과 똑같이 사이드바를 열고 폴리곤을 그린다.
+    // updateSidebarTitle은 "이미 열려있는 사이드바"의 텍스트/데이터만
+    // 채워줄 뿐 사이드바를 열거나 지도에 폴리곤을 그려주지는 않아서,
+    // 이 두 줄이 빠지면 데이터는 다 채워지는데 화면엔 안 보여서
+    // 안심맵이 초기화된 것처럼 보이는 문제가 있었음
+    document.querySelector(".rightSB-aside")?.classList.add("open");
+    if (typeof window.showLegalDongOnMap === "function") {
+      window.showLegalDongOnMap(draft.legalDongName);
+    }
+
+    // 2. 지도 클릭과 동일한 진입점으로 사이드바 텍스트/데이터를 채운다.
     if (typeof window.updateSidebarTitle === "function") {
       window.updateSidebarTitle(
         draft.detailDongName || draft.legalDongName,
@@ -1557,17 +1661,17 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    // 2. 후기 탭으로 전환 (기존 클릭 핸들러 재사용)
+    // 3. 후기 탭으로 전환 (기존 클릭 핸들러 재사용)
     document
       .querySelector(".rightSB-navbar-menu.rightSB-reviewSelected")
       ?.click();
 
-    // 3. 탭 전환은 기본적으로 "목록" 화면을 보여주므로, 작성 폼으로 다시 전환
+    // 4. 탭 전환은 기본적으로 "목록" 화면을 보여주므로, 작성 폼으로 다시 전환
     reviewListSub?.classList.add("rightSB-hide");
     reviewFormSub?.classList.remove("rightSB-hide");
     updateBottomButtons();
 
-    // 4. 작성 중이던 텍스트/글자수 복원
+    // 5. 작성 중이던 텍스트/글자수 복원
     const textarea = reviewFormSub?.querySelector(".rightSB-reviewContent");
     if (textarea && draft.text) {
       textarea.value = draft.text;
@@ -1577,7 +1681,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (charSpan) charSpan.textContent = String(draft.text.length);
     }
 
-    // 5. 만족도 별점 복원 (handleStarRating의 clip-path 계산과 동일한 로직)
+    // 6. 만족도 별점 복원 (handleStarRating의 clip-path 계산과 동일한 로직)
     if (draft.scores) {
       Object.keys(draft.scores).forEach((type) => {
         const score = draft.scores[type];
@@ -1603,9 +1707,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    alert(
-      "실거주지 인증이 완료돼서, 작성 중이던 후기를 다시 불러왔어요. 확인하고 등록해주세요!",
-    );
+    // 이 안내도 후기 작성 완료/실거주지 인증 필요 안내와 같은
+    // 공용 모달(static/components/modals/infoModal.js)로 통일함
+    window.showInfoModal?.({
+      title: "실거주지 <span>인증</span>이 완료됐어요!",
+      desc: "작성 중이던 후기를 다시 불러왔어요.<br>확인하고 등록해주세요!",
+    });
   })();
 
 });
