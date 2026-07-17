@@ -12,4 +12,5 @@ urlpatterns =[
   path('profile/residence/set/', views.set_residence, name='set_residence'),
   path('profile/residence/confirm/', views.confirm_residence, name='confirm_residence'),
   path('grid/<int:grid_id>/check-saved/', views.check_saved_grid, name='check_saved'),
+  path('profile/edit/', views.profile_edit_view, name='profile_edit'),
 ]

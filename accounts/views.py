@@ -1,9 +1,9 @@
 # Create your views here.
 import json
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
-from .forms import SignUpForm, LoginForm
+from .forms import SignUpForm, LoginForm, ProfileEditForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from grids.models import Grid
@@ -208,3 +208,81 @@ def confirm_residence(request):  # GPS 인증
 def check_saved_grid(request, grid_id):
     is_saved = SavedGrid.objects.filter(user=request.user, grid_id=grid_id).exists()
     return JsonResponse({'saved': is_saved})
+
+def _build_profile_context(request):
+    """profile_view와 profile_edit_view(실패 시)가 공유하는 context 생성 로직"""
+    reviews = list(
+        Review.objects.filter(user=request.user).select_related('grid')
+    )
+    for review in reviews:
+        review.star_width = _star_fill_width(review.average_rating)
+
+    questions = Question.objects.filter(user=request.user).select_related('grid').prefetch_related('answers')
+    answers = Answer.objects.filter(user=request.user).select_related('question', 'question__grid')
+
+    saved_grids = list(SavedGrid.objects.filter(user=request.user).select_related('grid'))
+    for saved in saved_grids:
+        saved.grade_label = _safety_grade_label(saved.grid.safety_score)
+
+    context = {
+        'reviews': reviews,
+        'questions': questions,
+        'answers': answers,
+        'saved_grids': saved_grids,
+        'legal_grids': Grid.objects.filter(is_legal_dong=True),
+    }
+    return context
+
+
+@login_required
+def profile_view(request):
+    """
+    원래 목업(mypage.html)은 메뉴 클릭 시 JS가 보이기/숨기기만 하는 SPA
+    구조. 이걸 4개 뷰로 나누면 메뉴 전환마다 새로고침되어 UX가 깨지므로,
+    이 뷰 하나에서 4개 뷰의 데이터를 모아 한 번에 렌더링하고 프론트는 기존
+    mypage.js의 탭 전환(클래스 토글만, 새 요청 없음)을 그대로 사용.
+    """
+    context = _build_profile_context(request)
+    return render(request, 'accounts/profile.html', context)
+
+
+@login_required
+def profile_edit_view(request):
+    if request.method != 'POST':
+        return redirect('accounts:profile')
+
+    user = request.user
+    form = ProfileEditForm(request.POST, instance=user)
+
+    if form.is_valid():
+        grid_id = form.cleaned_data.get('grid_id')
+        new_password1 = form.cleaned_data.get('new_password1')
+
+        edited_user = form.save(commit=False)
+
+        # 거주지가 실제로 바뀌었을 때만 갱신 + 기존 인증 해제
+        # (verified_at을 지우면 verification_expires_at, has_valid_verification은
+        #  프로퍼티라 자동으로 같이 무효화됨)
+        if grid_id and (not user.verified_grid_id or user.verified_grid_id != grid_id):
+            grid = get_object_or_404(Grid, pk=grid_id, is_legal_dong=True)
+            edited_user.verified_grid = grid
+            edited_user.is_verified = False
+            edited_user.verified_at = None
+
+        if new_password1:
+            edited_user.set_password(new_password1)
+
+        edited_user.save()
+
+        if new_password1:
+            update_session_auth_hash(request, edited_user)
+
+        return redirect('accounts:profile')
+
+    # 유효성 실패 시, profile_view와 같은 context 재사용 + 폼/에러/수정모드 플래그만 추가
+    context = _build_profile_context(request)
+    context.update({
+        'form': form,
+        'edit_mode_error': True,
+    })
+    return render(request, 'accounts/profile.html', context)
