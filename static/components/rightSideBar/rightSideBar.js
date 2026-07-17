@@ -1169,8 +1169,26 @@ document.addEventListener("DOMContentLoaded", () => {
             // accounts.decorators.verified_residence_required가 실거주지
             // 인증이 안 됐거나 인증한 동네랑 grid가 다르면 403 호출
             if (res.status === 403) {
+              // 🎯 마이페이지에서 인증하고 돌아왔을 때 작성 중이던 내용을
+              // 그대로 복원할 수 있도록 sessionStorage에 임시 저장해둠.
+              // (아래 DOMContentLoaded 핸들러 끝의 restorePendingReview 참고)
+              try {
+                sessionStorage.setItem(
+                  "hereton_pendingReview",
+                  JSON.stringify({
+                    legalDongId,
+                    legalDongName: currentSidebarState.legalDongName,
+                    detailDongName: currentSidebarState.detailDongName,
+                    detailDongId: currentSidebarState.detailDongId,
+                    text,
+                    scores,
+                  }),
+                );
+              } catch (e) {
+                console.warn("작성 중이던 후기 임시 저장 실패:", e);
+              }
               throw new Error(
-                "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.",
+                "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 하고 돌아오면 작성 중이던 후기가 그대로 남아있어요.",
               );
             }
             // 성공하면 서버가 reviews:list로 redirect하고, fetch가 그걸 따라가서
@@ -1481,4 +1499,84 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
   }
+
+  // =====================================================================
+  // 🎯 실거주지 인증하러 갔다가 돌아왔을 때, 작성 중이던 후기를 복원.
+  // 위 [G] 등록하기 처리에서 403(미인증)을 받으면 sessionStorage에 저장해두고,
+  // 마이페이지에서 인증 후 다시 지도 페이지(이 스크립트)가 로드될 때 여기서
+  // 그 내용을 그대로 불러와 후기 작성 폼에 다시 채워준다.
+  // =====================================================================
+  (function restorePendingReview() {
+    const raw = sessionStorage.getItem("hereton_pendingReview");
+    if (!raw) return;
+    sessionStorage.removeItem("hereton_pendingReview"); // 한 번만 복원
+
+    let draft;
+    try {
+      draft = JSON.parse(raw);
+    } catch (e) {
+      return;
+    }
+    if (!draft || !draft.legalDongId) return;
+
+    // 1. 지도 클릭과 동일한 진입점으로 해당 동네 사이드바를 다시 연다.
+    if (typeof window.updateSidebarTitle === "function") {
+      window.updateSidebarTitle(
+        draft.detailDongName || draft.legalDongName,
+        draft.legalDongName,
+        draft.legalDongId,
+        draft.detailDongId || draft.legalDongId,
+      );
+    }
+
+    // 2. 후기 탭으로 전환 (기존 클릭 핸들러 재사용)
+    document
+      .querySelector(".rightSB-navbar-menu.rightSB-reviewSelected")
+      ?.click();
+
+    // 3. 탭 전환은 기본적으로 "목록" 화면을 보여주므로, 작성 폼으로 다시 전환
+    reviewListSub?.classList.add("rightSB-hide");
+    reviewFormSub?.classList.remove("rightSB-hide");
+    updateBottomButtons();
+
+    // 4. 작성 중이던 텍스트/글자수 복원
+    const textarea = reviewFormSub?.querySelector(".rightSB-reviewContent");
+    if (textarea && draft.text) {
+      textarea.value = draft.text;
+      const charSpan = reviewFormSub.querySelector(
+        ".rightSB-currentChars > span",
+      );
+      if (charSpan) charSpan.textContent = String(draft.text.length);
+    }
+
+    // 5. 만족도 별점 복원 (handleStarRating의 clip-path 계산과 동일한 로직)
+    if (draft.scores) {
+      Object.keys(draft.scores).forEach((type) => {
+        const score = draft.scores[type];
+        if (!score) return;
+        const box = document.querySelector(
+          `.rightSB-rating[data-type="${type}"]`,
+        );
+        if (!box) return;
+        box.setAttribute("data-score", score);
+        const stars = box.children;
+        for (let i = 0; i < stars.length; i++) {
+          const fillTarget = stars[i].querySelector(".rightSBstar-fill");
+          if (!fillTarget) continue;
+          const starIndex = i + 1;
+          let fillPercentage;
+          if (starIndex <= score) fillPercentage = 0;
+          else if (starIndex - score === 0.5) fillPercentage = 50;
+          else fillPercentage = 100;
+          fillTarget.style.clipPath = `inset(0 ${fillPercentage}% 0 0)`;
+          if (starIndex <= score) stars[i].classList.add("filled");
+          else stars[i].classList.remove("filled");
+        }
+      });
+    }
+
+    alert(
+      "실거주지 인증이 완료돼서, 작성 중이던 후기를 다시 불러왔어요. 확인하고 등록해주세요!",
+    );
+  })();
 });
