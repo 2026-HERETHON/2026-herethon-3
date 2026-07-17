@@ -110,9 +110,9 @@ def _safety_grade_label(score):
 def profile_view(request):
     """
     원래 목업(mypage.html)은 메뉴 클릭 시 JS가 보이기/숨기기만 하는 SPA
-    구조였다. 이걸 4개 뷰로 나누면 메뉴 전환마다 새로고침되어 UX가 깨지므로,
+    구조. 이걸 4개 뷰로 나누면 메뉴 전환마다 새로고침되어 UX가 깨지므로,
     이 뷰 하나에서 4개 뷰의 데이터를 모아 한 번에 렌더링하고 프론트는 기존
-    mypage.js의 탭 전환(클래스 토글만, 새 요청 없음)을 그대로 쓴다.
+    mypage.js의 탭 전환(클래스 토글만, 새 요청 없음)을 그대로 사용.
     """
     reviews = list(
         Review.objects.filter(user=request.user).select_related('grid')
@@ -155,14 +155,6 @@ def saved_grid_toggle(request, grid_id):
     return JsonResponse({'saved': is_saved})
 
 @login_required
-def profile_residence_view(request):
-    context = {}
-    if not request.user.verified_grid:
-        context['legal_grids'] = Grid.objects.filter(is_legal_dong=True)
-    return render(request, 'accounts/profile_residence.html', context)
-
-
-@login_required
 @require_POST
 def set_residence(request):  # 실거주지 "설정" (인증 아님, 선언만)
     grid_id = request.POST.get('grid_id')
@@ -181,8 +173,8 @@ def set_residence(request):  # 실거주지 "설정" (인증 아님, 선언만)
 def confirm_residence(request):  # GPS 인증
     # 예전엔 requests.post()로 자기 자신의 /grids/verify-location/을
     # 호출했는데, gunicorn worker 1개뿐인 환경에서 그 worker가 자기 응답을
-    # 기다리며 막혀 502로 죽었다. check_dong_contains_point를 직접 호출해
-    # 네트워크 왕복 자체를 없앴다.
+    # 기다리며 막혀 502로 죽는 문제 있었음. check_dong_contains_point를
+    # 직접 호출해 네트워크 왕복 자체를 없앰
     user = request.user
     if not user.verified_grid:
         return JsonResponse({'error': '먼저 실거주지를 설정해주세요.'}, status=400)
@@ -211,27 +203,6 @@ def confirm_residence(request):  # GPS 인증
 
     return JsonResponse({'verified': False, 'message': f'현재 위치가 {dong}과 일치하지 않아요.'})
 
-
-# 마이페이지: 내가 작성한 글
-
-@login_required
-def profile_posts_view(request):
-    context = {
-        'reviews': Review.objects.filter(user=request.user).select_related('grid'),
-        'questions': Question.objects.filter(user=request.user).select_related('grid').prefetch_related('answers'),
-        'answers': Answer.objects.filter(user=request.user).select_related('question', 'question__grid'),
-    }
-    return render(request, 'accounts/profile_posts.html', context)
-
-
-# 마이페이지: 찜한 동네 
-
-@login_required
-def profile_saved_view(request):
-    context = {
-        'saved_grids': SavedGrid.objects.filter(user=request.user).select_related('grid'),
-    }
-    return render(request, 'accounts/profile_saved.html', context)
 
 @login_required
 def check_saved_grid(request, grid_id):

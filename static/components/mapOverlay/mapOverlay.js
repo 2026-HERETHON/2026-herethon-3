@@ -1,8 +1,8 @@
 // ===== 지역 데이터 (실제 API 연동) =====
 // 시/도 목록은 대한민국 17개 시/도 고정 목록이고, 그 아래 구/동은
 // backend grids API(/grids/districts/, /grids/?is_legal_dong=true)에서
-// 실제 데이터를 받아와 채운다. 아직 데이터가 없는 시/도·구는 목록엔 보이되
-// 하위 항목은 "-"로 표시된다.
+// 실제 데이터를 받아와 채움. 아직 데이터가 없는 시/도·구는 목록엔 보이되
+// 하위 항목은 "-"로 표시됨
 const SIDO_LIST = [
   "서울특별시",
   "부산광역시",
@@ -40,7 +40,7 @@ const dongHasData = {};
 
 // 법정동 참고 목록 (아직 안심 데이터는 없지만, 실제 존재하는 법정동이라
 // 미리 보여주고 "(준비중)"으로 표시해두는 목록. 데이터가 채워지면 자동으로
-// dongHasData가 true가 되면서 "(준비중)" 표시가 사라진다.)
+// dongHasData가 true가 되면서 "(준비중)" 표시가 사라짐.)
 const LEGAL_DONG_REFERENCE = {
   노원구: ["상계동", "중계동", "하계동", "월계동", "공릉동"],
   관악구: ["신림동", "봉천동", "남현동"],
@@ -75,7 +75,7 @@ async function loadMapOverlayRegionData() {
       });
     }
   } catch (err) {
-    console.error("🚨 구 목록(districts) 로딩 실패:", err);
+    console.error("구 목록(districts) 로딩 실패:", err);
   }
 
   // 2) 실제 법정동 목록 + 상세 데이터(안심점수, 시설 개수, 좌표)
@@ -103,7 +103,7 @@ async function loadMapOverlayRegionData() {
       });
     }
   } catch (err) {
-    console.error("🚨 법정동 목록(grids) 로딩 실패:", err);
+    console.error("법정동 목록(grids) 로딩 실패:", err);
   }
 
   // 3) 아직 데이터는 없지만 실제 존재하는 법정동을 참고 목록으로 추가 ("(준비중)" 표시용)
@@ -203,7 +203,7 @@ function moveMapToSelectedDong() {
 
   // 예전엔 여기서 grid.latitude/longitude로 직접 이동시켰는데, 이제는
   // window.showLegalDongOnMap()이 폴리곤 중심(centroid)으로 이동까지
-  // 처리해준다 (아래 호출 참고).
+  // 처리해줌 (아래 호출 참고)
 
   const sidebar = document.querySelector(".rightSB-aside");
   if (sidebar) sidebar.classList.add("open");
@@ -213,7 +213,7 @@ function moveMapToSelectedDong() {
   }
 
   // 드롭다운으로 선택된 법정동도 검색과 동일하게 취급해서
-  // 폴리곤 + 법정동 안심점수 인포윈도우를 지도 위에 표시한다.
+  // 폴리곤 + 법정동 안심점수 인포윈도우를 지도 위에 표시함
   if (window.showLegalDongOnMap) {
     window.showLegalDongOnMap(grid.dong);
   }
@@ -339,14 +339,14 @@ function updateInfoBox() {
 }
 
 // =====================================================================
-// 지도에서 "행정동 폴리곤"을 클릭했을 때 kakaoMap.js가 호출한다.
+// 지도에서 "행정동 폴리곤"을 클릭했을 때 kakaoMap.js가 호출함
 // 클릭된 행정동 grid(cctv_count 등 포함)를 그대로 넘겨받아 하단 정보
-// 박스를 그 행정동 기준 개수로 바꾼다. (드롭다운/법정동 로직과 독립)
+// 박스를 그 행정동 기준 개수로 바꿈 (드롭다운/법정동 로직과 독립)
 // =====================================================================
 window.updateMapOverlayInfoBoxForAdminDong = function (adminGrid) {
   renderInfoBox(adminGrid);
 
-  // 폴리곤(행정동)을 클릭하면, 접혀있던 하단 정보 박스를 자동으로 펼친다.
+  // 폴리곤(행정동)을 클릭하면, 접혀있던 하단 정보 박스를 자동으로 펼침
   if (infoList.classList.contains("mapOverlay-hide")) {
     infoList.classList.remove("mapOverlay-hide");      // 항목들 보이기
     infoToggle.classList.remove("mapOverlay-flipped"); // 화살표 원위치(펼침 상태)

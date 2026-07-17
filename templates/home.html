@@ -16,7 +16,11 @@
     <link rel="stylesheet" href="commercial/commercial.css" />
     <link rel="icon" href="{% static 'favicon.svg' %}">
   </head>
-  <body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}">
+  <body
+    data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+    data-profile-url="{% url 'accounts:profile' %}"
+    data-logout-url="{% url 'accounts:logout' %}"
+  >
     <!--nav-->
     <nav>
       <div id="navbar-container">
@@ -376,10 +380,10 @@
                   </main>
 
         <!-- rightSB-aside는 열리기 전엔 translateX(100%)로 화면 밖에 있어서,
-             그 안에 두면 GPS 버튼도 같이 사라진다. 그래서 aside 바깥 형제로 빼서
+             그 안에 두면 GPS 버튼도 같이 사라짐. 그래서 aside 바깥 형제로 빼서
              항상 화면에 떠 있게 하고, position:fixed + JS(syncGpsButtonPosition)가
              .rightSB-aside/​#rightSideBar-container의 open/collapsed 상태를
-             지켜보다가 패널 폭만큼 왼쪽으로 이동시켜준다. -->
+             지켜보다가 패널 폭만큼 왼쪽으로 이동 -->
         <div class="mapOverlay-locationBtn">
           <img src="./components/mapOverlay/mapOverlay-images/gps.svg" />
         </div>
@@ -781,7 +785,7 @@
       <!--제휴서비스 페이지-->
       <!-- 예전엔 별도 페이지(/commercial/)로 이동해서 안심맵으로 돌아올 때
            화면이 새로고침됐는데, 이제 다른 탭과 같이 이 안에 내용을 통째로
-           넣어서 nav는 유지한 채 콘텐츠만 바뀌게 한다. -->
+           넣어서 nav는 유지한 채 콘텐츠만 바뀌게 함 -->
       <div id="page-commercial" class="main-page-group main-page-hide">
         <div class="commercial-container">
           <!-- 1. 왼쪽 사이드바 -->

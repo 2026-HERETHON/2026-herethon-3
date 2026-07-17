@@ -109,8 +109,8 @@ def facility_list(request):
 #
 # accounts.views.confirm_residence가 예전엔 이 판정을 requests.post()로
 # 자기 자신(/grids/verify-location/)에게 호출했는데, gunicorn worker가
-# 1개뿐인 환경에서는 그 worker가 자기 응답을 기다리며 막혀 502로 죽었다.
-# 그래서 판정 로직을 순수 함수로 분리해 HTTP 왕복 없이 직접 호출한다.
+# 1개뿐인 환경에서는 그 worker가 자기 응답을 기다리며 막혀 502로 죽는 문제
+# 있었음. 그래서 판정 로직을 순수 함수로 분리해 HTTP 왕복 없이 직접 호출.
 def check_dong_contains_point(dong, lat, lon):
     """GPS 좌표가 지정한 법정동 경계 안에 있는지 판정 (내부 재사용용).
     반환: (is_verified: bool|None, error: dict|None)"""

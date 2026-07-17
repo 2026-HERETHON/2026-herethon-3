@@ -9,7 +9,7 @@ let legalDongCache = {};
 
 // 검색 전에는 폴리곤을 하나도 그리지 않으므로, 실제 폴리곤을 그릴 때 바로
 // 쓸 수 있도록 법정동/행정동 원본 데이터(경계 geojson + 안심점수 등)를
-// 백그라운드에서 미리 캐싱해둔다.
+// 백그라운드에서 미리 캐싱해둠
 let legalDongGridCache = {}; // { "상계동": {전체 fields...} } - 법정동(is_legal_dong=true) 전용
 let adminDongList = []; // is_legal_dong=false 전체 목록 (dong_group으로 소속 법정동 찾음)
 
@@ -23,7 +23,7 @@ let currentHiddenAdminLabel = null; // 인포윈도우 보여주려고 숨겨둔
 // =====================================================================
 // 표준 레이캐스팅 point-in-polygon 판정 (행정동 클릭 시 중심 이동 보정용).
 // 동네 규모의 좁은 범위라 위경도를 평면 좌표처럼 취급해도 오차가 무시할
-// 수준이라 이렇게 간단히 구현해도 충분하다.
+// 수준이라 이렇게 간단히 구현해도 충분함
 // =====================================================================
 function isPointInPolygonPath(point, path) {
     const x = point.getLng();
@@ -46,9 +46,9 @@ function isPointInPolygonPath(point, path) {
 }
 
 // 지도를 클릭 좌표(clickLatLng) 쪽으로 옮기되, 그 결과로 마우스 커서 밑의
-// 실제 좌표가 법정동 폴리곤을 벗어나면 안 된다. oldCenter -> clickLatLng
+// 실제 좌표가 법정동 폴리곤을 벗어나면 안 됨. oldCenter -> clickLatLng
 // 방향 이동 비율 t(0~1)를 이진 탐색해서, 커서가
-// 폴리곤 안에 머무르는 한도 내에서 최대한 클릭 좌표 쪽으로 이동할 목표 지점을 구한다.
+// 폴리곤 안에 머무르는 한도 내에서 최대한 클릭 좌표 쪽으로 이동할 목표 지점을 구함
 function getClampedPanTarget(oldCenter, clickLatLng, legalPolygonPath) {
     if (!legalPolygonPath || legalPolygonPath.length === 0) return clickLatLng;
 
@@ -57,7 +57,7 @@ function getClampedPanTarget(oldCenter, clickLatLng, legalPolygonPath) {
 
     // t만큼 이동했을 때, 마우스 커서 밑에 오게 되는 실제 좌표
     // (커서는 화면상 고정, 지도만 (target - oldCenter)만큼 움직이므로
-    //  커서 밑 좌표는 clickLatLng + t*(clickLatLng - oldCenter)가 된다)
+    //  커서 밑 좌표는 clickLatLng + t*(clickLatLng - oldCenter)가 됨)
     const cursorGeoAtT = (t) =>
         new kakao.maps.LatLng(
             clickLatLng.getLat() + t * dLat,
@@ -70,7 +70,7 @@ function getClampedPanTarget(oldCenter, clickLatLng, legalPolygonPath) {
     }
 
     // 이진 탐색: t=0(항상 안전 - 커서 밑 좌표가 clickLatLng 그 자체)부터
-    // t=1(위험) 사이에서, 커서가 폴리곤 안에 머무르는 최대 t를 찾는다.
+    // t=1(위험) 사이에서, 커서가 폴리곤 안에 머무르는 최대 t를 찾음
     let lo = 0;
     let hi = 1;
     for (let i = 0; i < 14; i++) {
@@ -99,7 +99,7 @@ function getColorBySafetyScore(score) {
 // 디버그 로그가 추가된 파서
 function geoJsonToKakaoPath(boundaryGeojsonStr) {
     if (!boundaryGeojsonStr) {
-        console.warn("⚠️ boundary_geojson 필드가 비어있습니다.");
+        console.warn("boundary_geojson 필드가 비어있습니다.");
         return [];
     }
 
@@ -108,22 +108,22 @@ function geoJsonToKakaoPath(boundaryGeojsonStr) {
 
         // 원본 타입 확인 (제일 중요한 단서!)
         console.log(
-            "🔍 boundary 원본 타입:",
+            "boundary 원본 타입:",
             typeof boundary,
             boundary?.slice ? boundary.slice(0, 80) : boundary,
         );
 
         if (typeof boundary === "string") {
             boundary = JSON.parse(boundary);
-            console.log("🔍 1차 파싱 후 타입:", typeof boundary);
+            console.log("1차 파싱 후 타입:", typeof boundary);
         }
         if (typeof boundary === "string") {
             boundary = JSON.parse(boundary);
-            console.log("🔍 2차 파싱 후 타입:", typeof boundary);
+            console.log("2차 파싱 후 타입:", typeof boundary);
         }
 
         if (!boundary || !boundary.type) {
-            console.warn("⚠️ boundary.type이 없습니다. 실제 구조:", boundary);
+            console.warn("boundary.type이 없습니다. 실제 구조:", boundary);
             return [];
         }
 
@@ -134,23 +134,23 @@ function geoJsonToKakaoPath(boundaryGeojsonStr) {
         } else if (boundary.type === "MultiPolygon") {
             // MultiPolygon은 한 단계 더 깊이 들어가야 함: coordinates[polygon idx][ring idx]
             ring = boundary.coordinates?.[0]?.[0];
-            console.log("ℹ️ MultiPolygon 감지 - 첫 번째 폴리곤만 사용");
+            console.log("MultiPolygon 감지 - 첫 번째 폴리곤만 사용");
         } else {
-            console.warn("⚠️ 지원하지 않는 geometry type:", boundary.type);
+            console.warn("지원하지 않는 geometry type:", boundary.type);
             return [];
         }
 
         if (!ring || !Array.isArray(ring) || ring.length === 0) {
-            console.warn("⚠️ 유효하지 않은 coordinates 구조입니다:", boundary);
+            console.warn("유효하지 않은 coordinates 구조입니다:", boundary);
             return [];
         }
 
         const path = ring.map(([lng, lat]) => new kakao.maps.LatLng(lat, lng));
-        console.log(`✅ 좌표 ${path.length}개 파싱 완료`);
+        console.log(`좌표 ${path.length}개 파싱 완료`);
         return path;
     } catch (error) {
         console.error(
-            "🚨 boundary_geojson 파싱 실패:",
+            "boundary_geojson 파싱 실패:",
             error,
             "원본 데이터:",
             boundaryGeojsonStr,
@@ -161,7 +161,7 @@ function geoJsonToKakaoPath(boundaryGeojsonStr) {
 
 // 폴리곤 path(꼭짓점 배열)로 실제 도형 중심(centroid)을 계산.
 // DB의 grid.latitude/longitude(폴리곤 모양과 무관할 수 있는 대표 좌표) 대신
-// 이 결과를 쓰면 인포윈도우/이름 라벨이 폴리곤 정중앙에 뜬다.
+// 이 결과를 쓰면 인포윈도우/이름 라벨이 폴리곤 정중앙에 뜸
 function getPolygonCentroid(path) {
     if (!path || path.length === 0) return null;
 
@@ -208,8 +208,8 @@ function getPolygonCentroid(path) {
 // =====================================================================
 // 페이지를 막 로딩하고 바로 검색하면(예: 첫 화면에서 "상계동" 검색), map/
 // infowindow 초기화와 캐싱이 아직 안 끝난 상태에서 showLegalDongOnMap()이
-// 호출돼 조용히 return 해버렸다. 초기화 + 캐싱이 전부 끝났을 때만
-// resolve되는 프라미스를 만들어서 showLegalDongOnMap이 기다리게 한다.
+// 호출돼 조용히 return 해버렸음. 초기화 + 캐싱이 전부 끝났을 때만
+// resolve되는 프라미스를 만들어서 showLegalDongOnMap이 기다리게 함
 // =====================================================================
 let resolveMapReady;
 const mapReadyPromise = new Promise((resolve) => {
@@ -219,7 +219,7 @@ const mapReadyPromise = new Promise((resolve) => {
 export function initKakaoMap() {
     const container = document.getElementById("map");
     if (!container) {
-        console.error("🚨 #map 컨테이너를 찾을 수 없습니다.");
+        console.error("#map 컨테이너를 찾을 수 없습니다.");
         return;
     }
 
@@ -238,16 +238,16 @@ export function initKakaoMap() {
             // 시설 집계 원(zIndex 1)보다 항상 위에 뜨도록
             infowindow.setZIndex(100);
 
-            // 기본 폴리곤은 처음에(확대/축소해도) 아예 뜨지 않는다. 검색으로
+            // 기본 폴리곤은 처음에(확대/축소해도) 아예 뜨지 않음. 검색으로
             // 법정동을 선택했을 때만 showLegalDongOnMap()이 폴리곤을 그리므로,
-            // 여기서는 화면에 그리지 않고 원본 데이터만 미리 받아둔다.
-            // 두 캐싱이 전부 끝나야 mapReadyPromise가 resolve된다.
+            // 여기서는 화면에 그리지 않고 원본 데이터만 미리 받아둠
+            // 두 캐싱이 전부 끝나야 mapReadyPromise가 resolve됨
             Promise.all([fetchLegalDongCache(), fetchAdminDongList()]).then(() => {
                 resolveMapReady();
             });
         });
     } else {
-        console.error("🚨 카카오맵 SDK가 로드되지 않았습니다.");
+        console.error("카카오맵 SDK가 로드되지 않았습니다.");
     }
 }
 
@@ -272,15 +272,15 @@ async function fetchLegalDongCache() {
                 legalDongGridCache[fields.dong] = { id: gridId, ...fields };
             }
         });
-        console.log("🎯 법정동 ID 캐시 테이블 구축 완료:", legalDongCache);
+        console.log("법정동 ID 캐시 테이블 구축 완료:", legalDongCache);
     } catch (err) {
-        console.error("🚨 법정동 캐시 로딩 실패:", err);
+        console.error("법정동 캐시 로딩 실패:", err);
     }
 }
 
 // 세부 행정동 전체 목록을 미리 받아와서 캐싱해두는 함수.
 // 법정동 폴리곤에 마우스를 올렸을 때(hover-in) dong_group이 일치하는
-// 행정동들만 골라서 바로 그릴 수 있도록 미리 준비해둔다.
+// 행정동들만 골라서 바로 그릴 수 있도록 미리 준비해둠
 async function fetchAdminDongList() {
     try {
         const res = await fetch("/grids/?is_legal_dong=false");
@@ -293,15 +293,15 @@ async function fetchAdminDongList() {
             const gridId = item.pk || item.id;
             return { id: gridId, ...fields };
         });
-        console.log(`🎯 행정동 전체 목록 캐싱 완료 (${adminDongList.length}개)`);
+        console.log(`행정동 전체 목록 캐싱 완료 (${adminDongList.length}개)`);
     } catch (err) {
-        console.error("🚨 행정동 목록 캐싱 실패:", err);
+        console.error("행정동 목록 캐싱 실패:", err);
     }
 }
 
 // =====================================================================
 // 검색이 바뀌거나 화면을 초기화할 때 기존에 그려둔 법정동/행정동 폴리곤과
-// 라벨, 인포윈도우를 전부 지운다.
+// 라벨, 인포윈도우를 전부 지움
 // =====================================================================
 function clearAdminOverlays() {
     currentAdminOverlays.forEach(({ polygon, labelOverlay }) => {
@@ -335,8 +335,8 @@ function cancelHoverRevert() {
 
 // 행정동 폴리곤에서 마우스가 완전히 빠져나갔을 때(인접한 다른 행정동 폴리곤으로
 // 옮겨간 게 아니라 진짜로 영역 밖으로 나갔을 때만) 법정동 뷰로 되돌리기 위해
-// 약간의 지연을 두고 되돌린다. 다른 행정동 폴리곤에 바로 마우스가 올라가면
-// mouseover 핸들러가 cancelHoverRevert()를 호출해서 이 되돌리기를 취소시킨다.
+// 약간의 지연을 두고 되돌림. 다른 행정동 폴리곤에 바로 마우스가 올라가면
+// mouseover 핸들러가 cancelHoverRevert()를 호출해서 이 되돌리기를 취소시킴
 function scheduleHoverRevert(legalDongName) {
     cancelHoverRevert();
     hoverRevertTimer = setTimeout(() => {
@@ -359,7 +359,7 @@ function revertToLegalDongView(legalDongName) {
 }
 
 // path를 넘기면 폴리곤 도형의 실제 중심(centroid)에, path가 없거나 계산 실패 시엔
-// grid.latitude/longitude(DB 대표 좌표)로 폴백해서 인포윈도우를 띄운다.
+// grid.latitude/longitude(DB 대표 좌표)로 폴백해서 인포윈도우를 띄움
 function openLegalDongInfoWindow(grid, path) {
     const centroid = getPolygonCentroid(path);
     const position =
@@ -388,13 +388,13 @@ function openLegalDongInfoWindow(grid, path) {
 }
 
 // =====================================================================
-// 검색으로 법정동이 선택됐을 때 호출된다.
+// 검색으로 법정동이 선택됐을 때 호출됨
 // (leftPanel.js 검색 결과 클릭 / mapOverlay.js 드롭다운 선택에서 호출)
 // 법정동 폴리곤 + 법정동 안심점수 인포윈도우만 그리고, 그 폴리곤에
-// hover-in/out 이벤트를 걸어서 2-1/2-2 스펙을 준비한다.
+// hover-in/out 이벤트를 걸어서 2-1/2-2 스펙을 준비함
 // =====================================================================
 window.showLegalDongOnMap = async function (legalDongName) {
-    // map/infowindow 초기화 + 법정동·행정동 캐싱이 끝날 때까지 기다린다.
+    // map/infowindow 초기화 + 법정동·행정동 캐싱이 끝날 때까지 기다림
     // (페이지 로딩 직후 바로 검색해도 안전하게 동작하도록)
     await mapReadyPromise;
 
@@ -402,7 +402,7 @@ window.showLegalDongOnMap = async function (legalDongName) {
 
     const grid = legalDongGridCache[legalDongName];
     if (!grid) {
-        console.warn(`⚠️ 법정동 캐시에서 "${legalDongName}"을(를) 찾지 못했습니다.`);
+        console.warn(`법정동 캐시에서 "${legalDongName}"을(를) 찾지 못했습니다.`);
         return;
     }
 
@@ -425,7 +425,7 @@ window.showLegalDongOnMap = async function (legalDongName) {
     renderFacilities();
 
     // 검색 시 화면 중심은 폴리곤 실제 중심: DB의 grid.latitude/longitude가
-    // 아니라 방금 그린 폴리곤 도형의 centroid로 지도 중심을 이동시킨다.
+    // 아니라 방금 그린 폴리곤 도형의 centroid로 지도 중심을 이동시킴
     // (leftPanel.js/mapOverlay.js는 자체적으로 이동시키지 않고 여기서만 처리)
     const centroid =
         getPolygonCentroid(path) ??
@@ -438,8 +438,8 @@ window.showLegalDongOnMap = async function (legalDongName) {
         if (currentLevel > 6) {
             // setLevel의 anchor 옵션은 "줌하는 동안 화면상 그 지점을 고정"하는
             // 용도라, 목표 지점이 현재 화면에서 한참 벗어나 있으면 계산이 꼬여서
-            // 줌 후 정중앙에 안 오는 경우가 있었다. anchor 대신 center를 먼저
-            // 확정시키고 레벨만 애니메이션으로 줄이도록 순서를 바꿨다.
+            // 줌 후 정중앙에 안 오는 경우가 있었음. anchor 대신 center를 먼저
+            // 확정시키고 레벨만 애니메이션으로 줄이도록 순서를 바꿈
             map.setCenter(centroid);
             map.setLevel(6, { animate: { duration: 350 } });
         } else {
@@ -468,7 +468,7 @@ window.showLegalDongOnMap = async function (legalDongName) {
 
 // =====================================================================
 // 법정동 폴리곤에 마우스가 올라갔을 때, 그 법정동(dong_group)에 속한
-// 행정동들만 걸러서 폴리곤 + 이름 라벨을 그린다.
+// 행정동들만 걸러서 폴리곤 + 이름 라벨을 그림
 // =====================================================================
 function showAdminDongGroup(legalDongName) {
     if (currentAdminOverlays.length > 0) return; // 이미 표시 중이면 중복 실행 방지
@@ -518,7 +518,7 @@ function showAdminDongGroup(legalDongName) {
         kakao.maps.event.addListener(polygon, "mouseout", function () {
             polygon.setOptions({ fillOpacity: 0.45 });
             // 법정동 영역을 완전히 벗어났을 때만(인접 행정동으로 옮겨간 게 아니라면)
-            // 법정동 뷰로 되돌아가도록 디바운스를 건다.
+            // 법정동 뷰로 되돌아가도록 디바운스를 걺
             scheduleHoverRevert(legalDongName);
         });
 
@@ -538,14 +538,14 @@ function showAdminDongGroup(legalDongName) {
 // =====================================================================
 function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     // 예전엔 클릭한 행정동의 라벨만 지우고, 그 전에 다른 행정동을 클릭해서
-    // 숨겨뒀던 라벨은 복원을 안 해줘서 계속 사라진 채로 남아있었다
+    // 숨겨뒀던 라벨은 복원을 안 해줘서 계속 사라진 채로 남아있었음
     // (예: 삼성동 클릭 -> 이름 삭제, 대학동 클릭 -> 삼성동 이름이 안 돌아옴).
-    // 새 라벨을 숨기기 전에, 이전에 숨겨뒀던 라벨이 있으면 먼저 복원한다.
+    // 새 라벨을 숨기기 전에, 이전에 숨겨뒀던 라벨이 있으면 먼저 복원함
     if (currentHiddenAdminLabel && currentHiddenAdminLabel !== labelOverlay) {
         currentHiddenAdminLabel.setMap(map);
     }
 
-    // 클릭한 행정동의 이름 라벨은 지운다 (스펙: "폴리곤 구역 내 행정동 이름은 삭제")
+    // 클릭한 행정동의 이름 라벨은 지움 (스펙: "폴리곤 구역 내 행정동 이름은 삭제")
     if (labelOverlay) labelOverlay.setMap(null);
     currentHiddenAdminLabel = labelOverlay || null;
 
@@ -568,8 +568,8 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
 
     // 클릭한 좌표로 지도 중심을 그대로 옮기면, 마우스는 화면상 같은 픽셀에
     // 있는데 그 밑 지도만 이동해서 커서가 가리키는 실제 좌표가 법정동 폴리곤
-    // 밖으로 밀려날 수 있었다(가만히 있어도 mouseout 발생). 완전히 안 옮기는
-    // 대신, 커서 밑 좌표가 법정동 폴리곤 안에 머무르는 한도까지만 이동시킨다.
+    // 밖으로 밀려날 수 있었음(가만히 있어도 mouseout 발생). 완전히 안 옮기는
+    // 대신, 커서 밑 좌표가 법정동 폴리곤 안에 머무르는 한도까지만 이동시킴
     const currentLevel = map.getLevel();
     const targetLatLng = latLng;
 
@@ -595,9 +595,9 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     }
 
     // ====================================================
-    // 행정동 자신의 grid.id를 detailDongId로 같이 전달한다. updateSidebarTitle
+    // 행정동 자신의 grid.id를 detailDongId로 같이 전달함. updateSidebarTitle
     // 쪽에서는 이 id가 legalDongId와 다를 때만 "행정동 안심점수/그래프"로
-    // 판단해서 행정동 기준으로 조회한다 (이름 비교는 "신림동"처럼 법정동과
+    // 판단해서 행정동 기준으로 조회함 (이름 비교는 "신림동"처럼 법정동과
     // 행정동 이름이 같은 경우 오판하므로 쓰지 않음).
     // (영역별 만족도/후기/QnA는 legalDongId 기준 그대로 유지)
     // ====================================================
@@ -608,8 +608,8 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
     }
 
     // 하단 "지도 정보 보기" 박스(CCTV/가로등/파출소/비상벨 개수)를
-    // 클릭한 행정동 기준 개수로 갱신한다. grid에는 이미 이 행정동의
-    // cctv_count/light_count/police_count/bell_count가 들어있다.
+    // 클릭한 행정동 기준 개수로 갱신함. grid에는 이미 이 행정동의
+    // cctv_count/light_count/police_count/bell_count가 들어있음
     if (window.updateMapOverlayInfoBoxForAdminDong) {
         window.updateMapOverlayInfoBoxForAdminDong(grid);
     }
@@ -628,7 +628,7 @@ function openAdminDongDetail(grid, legalDongName, latLng, labelOverlay) {
 //   - 확대 상태(level < CLUSTER_MIN_LEVEL): 화면 범위 안의 지점만
 //     골라 아이콘 마커 생성 (전체의 극히 일부)
 // 1만 개 배열 순회는 수 ms라, 화면에 실제로 그리는 개체 수만 적으면
-// 타입 4개를 전부 켜도 밀리지 않는다.
+// 타입 4개를 전부 켜도 밀리지 않음
 // =====================================================================
 
 // 이 레벨 이상(축소)이면 격자 집계 숫자 원, 미만(확대)이면 개별 아이콘
@@ -690,17 +690,17 @@ async function loadFacilityData(type) {
     try {
         const res = await fetch(`/grids/facilities/?type=${type}`);
         if (!res.ok) {
-            console.warn(`⚠️ 시설(${type}) 좌표 조회 실패 status=${res.status}`);
+            console.warn(`시설(${type}) 좌표 조회 실패 status=${res.status}`);
             return;
         }
         const data = await res.json();
-        // 좌표 없는 지점은 캐싱 단계에서 걸러 매 렌더마다 검사하지 않게 한다
+        // 좌표 없는 지점은 캐싱 단계에서 걸러 매 렌더마다 검사하지 않게 함
         facilityData[type] = (data.facilities || []).filter(
             (f) => f.latitude != null && f.longitude != null,
         );
-        console.log(`🎯 시설(${type}) 데이터 ${facilityData[type].length}개 지점 캐싱`);
+        console.log(`시설(${type}) 데이터 ${facilityData[type].length}개 지점 캐싱`);
     } catch (err) {
-        console.error(`🚨 시설(${type}) 데이터 로드 실패:`, err);
+        console.error(`시설(${type}) 데이터 로드 실패:`, err);
     } finally {
         facilityLoading[type] = false;
     }
@@ -714,8 +714,8 @@ function clearFacilityOverlays(type) {
 
 // =====================================================================
 // 시설 API(/grids/facilities/)는 지역 파라미터가 없어 항상 전 지역 시설을
-// 내려준다. 법정동이 선택돼 있으면 그 폴리곤 안의 지점만 클라이언트에서
-// 걸러 보여준다. 1만 개 × 폴리곤 판정은 무겁기 때문에 동 이름별로 캐싱.
+// 내려줌. 법정동이 선택돼 있으면 그 폴리곤 안의 지점만 클라이언트에서
+// 걸러 보여줌. 1만 개 × 폴리곤 판정은 무겁기 때문에 동 이름별로 캐싱.
 // =====================================================================
 const facilityDongCache = {}; // { "light|신림동": [지점...] }
 
@@ -737,7 +737,7 @@ function isRawPointInPath(lng, lat, path) {
 }
 
 // 현재 선택된 법정동 기준으로 걸러진 지점 배열을 반환
-// 검색으로 법정동을 선택하기 전에는 아무것도 표시하지 않는다
+// 검색으로 법정동을 선택하기 전에는 아무것도 표시하지 않음
 function getScopedFacilityData(type) {
     const all = facilityData[type];
     if (!all) return null;
@@ -765,7 +765,7 @@ function getScopedFacilityData(type) {
             isRawPointInPath(f.longitude, f.latitude, path),
     );
     facilityDongCache[cacheKey] = scoped;
-    console.log(`🎯 시설(${type}) ${currentLegalDongName} 범위 ${scoped.length}개 지점`);
+    console.log(`시설(${type}) ${currentLegalDongName} 범위 ${scoped.length}개 지점`);
     return scoped;
 }
 
@@ -795,8 +795,8 @@ function createCountOverlay(type, position, count) {
         // 원 클릭이 밑의 폴리곤 클릭까지 전달되지 않게 차단
         e.stopPropagation();
         // setLevel의 anchor 옵션은 계산이 꼬여 지도가 엉뚱한 곳으로 튀는
-        // 문제가 있다(위쪽 showLegalDongOnMap 주석 참고). center를 먼저
-        // 확정하고 나서 줌을 바꾼다.
+        // 문제가 있음(위쪽 showLegalDongOnMap 주석 참고). center를 먼저
+        // 확정하고 나서 줌을 바꿈
         map.setCenter(position);
         map.setLevel(map.getLevel() - 2, { animate: { duration: 350 } });
     });
@@ -815,13 +815,13 @@ function createCountOverlay(type, position, count) {
 // =====================================================================
 // 안전 정보 필터 - 히트맵: 여성밤길치안안전 / 범죄주의구간
 //
-// 시설 4개와 달리 API가 아니라 "정적 PNG + bounds(meta json)" 방식이다.
+// 시설 4개와 달리 API가 아니라 "정적 PNG + bounds(meta json)" 방식임
 // 카카오맵에는 이미지를 좌표 범위에 고정하는 기능이 없어서,
-// AbstractOverlay를 상속한 커스텀 그라운드 오버레이로 직접 구현한다.
+// AbstractOverlay를 상속한 커스텀 그라운드 오버레이로 직접 구현함
 // (줌/이동 시 draw()가 자동 호출되어 이미지 크기/위치를 다시 계산)
 //
 // 표시 규칙: 법정동이 선택돼 있고, 그 동의 히트맵 파일이 meta에 있을 때만
-// 표시한다. (동 미선택 시 아무것도 안 뜸 — 시설 필터와 동일한 스펙)
+// 표시함. (동 미선택 시 아무것도 안 뜸 — 시설 필터와 동일한 스펙)
 // =====================================================================
 
 // PNG/meta 파일 위치 (페이지 URL 기준 상대경로). 파일을 옮기면 여기만 수정.
@@ -847,12 +847,12 @@ function loadHeatmapMeta() {
         })
         .then((json) => {
             heatmapMeta = json;
-            console.log(`🎯 히트맵 meta 로드 완료 (${Object.keys(json).length}건)`);
+            console.log(`히트맵 meta 로드 완료 (${Object.keys(json).length}건)`);
             return json;
         })
         .catch((err) => {
             console.error(
-                `🚨 히트맵 meta 로드 실패. ${HEATMAP_DATA_PATH}${HEATMAP_META_FILE} 경로에 파일이 있는지 확인하세요.`,
+                `히트맵 meta 로드 실패. ${HEATMAP_DATA_PATH}${HEATMAP_META_FILE} 경로에 파일이 있는지 확인하세요.`,
                 err,
             );
             heatmapMetaLoading = null; // 실패 시 다음에 재시도 가능하게
@@ -862,7 +862,7 @@ function loadHeatmapMeta() {
 }
 
 // 이미지를 경위도 bounds에 고정하는 그라운드 오버레이 (카카오 공식 패턴)
-// kakao.maps.load 이후에만 AbstractOverlay가 존재하므로 생성자를 지연 정의한다.
+// kakao.maps.load 이후에만 AbstractOverlay가 존재하므로 생성자를 지연 정의함
 let GroundOverlayCtor = null;
 function getGroundOverlayCtor() {
     if (GroundOverlayCtor) return GroundOverlayCtor;
@@ -905,9 +905,9 @@ function getGroundOverlayCtor() {
     return GroundOverlayCtor;
 }
 
-// 현재 상태(체크 여부 + 선택된 동)에 맞게 히트맵 표시를 갱신한다.
+// 현재 상태(체크 여부 + 선택된 동)에 맞게 히트맵 표시를 갱신함
 // 원하는 상태와 이미 떠 있는 것이 같으면 아무것도 안 하므로(idempotent)
-// idle 등에서 반복 호출해도 부담 없다.
+// idle 등에서 반복 호출해도 부담 없음
 function renderHeatmaps() {
     if (!map) return;
 
@@ -935,7 +935,7 @@ function renderHeatmaps() {
         const overlay = new Ctor(entry.bounds, HEATMAP_DATA_PATH + entry.file);
         overlay.setMap(map);
         heatmapShown[type] = { key: desiredKey, overlay };
-        console.log(`🎯 히트맵 표시: ${desiredKey}`);
+        console.log(`히트맵 표시: ${desiredKey}`);
     });
 }
 
@@ -950,7 +950,7 @@ async function toggleHeatmapFilter(type, checked) {
     renderHeatmaps();
 }
 
-// 현재 화면 범위/줌 기준으로, 켜져 있는 타입들을 다시 그린다
+// 현재 화면 범위/줌 기준으로, 켜져 있는 타입들을 다시 그림
 function renderFacilities() {
     if (!map) return; // 지도 초기화 전 호출 방어
     renderHeatmaps(); // 동 선택/해제 훅을 공유 — 원하는 상태와 같으면 no-op
@@ -980,7 +980,7 @@ function renderFacilities() {
         if (aggregated || visible.length > MAX_VISIBLE_MARKERS) {
             // 격자 칸 크기: 화면 픽셀 기준으로 구하되 "1유효숫자"로 스냅해서
             // 같은 줌 레벨에서는 항상 동일한 값이 되게 한다. 칸의 기준점은
-            // 화면 좌하단이 아니라 세계 좌표 원점(경도/위도 0)에 고정한다.
+            // 화면 좌하단이 아니라 세계 좌표 원점(경도/위도 0)에 고정함
             // → 지도를 아무리 끌어도 격자가 따라 움직이지 않아 원 위치가 고정됨.
             const container = document.getElementById("map");
             const snap = (v) => {
@@ -1052,7 +1052,7 @@ function initFacilityFilter() {
     const checkboxes = document.querySelectorAll("input[data-filter-type]");
     if (checkboxes.length === 0) {
         console.warn(
-            "⚠️ data-filter-type 체크박스를 찾지 못했습니다. home.html 반영 여부를 확인하세요.",
+            "data-filter-type 체크박스를 찾지 못했습니다. home.html 반영 여부를 확인하세요.",
         );
         return;
     }
@@ -1091,7 +1091,7 @@ function initFacilityFilter() {
         kakao.maps.event.addListener(map, "idle", renderFacilities);
     });
 
-    console.log(`🎯 안전 정보 필터 ${checkboxes.length}개 연결 완료 (자체 집계 방식)`);
+    console.log(`안전 정보 필터 ${checkboxes.length}개 연결 완료 (자체 집계 방식)`);
 }
 
 // 모듈 로드 시점(= DOM 파싱 완료 후)에 바로 연결

@@ -44,7 +44,7 @@ function activateTab(currentMenu) {
   }
 
   // 탭을 눌러도 주소창의 ?tab= 값이 안 바뀌어서, 제휴 서비스로 갔다가
-  // 안심맵으로 돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸다.
+  // 안심맵으로 돌아온 뒤 새로고침하면 다시 제휴 서비스가 떠버렸음
   // 탭이 바뀔 때마다 주소창도 갱신 (history 안 쌓게 replaceState만 사용).
   const newUrl = targetPageId === "page-commercial" ? "/?tab=commercial" : "/";
   if (window.location.pathname + window.location.search !== newUrl) {
@@ -61,8 +61,8 @@ NavSelected.forEach((menu) => {
 });
 
 // 로고 클릭 -> 안심맵 이동: 어떤 탭을 보고 있든 로고를 누르면 항상 안심맵
-// 탭으로 돌아가야 한다. activateTab을 재사용해 navbar-safetyMap을 직접
-// 클릭한 것과 동일하게 동작시킨다.
+// 탭으로 돌아가야 함. activateTab을 재사용해 navbar-safetyMap을 직접
+// 클릭한 것과 동일하게 동작
 const logoImg = document.querySelector(".navbar-logoImg");
 if (logoImg) {
   logoImg.addEventListener("click", () => {
@@ -78,7 +78,7 @@ if (activeMenu) {
 }
 
 // 마이페이지는 별도 페이지라 home.html의 탭을 직접 누를 수 없으므로,
-// /?tab=commercial 쿼리로 들어오면 도착하자마자 제휴 서비스 탭을 활성화한다.
+// /?tab=commercial 쿼리로 들어오면 도착하자마자 제휴 서비스 탭을 활성화함
 const requestedTab = new URLSearchParams(window.location.search).get("tab");
 if (requestedTab === "commercial") {
   const commercialMenu = document.querySelector(".navbar-commercial");
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   // 로그인 상태는 이제 JS 가짜 토큰이 아니라 Django의
-  // request.user.is_authenticated가 결정해서 내려준다.
+  // request.user.is_authenticated가 결정해서 내려줌
 
   // 메인페이지 네비바 로그인 버튼 팝업 바인딩
   const mainNavLoginBtn = document.getElementById("main-nav-login-btn");
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initAuthEvents();
           } else {
             console.error(
-              "🚨 login.js의 initAuthEvents 함수를 로드하지 못했습니다.",
+              "login.js의 initAuthEvents 함수를 로드하지 못했습니다.",
             );
           }
 
@@ -213,8 +213,35 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         })
         .catch((err) =>
-          console.error("🚨 메인 내비바 팝업 로드 중 에러 발생:", err),
+          console.error("메인 내비바 팝업 로드 중 에러 발생:", err),
         );
     });
   }
 }); // DOMContentLoaded의 마지막 닫는 괄호
+
+// 로그인 성공 시 login.js가 호출하는 함수. 예전엔 로그인 성공 후
+// location.reload()로 nav를 로그인 상태로 갱신했는데, 그러면 안심맵에서
+// 보고 있던 폴리곤/사이드바가 전부 날아가서 처음부터 다시 찾아야 했음.
+// 세션 쿠키는 로그인 응답의 Set-Cookie로 이미 반영돼 있으므로, 새로고침
+// 없이 nav의 "로그인" 버튼 부분만 마이페이지/로그아웃 링크로 바꿔치기함.
+window.applyLoggedInNav = function () {
+  document.body.dataset.authenticated = "true";
+
+  const loginBtn = document.getElementById("main-nav-login-btn");
+  if (!loginBtn) return; // 이미 로그인 상태로 렌더링돼 있던 경우
+
+  const profileUrl = document.body.dataset.profileUrl || "/accounts/profile/";
+  const logoutUrl = document.body.dataset.logoutUrl || "/accounts/logout/";
+
+  loginBtn.outerHTML = `
+    <div class="navbar-userMenu" style="display: flex; align-items: center; gap: 20px; padding-right: 60px;">
+      <a href="${profileUrl}" class="navbar-ahref" style="text-decoration: none; color: inherit; margin-right:37px;">
+        <div style="display:flex; gap: 9px; align-items:center;">
+          <img src="main-images/account.svg" alt="마이페이지" />
+          <span class="navbar-mypage" style="cursor: pointer;">마이페이지</span>
+        </div>
+      </a>
+      <a href="${logoutUrl}" class="navbar-logout" style="cursor: pointer; text-decoration: none; color: inherit;">로그아웃</a>
+    </div>
+  `;
+};

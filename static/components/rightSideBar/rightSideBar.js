@@ -5,13 +5,18 @@ let myRadarChart = null;
 // 후기 등록/좋아요 처리 후 "지금 보고 있는 사이드바"를 새로고침할 때 필요함.
 let currentSidebarState = {
   detailDongName: null,
-  detailDongId: null, 
+  detailDongId: null,
   legalDongName: null,
   legalDongId: null,
   // 지금 상세보기로 열려있는 질문의 id를 기억해뒀다가 답변 등록 버튼을
   // 눌렀을 때 어느 질문에 답변을 다는 건지 알 수 있게 함.
   currentQuestionId: null,
 };
+
+// 🎯 login.js 등 다른 스크립트에서도 "지금 보고 있는 동네" 상태를 읽을 수 있도록
+// 전역에 getter를 노출해둠 (로그인 성공 후 location.reload() 하기 전에 이 상태를
+// sessionStorage에 저장해뒀다가, 리로드 후 이 파일 하단에서 복원함).
+window.getCurrentSidebarState = () => currentSidebarState;
 
 // Django CSRF 토큰을 쿠키에서 꺼내는 헬퍼 (list.html의 getCookie와 동일한 로직)
 function getCookie(name) {
@@ -22,13 +27,13 @@ function getCookie(name) {
 
 // 로그인 팝업 열기.
 // 우측 사이드바의 로그인 버튼 클릭, 그리고 비로그인 상태에서 찜하기 등
-// 로그인이 필요한 동작을 시도했을 때 공통으로 호출한다.
+// 로그인이 필요한 동작을 시도했을 때 공통으로 호출.
 // (기존 .rightSB-auth-loginBtn 핸들러에 있던 팝업 로드 로직을 그대로 함수로 뺀 것)
 function openLoginPopup() {
   const overlay = document.getElementById("loginPopupOverlay");
   const contentBox = document.getElementById("loginPopupContent");
   if (!overlay || !contentBox) {
-    console.error("🚨 로그인 팝업 요소를 찾을 수 없습니다.");
+    console.error("로그인 팝업 요소를 찾을 수 없습니다.");
     return;
   }
 
@@ -158,12 +163,12 @@ function renderSafetyChart(fields) {
 // --- [I] 후기 카드 좋아요 버튼: 이벤트 위임(delegation) 바인딩 ---
 // 예전엔 reviews/list.html에서 data-* 값만 뽑아 JS가 카드 HTML을 다시
 // 조립했는데, 이건 사실상 JSON API를 HTML로 포장한 것과 다를 게 없다는
-// 지적을 받아 구조를 바꿨다. 이제 reviews/list.html 자체가
+// 지적을 받아 구조를 바꿈. 이제 reviews/list.html 자체가
 // 사이드바에 실제로 보이는 스타일(class="rightSB-reviewCard" 등) 그대로
 // 서버에서 렌더링되고, JS는 그 결과물(#rightSB-reviewCardContainer의 HTML)을
-// 그대로 옮겨 붙이기만 한다. 카드가 서버 렌더링으로 통째로 갈아끼워지므로
+// 그대로 옮겨 붙이기만 함. 카드가 서버 렌더링으로 통째로 갈아끼워지므로
 // 카드마다 매번 새로 리스너를 붙이는 대신, 컨테이너에 한 번만 이벤트 위임을
-// 걸어두고 클릭이 버블링돼 올라오면 그때 실제 버튼을 찾는다.
+// 걸어두고 클릭이 버블링돼 올라오면 그때 실제 버튼을 찾음
 function bindReviewLikeDelegation() {
   const container = document.getElementById("rightSB-reviewCardContainer");
   if (!container || container.dataset.likeBound === "true") return;
@@ -182,7 +187,7 @@ function bindReviewLikeDelegation() {
     const imgIcon = btn.querySelector(".rightSB-likeImg");
 
     // 실제 /reviews/<review_id>/like/ 로 POST해서 서버가 돌려주는
-    // 진짜 liked/like_count 값으로 갱신한다.
+    // 진짜 liked/like_count 값으로 갱신함
     fetch(`/reviews/${reviewId}/like/`, {
       method: "POST",
       credentials: "same-origin", // 로그인 세션 쿠키를 같이 보내야 인증됨
@@ -206,20 +211,20 @@ function bindReviewLikeDelegation() {
         }
 
         if (data.liked) {
-          // 🎨 좋아요 활성화 디자인
+          // 좋아요 활성화 디자인
           btn.style.borderRadius = "20px";
           btn.style.border = "1px solid var(--Color-Blue900, #1077FF)";
           btn.style.background = "var(--Color-Blue200, #C4ECFE)";
           btn.style.color = "var(--Color-Blue900, #1077FF)";
         } else {
-          // 🎨 좋아요 해제 디자인 (원래대로)
+          // 좋아요 해제 디자인 (원래대로)
           btn.style.border = "none";
           btn.style.background = "var(--GrayScale-100, #f0edee)";
           btn.style.color = "var(--GrayScale-800, #5b5658)";
         }
       })
       .catch((err) => {
-        console.error("🚨 좋아요 처리 중 오류:", err);
+        console.error("좋아요 처리 중 오류:", err);
         alert("좋아요 처리에 실패했어요. 로그인 상태를 확인해주세요.");
       });
   });
@@ -228,7 +233,7 @@ function bindReviewLikeDelegation() {
 // =====================================================================
 // 후기 목록 + 영역별 만족도 새로고침
 // updateSidebarTitle 최초 진입 시에도 쓰고, 후기 등록 성공 직후에도
-// 똑같이 다시 불러서 화면을 최신 상태로 맞추는 데 재사용한다.
+// 똑같이 다시 불러서 화면을 최신 상태로 맞추는 데 재사용함
 // =====================================================================
 function refreshReviewSection(legalDongId, legalDongName) {
   if (!legalDongId) return Promise.resolve();
@@ -247,7 +252,7 @@ function refreshReviewSection(legalDongId, legalDongName) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // 영역별 만족도 3개 숫자(집계 통계)만 data-*로 읽어서 별점 위젯을 그린다.
+      // 영역별 만족도 3개 숫자(집계 통계)만 data-*로 읽어서 별점 위젯을 그림
       const summaryEl = doc.getElementById("rating-summary");
       const nightScore = parseFloat(summaryEl?.dataset.night) || 0;
       const convenienceScore = parseFloat(summaryEl?.dataset.amenity) || 0;
@@ -261,7 +266,7 @@ function refreshReviewSection(legalDongId, legalDongName) {
         satisfactionTitleEl.textContent = `${legalDongName} 일대 영역별 만족도`;
       }
 
-      console.log("🔥 list.html에서 받은 진짜 만족도 점수:", {
+      console.log("list.html에서 받은 진짜 만족도 점수:", {
         nightScore,
         convenienceScore,
         atmosphereScore,
@@ -270,7 +275,7 @@ function refreshReviewSection(legalDongId, legalDongName) {
 
       // =====================================================================
       // 후기 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
-      // Django가 렌더링한 #rightSB-reviewCardContainer의 HTML을 그대로 옮겨 붙인다.
+      // Django가 렌더링한 #rightSB-reviewCardContainer의 HTML을 그대로 옮겨 붙임
       // =====================================================================
       const serverContainer = doc.getElementById("rightSB-reviewCardContainer");
       const localContainer = document.getElementById(
@@ -287,12 +292,12 @@ function refreshReviewSection(legalDongId, legalDongName) {
       );
       if (reviewCountEl) reviewCountEl.textContent = `(${reviewCount})`;
 
-      console.log(`🔥 서버가 렌더링한 후기 ${reviewCount}건을 그대로 옮겨 붙임`);
+      console.log(`서버가 렌더링한 후기 ${reviewCount}건을 그대로 옮겨 붙임`);
       return reviewCount;
     })
     .catch((err) => {
       console.warn(
-        "⚠️ 법정동 데이터가 DB에 없거나 로드되지 않았습니다. 기본 별점(3.5점대)으로 임시 시연합니다.",
+        "법정동 데이터가 DB에 없거나 로드되지 않았습니다. 기본 별점(3.5점대)으로 임시 시연합니다.",
         err,
       );
       // DB에 진짜 데이터가 없어서 404가 날 때는 0점으로 비우는 대신,
@@ -321,7 +326,7 @@ function refreshReviewSection(legalDongId, legalDongName) {
 // =====================================================================
 // Q&A 카드 클릭(상세 열기) 이벤트 위임 바인딩
 // 후기 좋아요 버튼과 동일한 이유로, 카드 마크업 자체는 이제 서버가
-// 렌더링하므로 컨테이너에 한 번만 위임 리스너를 걸어둔다.
+// 렌더링하므로 컨테이너에 한 번만 위임 리스너를 걸어둠
 // =====================================================================
 function bindQnaCardDelegation() {
   const container = document.getElementById("rightSB-qnaCardContainer");
@@ -336,15 +341,11 @@ function bindQnaCardDelegation() {
   });
 }
 
-// 질문 상세 + 답변 목록을 /qna/question/<id>/ 응답에서 뜯어와 채워줌
-//
-// 답변도 예전엔 data-nickname/data-content 값만 뽑아
-// JS가 .rightSB-answerCard HTML을 다시 조립했는데, 이제는 qna/detail.html이
-// 그 마크업 자체를 서버에서 렌더링하고 JS는 그 결과물을 그대로 옮겨 붙인다.
+// 질문 상세 + 답변 목록을 /qna/question/<id>/ 응답에서
 function openQuestionDetail(questionId) {
   if (!questionId) return;
 
-  // 답변 등록 버튼이 "지금 어느 질문에 답할지" 알 수 있도록 기억해둠
+  // 답변 등록 버튼이 "지금 어느 질문에 답할지" 알 수 있도록 기억
   currentSidebarState.currentQuestionId = questionId;
 
   const titleEl = document.getElementById("qnaDetailTitle");
@@ -362,13 +363,13 @@ function openQuestionDetail(questionId) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, "text/html");
 
-      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 쓴다.
+      // 질문 본문은 실제로 렌더링된 요소의 텍스트를 그대로 읽어서 씀
       const questionText =
         doc.getElementById("qna-question-content")?.textContent || "";
       if (titleEl) titleEl.textContent = questionText;
 
       // 답변 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
-      // Django가 렌더링한 #qnaAnswerContainer의 HTML을 그대로 옮겨 붙인다.
+      // Django가 렌더링한 #qnaAnswerContainer의 HTML을 그대로 옮겨 붙임
       const serverAnswerContainer = doc.getElementById("qnaAnswerContainer");
       if (ansContainer && serverAnswerContainer) {
         ansContainer.innerHTML = serverAnswerContainer.innerHTML;
@@ -379,7 +380,7 @@ function openQuestionDetail(questionId) {
       if (ansCountEl) ansCountEl.textContent = `답변 ${answerCount}`;
     })
     .catch((err) => {
-      console.error("🚨 질문 상세 불러오기 실패:", err);
+      console.error("질문 상세 불러오기 실패:", err);
       if (titleEl) titleEl.textContent = "질문을 불러오지 못했어요.";
       if (ansContainer) ansContainer.innerHTML = "";
     });
@@ -399,16 +400,7 @@ function openQuestionDetail(questionId) {
 }
 
 // =====================================================================
-// Q&A 답변 작성 - 사이드바 입력창 → /qna/question/<id>/answer/ 실제 POST
-//
-// 이 버튼/입력창은 페이지 전체가 다시 그려지지 않는 고정 마크업이라
-// DOMContentLoaded에서 한 번만 바인딩하면 됨 (이벤트 위임이 필요 없음).
-//
-// 백엔드(qna/views.py answer_create)는 폼 유효성 검사에 실패해도
-// 에러를 보여주지 않고 무조건 qna:detail로 리다이렉트하도록 만들어져
-// 있어서(명세서 그대로), 프론트에서는 "성공"과 "조용히 씹힘"을 구분할
-// 방법이 없다. 그래서 여기서도 요청이 끝나면 입력칸을 비우고 답변
-// 목록을 새로고침만 하고, 별도의 성공/실패 메시지는 표시하지 않는다.
+// Q&A 답변 작성 - 사이드바 입력창 /qna/question/<id>/answer/ 실제 POST
 // =====================================================================
 function bindAnswerSubmit() {
   const btn = document.querySelector(".rightSB-answerSubmitBtn");
@@ -434,16 +426,17 @@ function bindAnswerSubmit() {
     })
       .then((res) => {
         // answer_create는 @login_required라서, 로그인 세션이 없으면
-        // qna:detail이 아니라 로그인 페이지로 리다이렉트된다 — 이 경우만
-        // 유일하게 프론트에서 구분 가능한 "실패"라서 alert로 알려준다.
+        // qna:detail이 아니라 로그인 페이지로 리다이렉트됨
         if (res.url.includes("/accounts/login/")) {
           alert("로그인이 필요해요. 다시 로그인해주세요.");
           return;
         }
         // accounts.decorators.verified_residence_required가 실거주지 인증이
-        // 안 됐거나 인증한 동네와 이 질문의 동네가 다르면 403으로 내려준다.
+        // 안 됐거나 인증한 동네와 이 질문의 동네가 다르면 403으로 내려줌
         if (res.status === 403) {
-          alert("실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.");
+          alert(
+            "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.",
+          );
           return;
         }
         if (!res.ok) {
@@ -456,7 +449,7 @@ function bindAnswerSubmit() {
         alert("답변이 등록되었습니다.");
       })
       .catch((err) => {
-        console.error("🚨 답변 등록 중 오류:", err);
+        console.error("답변 등록 중 오류:", err);
         alert("답변 등록 중 오류가 발생했어요.");
       })
       .finally(() => {
@@ -471,13 +464,7 @@ function bindAnswerSubmit() {
 }
 
 // =====================================================================
-// Q&A 검색창 - 질문 제목(question_content)만 클라이언트에서 필터링
-// 카드 자체는 서버가 렌더링해서 그대로 옮겨 붙이는 구조라, 검색은 새로
-// fetch하지 않고 이미 그려진 카드들을 보이기/숨기기만 한다. 입력창 자체는
-// innerHTML로 교체되는 요소가 아니라서 DOMContentLoaded에서 한 번만
-// 바인딩하면 되고(bindAnswerSubmit과 동일한 패턴), 필터링 함수는 실행될
-// 때마다 그 시점에 렌더링돼 있는 카드들을 querySelectorAll로 새로 읽으므로
-// refreshQnaSection이 카드 목록을 통째로 갈아끼워도 계속 잘 동작한다.
+// Q&A 검색창 - 질문 제목
 // =====================================================================
 function bindQnaSearch() {
   const wrapper = document.querySelector(".rightSB-qnaSearchWrapper");
@@ -503,7 +490,6 @@ function bindQnaSearch() {
     });
 
     // 검색어가 있는데 매칭되는 카드가 하나도 없으면 안내 문구 표시
-    // ("등록된 질문 없음" 빈 상태와 안 겹치도록 카드가 원래 있었을 때만 표시)
     let emptyNotice = container.querySelector(".rightSB-qnaSearchEmpty");
     if (keyword && visibleCount === 0 && cards.length > 0) {
       if (!emptyNotice) {
@@ -532,11 +518,7 @@ function bindQnaSearch() {
   });
 }
 
-// Q&A 목록 새로고침 (refreshReviewSection의 Q&A 버전)
-//
-// 예전엔 .qna-data-item에서 값만 뽑아 JS가
-// .rightSB-qnaCard HTML을 다시 조립했는데, 이제는 qna/list.html이
-// 그 마크업 자체를 서버에서 렌더링하고 JS는 그 결과물을 그대로 옮겨 붙인다.
+// Q&A 목록 새로고침
 function refreshQnaSection(legalDongId) {
   if (!legalDongId) return Promise.resolve();
 
@@ -555,7 +537,7 @@ function refreshQnaSection(legalDongId) {
 
       // =====================================================================
       // Q&A 카드 목록: 값을 뽑아 JS가 재조립하지 않고,
-      // Django가 렌더링한 #rightSB-qnaCardContainer의 HTML을 그대로 옮겨 붙인다.
+      // Django가 렌더링한 #rightSB-qnaCardContainer의 HTML을 그대로 옮겨 붙임
       // =====================================================================
       const serverContainer = doc.getElementById("rightSB-qnaCardContainer");
       const localContainer = document.getElementById(
@@ -570,11 +552,11 @@ function refreshQnaSection(legalDongId) {
       const qnaCountEl = document.querySelector(".rightSB-QnASelected span");
       if (qnaCountEl) qnaCountEl.textContent = `(${qnaCount})`;
 
-      console.log(`🔥 서버가 렌더링한 Q&A ${qnaCount}건을 그대로 옮겨 붙임`);
+      console.log(`서버가 렌더링한 Q&A ${qnaCount}건을 그대로 옮겨 붙임`);
       return qnaCount;
     })
     .catch((err) => {
-      console.warn("⚠️ Q&A 데이터를 불러오지 못했습니다.", err);
+      console.warn("Q&A 데이터를 불러오지 못했습니다.", err);
       const localContainer = document.getElementById(
         "rightSB-qnaCardContainer",
       );
@@ -595,8 +577,13 @@ window.updateSidebarTitle = function (
   if (!detailDongName) return;
 
   // 후기 등록/좋아요 처리 후 새로고침할 때 참조할 수 있도록 저장
-  currentSidebarState = { detailDongName, legalDongName, legalDongId, detailDongId  };
-  
+  currentSidebarState = {
+    detailDongName,
+    legalDongName,
+    legalDongId,
+    detailDongId,
+  };
+
   const targetGridId = detailDongId || legalDongId;
 
   if (targetGridId) {
@@ -617,20 +604,7 @@ window.updateSidebarTitle = function (
   }
 
   // ====================================================
-  // 사이드바 상단 안심점수/그래프는 "어떤 폴리곤을 클릭했는가"에 따라 달라진다.
-  // - 검색(법정동 선택)이나 법정동 폴리곤 자체를 볼 때: legalDongId만 넘어오고
-  //   detailDongId는 undefined -> 법정동(is_legal_dong=true) 기준으로 조회
-  // - 법정동 안에서 hover-in 후 특정 행정동 폴리곤을 클릭했을 때: kakaoMap.js가
-  //   그 행정동 자신의 grid.id를 detailDongId로 넘겨줌 -> 그 행정동
-  //   (is_legal_dong=false) 기준으로 조회
-  // (영역별 만족도/후기/QnA는 아래 refreshReviewSection/refreshQnaSection에서
-  //  legalDongId 기준으로 그대로 유지된다)
-  //
-  // 주의: detailDongName !== legalDongName으로 판단하면 안 된다. "신림동"처럼
-  // 법정동과 그 소속 행정동이 이름이 완전히 같은 경우가 있어서(예: 관악구
-  // 신림동 법정동 밑에 "신림동"이라는 행정동이 실제로 존재), 이름 비교로는
-  // 행정동 클릭인데도 법정동으로 잘못 분류돼 엉뚱한 데이터가 떴었다. id는
-  // 절대 겹치지 않으므로 id 기준으로 판단해야 한다.
+  // 사이드바 상단 안심점수/그래프
   // ====================================================
   const isAdminDongDetail =
     detailDongId !== undefined && detailDongId !== legalDongId;
@@ -647,14 +621,8 @@ window.updateSidebarTitle = function (
       const fields = responseData.fields ? responseData.fields : responseData;
 
       // ====================================================
-      // 1. 제목 및 안심 점수 텍스트 갱신
+      // 제목 및 안심 점수 텍스트 갱신
       // ====================================================
-      // .rightSB-region 자체에 textContent를 넣으면 그 안의
-      // <span class="rightSB-regionText">와 <img class="rightSB-regionHeartImg">
-      // 자식 노드가 통째로 지워져서 찜하기 하트 아이콘이 사라졌었다.
-      // 이름 텍스트는 반드시 자식 span(.rightSB-regionText)에만 넣어야 한다.
-      // 법정동 폴리곤(또는 검색) 상태일 땐 "{법정동} 일대",
-      // 행정동 폴리곤을 클릭했을 땐 그 행정동 이름 그대로("일대" 안 붙임) 표시
       const regionTextEl = document.querySelector(".rightSB-regionText");
       if (regionTextEl) {
         regionTextEl.textContent = isAdminDongDetail
@@ -673,20 +641,19 @@ window.updateSidebarTitle = function (
       renderSafetyChart(fields);
 
       // ====================================================
-      // 3. 영역별 만족도(별점) + 후기 카드 리스트 업데이트
+      // 영역별 만족도(별점) + 후기 카드 리스트 업데이트
       // ====================================================
       // (refreshReviewSection이 rating_summary 파싱 + 후기 카드 파싱을 함께 처리함)
-refreshReviewSection(legalDongId, legalDongName);
+      refreshReviewSection(legalDongId, legalDongName);
 
       // ====================================================
-      // 3-1. Q&A 목록도 같이 새로고침 (탭 라벨 개수 포함)
+      // Q&A 목록 새로고침
       // ====================================================
       refreshQnaSection(legalDongId);
       // =====================================================================
       // 후기 보기 및 후기 작성 페이지 링크 동적 바인딩.
-      // index.html에 작성된 실제 버튼 태그의 class/ID 명세에 맞추어 href를 덮어씀.
       // =====================================================================
-      // 1) "후기 목록 보기/이동" 버튼 (예: /reviews/grid/12/)
+      // 후기 목록 보기/이동 /reviews/grid/12/
       const reviewGoBtn =
         document.querySelector(".rightSB-reviewGoBtn") ||
         document.querySelector(".go-to-review-list");
@@ -694,7 +661,7 @@ refreshReviewSection(legalDongId, legalDongName);
         reviewGoBtn.setAttribute("href", `/reviews/grid/${legalDongId}/`);
       }
 
-      // 2) "후기 작성하기" 버튼 (예: /reviews/grid/12/create/)
+      // "후기 작성하기" 버튼  /reviews/grid/12/create/
       const reviewWriteBtn =
         document.querySelector(".rightSB-reviewWriteBtn") ||
         document.querySelector(".go-to-review-create");
@@ -706,7 +673,7 @@ refreshReviewSection(legalDongId, legalDongName);
       }
 
       // ====================================================
-      // 4. 사이드바 애니메이션 열기
+      // 사이드바 애니메이션 열기
       // ====================================================
       const sidebar = document.getElementById("rightSideBar-container");
       if (sidebar) {
@@ -714,7 +681,7 @@ refreshReviewSection(legalDongId, legalDongName);
       }
     })
     .catch((err) => {
-      console.error("🚨 API 통신 에러:", err);
+      console.error("API 통신 에러:", err);
       // 에러 시에도 동작은 하도록 방어 코드
       const regionTextEl = document.querySelector(".rightSB-regionText");
       if (regionTextEl) {
@@ -729,7 +696,7 @@ refreshReviewSection(legalDongId, legalDongName);
 };
 
 /// ==========================================
-/// 1. 상단 만족도 별점 표현 구현 (가상 데이터 렌더링, 실수 보정)
+/// 상단 만족도 별점 표현
 /// ==========================================
 function handleStarRating(nightScore, convenienceScore, atmosphereScore) {
   const scoreData = {
@@ -745,34 +712,31 @@ function handleStarRating(nightScore, convenienceScore, atmosphereScore) {
     );
     if (!container) return;
 
-    // 1. 빈 별 5개 생성
     let emptyStarsHTML = "";
     for (let i = 0; i < 5; i++) {
       emptyStarsHTML += `<img src="./components/rightSideBar/rightSB-images/emptyStar.svg" alt="빈별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
     }
 
-    // 2. 채워진 별 5개 생성
     let filledStarsHTML = "";
     for (let i = 0; i < 5; i++) {
       filledStarsHTML += `<img src="./components/rightSideBar/rightSB-images/filledStar.svg" alt="채워진별" style="width:16px !important; height:16px !important; flex-shrink:0 !important; margin:0 !important; padding:0 !important;" />`;
     }
 
-    // 3. [★ 핵심] 오차 없는 정밀 픽셀 계산 공식 ★
+    // 픽셀 계산
     const starWidth = 16; // 별 한 개의 너비 (px)
     const gapWidth = 11; // 별 사이 간격 (px)
 
-    const fullStars = Math.floor(score); // 꽉 찬 별의 개수 (예: 4.2점 -> 4개)
-    const partialStarRatio = score % 1; // 마지막 소수점 별의 비율 (예: 4.2점 -> 0.2)
+    const fullStars = Math.floor(score); // 꽉 찬 별의 개수
+    const partialStarRatio = score % 1; // 마지막 소수점 별의 비율
 
     let preciseWidth = 0;
 
     if (fullStars > 0) {
-      // 꽉 찬 별의 너비 + 그 사이의 간격값 더하기
+      // 꽉 찬 별의 너비 + 그 사이의 간격값
       preciseWidth += fullStars * starWidth + (fullStars - 1) * gapWidth;
     }
 
     if (partialStarRatio > 0) {
-      // 만약 소수점 점수가 있다면, (이전 별과의 간격 11px) + (마지막 별 너비 16px * 비율)을 더해줍니다.
       preciseWidth +=
         (fullStars > 0 ? gapWidth : 0) + partialStarRatio * starWidth;
     }
@@ -797,10 +761,10 @@ function handleStarRating(nightScore, convenienceScore, atmosphereScore) {
 }
 
 /// ==========================================
-/// 2. 동적 드롭다운/입력 폼 컴포넌트 초기화 및 독립 버튼 스위칭 제어
+/// 동적 드롭다운/입력 폼 컴포넌트 초기화 및 독립 버튼 스위칭 제어
 /// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-  // --- [A] 엘리먼트 수집 및 버튼 묶음 인덱싱 ---
+  // --- 엘리먼트 수집 및 버튼 묶음 인덱싱 ---
   const navMenus = document.querySelectorAll(".rightSB-navbar-menu");
   const indicator = document.querySelector(".rightSB-navbar-indicator");
   const tabContents = document.querySelectorAll(".rightSB-tabContent");
@@ -822,10 +786,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // 로그인 상태 체크 및 탭 제어 기능
   // ==========================================
   function checkAuthAndToggleTabs() {
-    // home.html의 <body data-authenticated="...">에 Django가
-    // request.user.is_authenticated를 그대로 내려주므로, 그 값을 읽는다.
-    // (예전엔 여기 하드코딩된 테스트 스위치가 있었는데, 실제 로그인 상태와
-    // 무관하게 값이 고정돼 있어서 로그인해도 잠금 화면이 안 사라졌었음)
     const isTokenExist = document.body.dataset.authenticated === "true";
 
     const contentContainer = document.querySelector(".rightSB-overlayWrapper");
@@ -849,23 +809,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- [B] 통합 버튼 상태 제어 함수 (로그아웃 반투명 배경 연동본) ---
+  // --- 통합 버튼 상태 제어 함수 (로그아웃 반투명 배경 연동본) ---
   function updateBottomButtons() {
     // 다 숨기기 초기화
     reviewListBtnGroup?.classList.add("rightSB-hide");
     qnaListBtnGroup?.classList.add("rightSB-hide");
     formSubmitBtnGroup?.classList.add("rightSB-hide");
 
-    // 로그아웃 블러 마스크가 켜져 있으면 버튼을 숨기지 말고, 기본
-    // '후기 작성하기 / 이 동네 찜하기' 버튼 1쌍을 뒤에 투명하게 노출해 줌.
+    // 로그아웃 블러 마스크 : 버튼 1쌍 뒤에 노출
     const isOverlayOn =
       document.querySelector(".rightSB-auth-overlay") !== null;
     if (isOverlayOn) {
-      reviewListBtnGroup?.classList.remove("rightSB-hide"); // 🔓 버튼 1쌍을 켜두어 마스크 뒤에 비치게 만듦!
+      reviewListBtnGroup?.classList.remove("rightSB-hide");
       return;
     }
 
-    // 아래는 로그인 상태일 때 원래 도는 로직 (그대로 유지)
     const activeTab = document.querySelector(
       ".rightSB-tabContent.rightSB-activeContent",
     );
@@ -885,8 +843,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   }
-  // top-level에 있는 openQuestionDetail() 같은 함수가 재사용할 수 있도록 노출
+
   window.__updateBottomButtons = updateBottomButtons;
+  // 로그인 성공 시 login.js가 새로고침 없이 잠금 오버레이를 다시 계산하도록 노출
+  window.__checkAuthAndToggleTabs = checkAuthAndToggleTabs;
 
   // 데이터 로드 및 초기화 트리거 순서 배치
   handleStarRating();
@@ -895,7 +855,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindAnswerSubmit();
   bindQnaSearch();
 
-  // --- [C] 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
+  // --- 상단 메인 내비게이션 바 이동 및 탭 콘텐츠 매핑 ---
   function updateIndicator(target) {
     if (!indicator || !target) return;
     indicator.style.transform = `translateX(${target.offsetLeft}px)`;
@@ -941,7 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => updateIndicator(activeMenu), 50);
   }
 
-  // --- [D] 다중 textarea 글자수 실시간 제한 규칙 ---
+  // --- 다중 textarea 글자수 실시간 제한 ---
   const reviewContainers = document.querySelectorAll(
     ".rightSB-reviewContentContainer",
   );
@@ -961,7 +921,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- [E] 사용자 직접 만족도 별점 호버/클릭 입력 구현 모듈 ---
+  // --- 사용자 직접 만족도 별점 호버/클릭 입력 구현 모듈 ---
   const RATING_COUNT = 5;
   const ratingContainers = document.querySelectorAll(".rightSB-rating");
 
@@ -1027,7 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateStars(currentRating);
   });
 
-  // --- [F] 서브페이지 라우팅 및 독립 버튼 유기적 매핑 ---
+  // --- 서브페이지 라우팅 및 독립 버튼 유기적 매핑 ---
   reviewListBtnGroup
     ?.querySelector(".go-to-review-form")
     ?.addEventListener("click", () => {
@@ -1094,16 +1054,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.querySelector(".rightSB-reviewCancleBtn")
     ?.addEventListener("click", backToMainList);
 
-  // --- [찜하기 기능] ---
-  // 예전엔 로컬 변수(isWished)만 토글하는 가짜 기능이라 실제로 아무 데도
-  // 저장되지 않았다. 마이페이지의 '찜한 동네' 탭이 실제 SavedGrid
-  // 데이터를 보여주므로, 이 버튼도 진짜 /accounts/grid/<id>/save/ 에
-  // POST해서 저장해야 마이페이지에 반영된다.
+  // --- 찜하기 기능 ---
+  // /accounts/grid/<id>/save/ 에 POST해서 저장
   document
     .querySelectorAll(".wish-btn, .rightSB-regionHeartImg")
     .forEach((btn) => {
       btn.addEventListener("click", () => {
-        const targetGridId = currentSidebarState.detailDongId || currentSidebarState.legalDongId;
+        const targetGridId =
+          currentSidebarState.detailDongId || currentSidebarState.legalDongId;
         if (!targetGridId) return;
 
         fetch(`/accounts/grid/${targetGridId}/save/`, {
@@ -1115,8 +1073,8 @@ document.addEventListener("DOMContentLoaded", () => {
         })
           .then((res) => {
             if (res.url.includes("/accounts/login/")) {
-              // 비로그인 상태: 서버가 로그인 페이지로 redirect시킨 것.
-              // alert 대신 로그인 팝업을 띄운다.
+              // 비로그인 상태: 서버가 로그인 페이지로 redirect
+              // alert 대신 로그인 팝업
               openLoginPopup();
               return null;
             }
@@ -1145,7 +1103,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
           })
           .catch((err) => {
-            console.error("🚨 찜하기 처리 중 오류:", err);
+            console.error("찜하기 처리 중 오류:", err);
           });
       });
     });
@@ -1216,15 +1174,33 @@ document.addEventListener("DOMContentLoaded", () => {
         })
           .then((res) => {
             // accounts.decorators.verified_residence_required가 실거주지
-            // 인증이 안 됐거나 인증한 동네와 이 grid가 다르면 403으로 막는다.
+            // 인증이 안 됐거나 인증한 동네랑 grid가 다르면 403 호출
             if (res.status === 403) {
+              // 🎯 마이페이지에서 인증하고 돌아왔을 때 작성 중이던 내용을
+              // 그대로 복원할 수 있도록 sessionStorage에 임시 저장해둠.
+              // (아래 DOMContentLoaded 핸들러 끝의 restorePendingReview 참고)
+              try {
+                sessionStorage.setItem(
+                  "hereton_pendingReview",
+                  JSON.stringify({
+                    legalDongId,
+                    legalDongName: currentSidebarState.legalDongName,
+                    detailDongName: currentSidebarState.detailDongName,
+                    detailDongId: currentSidebarState.detailDongId,
+                    text,
+                    scores,
+                  }),
+                );
+              } catch (e) {
+                console.warn("작성 중이던 후기 임시 저장 실패:", e);
+              }
               throw new Error(
-                "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 해주세요.",
+                "실거주지 인증이 필요해요. 마이페이지에서 실거주지 인증을 하고 돌아오면 작성 중이던 후기가 그대로 남아있어요.",
               );
             }
             // 성공하면 서버가 reviews:list로 redirect하고, fetch가 그걸 따라가서
             // 최종 res.url이 .../create/ 없이 끝남. 폼 검증 실패 시엔 redirect 없이
-            // 같은 create 페이지(에러 포함)를 그대로 200으로 돌려준다.
+            // 같은 create 페이지(에러 포함)를 그대로 200으로 돌려줌
             const succeeded = res.ok && !res.url.includes("/create/");
             if (!succeeded) {
               throw new Error("입력값을 다시 확인해주세요 (등록 실패)");
@@ -1255,10 +1231,13 @@ document.addEventListener("DOMContentLoaded", () => {
             backToMainList();
 
             // 4. 방금 등록한 후기가 바로 리스트/만족도에 반영되도록 새로고침
-            refreshReviewSection(legalDongId, currentSidebarState.legalDongName);
+            refreshReviewSection(
+              legalDongId,
+              currentSidebarState.legalDongName,
+            );
           })
           .catch((err) => {
-            console.error("🚨 후기 등록 실패:", err);
+            console.error("후기 등록 실패:", err);
             alert(
               err.message ||
                 "후기 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
@@ -1310,7 +1289,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .then(() => {
             alert("질문이 성공적으로 등록되었습니다!");
 
-            // [Q&A 폼 초기화 코드 추가]
+            // Q&A 폼 초기화 코드
             // 1. 텍스트 영역 비우기 및 글자수 표기 리셋
             textarea.value = "";
             const charSpan = qnaFormSub.querySelector(
@@ -1324,7 +1303,7 @@ document.addEventListener("DOMContentLoaded", () => {
             refreshQnaSection(legalDongId);
           })
           .catch((err) => {
-            console.error("🚨 질문 등록 실패:", err);
+            console.error("질문 등록 실패:", err);
             alert(
               "질문 등록에 실패했어요. 로그인 상태와 입력값을 확인해주세요.",
             );
@@ -1355,13 +1334,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- [I]/[J] 후기·Q&A 새로고침/바인딩 함수는 파일 상단(top-level)으로 이동됨 ---
-  // (bindReviewLikeDelegation, refreshReviewSection, bindQnaCardDelegation,
-  //  openQuestionDetail, refreshQnaSection은 handleStarRating 근처 참고.
-  //  카드 마크업은 이제 Django 템플릿이 직접 렌더링하고, JS는 그 결과물의
-  //  HTML을 그대로 옮겨 붙이기만 함 — 값만 뽑아 재조립하지 않음)
   // 클릭 전 초기 상태는 빈 상태로 시작하고, 지도를 클릭하면
   // window.updateSidebarTitle -> refreshReviewSection / refreshQnaSection이
-  // 실제 데이터로 채워준다.
+  // 실제 데이터로 채워줌
 
   qnaDetailSub
     ?.querySelector(".rightSB-detailBackBtn")
@@ -1380,63 +1355,58 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // =====================================================================
-  // GPS 버튼(.mapOverlay-locationBtn)은 home.html에서 .rightSB-aside 바깥
-  // 형제로 빠져나와 있어서, 패널이 열리고/접힐 때 옆에 붙어서 같이 이동하려면 별도로
-  // 위치를 맞춰줘야 한다.
   // .rightSB-aside의 "open" 클래스와 #rightSideBar-container의 "sidebar-collapsed"
-  // 클래스는 kakaoMap.js/leftPanel.js/mapOverlay.js/rightSideBar.js 여러 곳에서
-  // 토글되고 있어서, 그 호출부를 전부 찾아 고치는 대신 MutationObserver로 두
-  // 요소의 class 변화를 감지해 이 한 곳에서만 GPS 버튼 위치를 다시 계산한다.
+  // 클래스는 여러 곳에서 그 호출부를 전부 찾아 고치는 대신 MutationObserver로 두
+  // 요소의 class 변화를 감지해 이 한 곳에서만 GPS 버튼 위치를 다시 계산함
   // =====================================================================
 
   //GPS 버튼 기능 구현
 
   const locBtn = document.querySelector(".mapOverlay-locationBtn");
-console.log("현재위치 버튼 찾음?:", locBtn); // null이면 셀렉터가 틀린 것
+  console.log("현재위치 버튼 찾음?:", locBtn); // null이면 셀렉터가 틀린 것
 
-locBtn?.addEventListener("click", () => {
-  console.log("버튼 클릭됨!");
+  locBtn?.addEventListener("click", () => {
+    console.log("버튼 클릭됨!");
 
-  if (!navigator.geolocation) {
-    alert("이 브라우저에서는 위치 기능을 사용할 수 없어요.");
-    return;
-  }
+    if (!navigator.geolocation) {
+      alert("이 브라우저에서는 위치 기능을 사용할 수 없어요.");
+      return;
+    }
 
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-      const map = window.map; // kakaoMap.js에서 window.map으로 노출됨
-      if (!map) {
-        console.error("지도 인스턴스를 아직 찾을 수 없습니다.");
-        alert("지도가 아직 준비되지 않았어요. 잠시 후 다시 시도해주세요.");
-        return;
-      }
+        const map = window.map; // kakaoMap.js에서 window.map으로 노출됨
+        if (!map) {
+          console.error("지도 인스턴스를 아직 찾을 수 없습니다.");
+          alert("지도가 아직 준비되지 않았어요. 잠시 후 다시 시도해주세요.");
+          return;
+        }
 
-      const moveLatLng = new kakao.maps.LatLng(lat, lng);
-      map.panTo(moveLatLng);
+        const moveLatLng = new kakao.maps.LatLng(lat, lng);
+        map.panTo(moveLatLng);
 
-      // 현재 위치 마커 표시 (원치 않으면 이 블록 삭제)
-      new kakao.maps.Marker({
-        position: moveLatLng,
-        map: map,
-      });
-    },
-    (err) => {
-      console.error("위치 정보를 가져오지 못했습니다:", err);
-      alert("위치 정보를 가져오지 못했어요. 위치 권한을 확인해주세요.");
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0,
-    },
-  );
-});
+        // 현재 위치 마커 표시
+        new kakao.maps.Marker({
+          position: moveLatLng,
+          map: map,
+        });
+      },
+      (err) => {
+        console.error("위치 정보를 가져오지 못했습니다:", err);
+        alert("위치 정보를 가져오지 못했어요. 위치 권한을 확인해주세요.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      },
+    );
+  });
 
-
-// =====================================================================
+  // =====================================================================
   (function initGpsButtonSync() {
     const gpsBtn = document.querySelector(".mapOverlay-locationBtn");
     const aside = document.querySelector(".rightSB-aside");
@@ -1451,11 +1421,11 @@ locBtn?.addEventListener("click", () => {
         // 패널이 한 번도 안 열린 상태 -> 기본 위치(오른쪽 상단 고정) 유지
         gpsBtn.classList.remove("rightSB-gpsShifted", "rightSB-gpsCollapsed");
       } else if (isCollapsed) {
-        // 패널이 열려있지만 접힌 상태(35px 탭만 보임) -> 그만큼만 이동
+        // 패널이 열려있지만 접힌 상태 -> 그만큼만 이동
         gpsBtn.classList.add("rightSB-gpsCollapsed");
         gpsBtn.classList.remove("rightSB-gpsShifted");
       } else {
-        // 패널이 완전히 펼쳐진 상태(545px) -> 패널 왼쪽에 딱 붙게 이동
+        // 패널이 완전히 펼쳐진 상태 -> 패널 왼쪽에 딱 붙게 이동
         gpsBtn.classList.add("rightSB-gpsShifted");
         gpsBtn.classList.remove("rightSB-gpsCollapsed");
       }
@@ -1471,17 +1441,17 @@ locBtn?.addEventListener("click", () => {
     syncGpsButtonPosition(); // 초기 상태 반영
   })();
 
-  // 1. 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
+  // 우측 사이드바 내부의 로그인 실행 버튼 타겟팅 (프로젝트 실제 클래스에 맞게 확인해줘!)
   const openLoginBtn = document.querySelector(".rightSB-auth-loginBtn");
 
   if (openLoginBtn) {
     openLoginBtn.addEventListener("click", (e) => {
       e.preventDefault(); // 기본 a태그 이동 기능 막기
-      openLoginPopup();   // 공용 함수로 팝업 열기
+      openLoginPopup(); // 공용 함수로 팝업 열기
     });
   }
 
-  // 7. 어두운 배경 클릭 시 팝업 닫기
+  // 어두운 배경 클릭 시 팝업 닫기
   const overlay = document.getElementById("loginPopupOverlay");
   if (overlay) {
     overlay.addEventListener("click", (e) => {
@@ -1491,9 +1461,7 @@ locBtn?.addEventListener("click", () => {
     });
   }
 
-  // components/rightSideBar/rightSideBar.js 내부 DOMContentLoaded 안쪽에 추가
-
-  // 우측 사이드바의 [점수 기준 보기] 버튼 타겟팅
+  // 우측 사이드바의 점수 기준 보기 버튼 타겟팅
   const openScoreInfoBtn = document.querySelector(
     ".rightSB-safetyScoreContainer button",
   );
@@ -1505,27 +1473,27 @@ locBtn?.addEventListener("click", () => {
       const overlay = document.getElementById("loginPopupOverlay");
       const contentBox = document.getElementById("loginPopupContent");
 
-      // 1. 외부 login.html 파일 가져오기 (점수 기준 보기가 포함되어 있음!)
+      // 외부 login.html 파일 가져오기 (점수 기준 보기 포함)
       fetch("./login/login.html")
         .then((response) => {
           if (!response.ok) throw new Error("네트워크 응답에 문제가 있습니다.");
           return response.text();
         })
         .then((htmlData) => {
-          // 2. 팝업 상자 안에 소스 삽입
+          // 팝업 상자 안에 소스 삽입
           contentBox.innerHTML = htmlData;
 
-          // 3. ⭐️ 점수 기준 보기 전용 규격(518px * 733px) 주입 및 노출
+          // 점수 기준 보기 전용 규격 주입 및 노출
           contentBox.style.width = "518px";
           contentBox.style.height = "733px";
           overlay.classList.remove("popup-hide");
 
-          // 4. ⭐️ 중요: HTML이 삽입된 직후 login.js에 추가할 점수 팝업 초기화 함수 실행!
+          // HTML이 삽입된 직후 login.js에 추가할 점수 팝업 초기화 함수 실행!
           if (typeof initScoreInfoEvent === "function") {
             initScoreInfoEvent();
           }
 
-          // 5. [X] 닫기 버튼 기능 결합
+          // 닫기 버튼
           const closeBtns = contentBox.querySelectorAll(".login-closeBtn img");
           closeBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
@@ -1538,4 +1506,85 @@ locBtn?.addEventListener("click", () => {
         );
     });
   }
+
+  // =====================================================================
+  // 🎯 실거주지 인증하러 갔다가 돌아왔을 때, 작성 중이던 후기를 복원.
+  // 위 [G] 등록하기 처리에서 403(미인증)을 받으면 sessionStorage에 저장해두고,
+  // 마이페이지에서 인증 후 다시 지도 페이지(이 스크립트)가 로드될 때 여기서
+  // 그 내용을 그대로 불러와 후기 작성 폼에 다시 채워준다.
+  // =====================================================================
+  (function restorePendingReview() {
+    const raw = sessionStorage.getItem("hereton_pendingReview");
+    if (!raw) return;
+    sessionStorage.removeItem("hereton_pendingReview"); // 한 번만 복원
+
+    let draft;
+    try {
+      draft = JSON.parse(raw);
+    } catch (e) {
+      return;
+    }
+    if (!draft || !draft.legalDongId) return;
+
+    // 1. 지도 클릭과 동일한 진입점으로 해당 동네 사이드바를 다시 연다.
+    if (typeof window.updateSidebarTitle === "function") {
+      window.updateSidebarTitle(
+        draft.detailDongName || draft.legalDongName,
+        draft.legalDongName,
+        draft.legalDongId,
+        draft.detailDongId || draft.legalDongId,
+      );
+    }
+
+    // 2. 후기 탭으로 전환 (기존 클릭 핸들러 재사용)
+    document
+      .querySelector(".rightSB-navbar-menu.rightSB-reviewSelected")
+      ?.click();
+
+    // 3. 탭 전환은 기본적으로 "목록" 화면을 보여주므로, 작성 폼으로 다시 전환
+    reviewListSub?.classList.add("rightSB-hide");
+    reviewFormSub?.classList.remove("rightSB-hide");
+    updateBottomButtons();
+
+    // 4. 작성 중이던 텍스트/글자수 복원
+    const textarea = reviewFormSub?.querySelector(".rightSB-reviewContent");
+    if (textarea && draft.text) {
+      textarea.value = draft.text;
+      const charSpan = reviewFormSub.querySelector(
+        ".rightSB-currentChars > span",
+      );
+      if (charSpan) charSpan.textContent = String(draft.text.length);
+    }
+
+    // 5. 만족도 별점 복원 (handleStarRating의 clip-path 계산과 동일한 로직)
+    if (draft.scores) {
+      Object.keys(draft.scores).forEach((type) => {
+        const score = draft.scores[type];
+        if (!score) return;
+        const box = document.querySelector(
+          `.rightSB-rating[data-type="${type}"]`,
+        );
+        if (!box) return;
+        box.setAttribute("data-score", score);
+        const stars = box.children;
+        for (let i = 0; i < stars.length; i++) {
+          const fillTarget = stars[i].querySelector(".rightSBstar-fill");
+          if (!fillTarget) continue;
+          const starIndex = i + 1;
+          let fillPercentage;
+          if (starIndex <= score) fillPercentage = 0;
+          else if (starIndex - score === 0.5) fillPercentage = 50;
+          else fillPercentage = 100;
+          fillTarget.style.clipPath = `inset(0 ${fillPercentage}% 0 0)`;
+          if (starIndex <= score) stars[i].classList.add("filled");
+          else stars[i].classList.remove("filled");
+        }
+      });
+    }
+
+    alert(
+      "실거주지 인증이 완료돼서, 작성 중이던 후기를 다시 불러왔어요. 확인하고 등록해주세요!",
+    );
+  })();
+
 });
