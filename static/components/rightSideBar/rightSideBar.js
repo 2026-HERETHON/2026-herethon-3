@@ -352,7 +352,7 @@ function openQuestionDetail(questionId) {
   const ansContainer = document.getElementById("qnaAnswerContainer");
   const ansCountEl = document.getElementById("qnaDetailAnsCount");
 
-  fetch(`/qna/question/${questionId}/`)
+  fetch(`/qna/question/${questionId}/?fragment=1`)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`질문 상세 fetch 실패 (상태코드 ${res.status})`);
