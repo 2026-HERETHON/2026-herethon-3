@@ -1,7 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-<head><title>{{ grid.dong }} 후기</title></head>
+<head>
+  <title>{{ grid.dong }} 후기</title>
+  <link rel="stylesheet" href="{% static 'reviews/reviewCompleteModal.css' %}" />
+</head>
 <body data-grid-id="{{ grid.id }}" data-is-saved="{% if is_saved %}true{% else %}false{% endif %}">
   <h2>{{ grid.dong }} 실거주 후기</h2>
   <!-- 찜하기 버튼 -->
@@ -143,5 +146,7 @@
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
   </script>
+  <script src="{% static 'reviews/reviewCompleteModal.js' %}">
+    </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* 기본 여백 초기화 및 기본 스타일 설정함 */
 /* 예전엔 독립 페이지라 *, body에 걸어도 안전했는데, 이제 home.html의
-   다른 탭과 페이지를 공유하므로 .commercial-container 스코프로 좁혀둠. */
+   다른 탭과 페이지를 공유하므로 .commercial-container 스코프로 좁혀둠 */
 .commercial-container,
 .commercial-container * {
   margin: 0;

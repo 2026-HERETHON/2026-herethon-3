@@ -1,0 +1,46 @@
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal-card {
+  position: relative; width: 320px; max-width: calc(100vw - 40px);
+  background: #fff; border-radius: 16px;
+  padding: 32px 28px 28px; text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  animation: modalPop 0.25s ease;
+}
+@keyframes modalPop {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.modal-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 28px; height: 28px; border: none;
+  background: transparent; color: #9ca3af;
+  font-size: 22px; line-height: 1; cursor: pointer;
+}
+.modal-close:hover { color: #4b5563; }
+.modal-icon {
+  width: 88px; height: 88px; margin: 8px auto 20px;
+  border-radius: 50%; background: #E6F1FB;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-title {
+  font-size: 20px; font-weight: 600; margin: 0 0 8px;
+  color: #1f2937; line-height: 1.4;
+}
+.modal-title span { color: #378ADD; }
+.modal-desc {
+  font-size: 13px; color: #6b7280;
+  margin: 0 0 24px; line-height: 1.6;
+}
+.modal-btn-primary {
+  width: 100%; height: 46px; border: none; border-radius: 10px;
+  background: #1077FF;
+  color: #fff;
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
